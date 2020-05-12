@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+  </head>
+  <body onload="initHome()">
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/g/stealth/resource/js/three.min.js"></script>
+    <script src="/g/stealth/resource/js/GLTFLoader.js"></script>
+
+    <script src="/g/stealth/resource/js/addScene.js"></script>
+
+    <script type="text/javascript">
+    var socket = io();
+
+    var pressedKeys = {
+      w: false,
+      s: false,
+      d: false,
+      a: false,
+      hnum1: false
+    };
+
+    var maxCountStep = 30;
+    var countStep = maxCountStep-1;
+    var speedPlayers = 0.5;
+    var movePlayers = function() {
+      for (var i = 0; i < objects.length; i++) {
+        if (objects[i] && objects[i].tag == 'player') {
+          if (isPlayerIntoNoneGhostObj(objects[i], {x: objects[i].sceneObj.position.x+objects[i].speed.x*speedPlayers, y: objects[i].sceneObj.position.y+objects[i].speed.y*speedPlayers})) {
+            if (!isPlayerIntoNoneGhostObj(objects[i], {x: objects[i].sceneObj.position.x+objects[i].speed.x*speedPlayers, y: objects[i].sceneObj.position.y})) {
+              objects[i].speed.x = objects[i].speed.x;
+              objects[i].speed.y = 0;
+            } else if (!isPlayerIntoNoneGhostObj(objects[i], {x: objects[i].sceneObj.position.x, y: objects[i].sceneObj.position.y+objects[i].speed.y*speedPlayers})) {
+              objects[i].speed.x = 0;
+              objects[i].speed.y = objects[i].speed.y;
+            } else {
+              objects[i].speed.x = 0;
+              objects[i].speed.y = 0;
+            }
+          }
+
+          objects[i].coord.x += objects[i].speed.x*speedPlayers;
+          objects[i].coord.y += objects[i].speed.y*speedPlayers;
+
+          objects[i].sceneObj.position.x += objects[i].speed.x*speedPlayers;
+          objects[i].sceneObj.position.y += objects[i].speed.y*speedPlayers;
+
+          if (objects[i].id == idObjMyPlayer) {
+            camera.position.x = objects[i].coord.x;
+            camera.position.y = objects[i].coord.y;
+
+            eyesLight.position.x = objects[i].coord.x;
+            eyesLight.position.y = objects[i].coord.y;
+
+            targetEyesLight.position.x += objects[i].speed.x*speedPlayers;
+            targetEyesLight.position.y += objects[i].speed.y*speedPlayers;
+
+            showOtherPlayers();
+
+            if (countStep == maxCountStep) {
+              socket.emit('sendAddObjectsS', [{
+                tag: 'circle',
+                coord: objects[i].coord
+              }]);
+              countStep = 0;
+            }
+            if (objects[i].speed.x != 0 || objects[i].speed.y != 0) {countStep++;}
+
+          }
+
+          setAnimationPlayer(objects[i]);
+
+          addSizeCirclesStep();
+        }
+      }
+    };
+
+    var addSizeCirclesStep = function() {
+      for (i in objects) {
+        if (objects[i].tag == "circle") {
+          if (objects[i].sceneObj.scale.x >= 3) {
+            scene.remove(objects[i].sceneObj);
+            continue;
+          }
+          objects[i].sceneObj.scale.x += 0.03;
+          objects[i].sceneObj.scale.y += 0.03;
+          var range = Math.sqrt(Math.pow(objects[idObjMyPlayer].coord.x-objects[i].coord.x, 2)+Math.pow(objects[idObjMyPlayer].coord.y-objects[i].coord.y, 2));
+          if (range <= 10*objects[i].sceneObj.scale.x) {
+            objects[i].sceneObj.visible = true;
+          } else if (range >= 10*objects[i].sceneObj.scale.x) {
+            objects[i].sceneObj.visible = false;
+          }
+        }
+      }
+    };
+
+    var isPlayerIntoNoneGhostObj = function(player, point) {
+      var sizePlayer = {w: 2, h: 2, d: 5};
+      for (var i = 0; i < objects.length; i++) {
+        if (objects[i] && objects[i].ghostMode == "2") {
+          if ( (point.x-sizePlayer.w/2 >= objects[i].sceneObj.position.x-objects[i].size.w/2 && point.x-sizePlayer.w/2 <= objects[i].sceneObj.position.x+objects[i].size.w/2) || (point.x+sizePlayer.w/2 >= objects[i].sceneObj.position.x-objects[i].size.w/2 && point.x+sizePlayer.w/2 <= objects[i].sceneObj.position.x+objects[i].size.w/2) || (objects[i].sceneObj.position.x-objects[i].size.w/2 >= point.x-sizePlayer.w/2 && objects[i].sceneObj.position.x-objects[i].size.w/2 <= point.x+sizePlayer.w/2) || (objects[i].sceneObj.position.x+objects[i].size.w/2 >= point.x-sizePlayer.w/2 && objects[i].sceneObj.position.x+objects[i].size.w/2 <= point.x+sizePlayer.w/2) ) {
+            if ( (point.y-sizePlayer.h/2 >= objects[i].sceneObj.position.y-objects[i].size.h/2 && point.y-sizePlayer.h/2 <= objects[i].sceneObj.position.y+objects[i].size.h/2) || (point.y+sizePlayer.h/2 >= objects[i].sceneObj.position.y-objects[i].size.h/2 && point.y+sizePlayer.h/2 <= objects[i].sceneObj.position.y+objects[i].size.h/2) || (objects[i].sceneObj.position.y-objects[i].size.h/2 >= point.y-sizePlayer.h/2 && objects[i].sceneObj.position.y-objects[i].size.h/2 <= point.y+sizePlayer.h/2) || (objects[i].sceneObj.position.y+objects[i].size.h/2 >= point.y-sizePlayer.h/2 && objects[i].sceneObj.position.y+objects[i].size.h/2 <= point.y+sizePlayer.h/2) ) {
+              return true;
+            }
+          }
+        }
+      }
+      return false;
+    };
+
+    var showOtherPlayers = function() {
+      for (var i = 0; i < objects.length; i++) {
+        if (objects[i] && i != idObjMyPlayer && objects[i].tag == "player") {
+          var range = Math.sqrt(Math.pow(objects[idObjMyPlayer].coord.x-objects[i].coord.x, 2)+Math.pow(objects[idObjMyPlayer].coord.y-objects[i].coord.y, 2));
+          if (range < 50) {
+            var myAngle = objects[idObjMyPlayer].sceneObj.rotation.y;
+            if (myAngle >= 0 && myAngle < Math.PI/2) {
+              myAngle += Math.PI*3/2;
+            } else if (myAngle >= Math.PI/2 && myAngle <= Math.PI*3/2) {
+              myAngle -= Math.PI/2;
+            } else if (myAngle < 0) {
+              myAngle = Math.PI*3/2-Math.abs(myAngle);
+            }
+
+            var angleOther = Math.atan(Math.abs(objects[idObjMyPlayer].coord.y-objects[i].coord.y)/Math.abs(objects[idObjMyPlayer].coord.x-objects[i].coord.x));
+            if (objects[i].coord.x <= objects[idObjMyPlayer].coord.x && objects[i].coord.y >= objects[idObjMyPlayer].coord.y) {
+              angleOther = Math.PI-angleOther;
+            } else if (objects[i].coord.x <= objects[idObjMyPlayer].coord.x && objects[i].coord.y <= objects[idObjMyPlayer].coord.y) {
+              angleOther = Math.PI+angleOther;
+            } else if (objects[i].coord.x >= objects[idObjMyPlayer].coord.x && objects[i].coord.y <= objects[idObjMyPlayer].coord.y) {
+              angleOther = 2*Math.PI-angleOther;
+            }
+
+            if (Math.abs(myAngle-angleOther) < Math.PI/4 || 2*Math.PI-Math.abs(myAngle-angleOther) < Math.PI/4) {
+              if (!isBetweenObject(objects[idObjMyPlayer].coord, objects[i].coord)) {
+                objects[i].sceneObj.visible = true;
+              } else {
+                objects[i].sceneObj.visible = false;
+              }
+            } else {
+              objects[i].sceneObj.visible = false;
+            }
+          } else {
+            objects[i].sceneObj.visible = false;
+          }
+        }
+      }
+    };
+
+    var isBetweenObject = function(p1, p2) {
+      var step = 0.5;
+      var length = Math.sqrt(Math.pow(p2.x-p1.x, 2)+Math.pow(p2.y-p1.y, 2));
+      var steps = length/step;
+      var angle = Math.atan(Math.abs(p1.y-p2.y)/Math.abs(p1.x-p2.x));
+      var dx = step*Math.cos(angle);
+      var dy = step*Math.sin(angle);
+      if (p2.x <= p1.x && p2.y >= p1.y) {
+        dx = -dx;
+      } else if (p2.x <= p1.x && p2.y <= p1.y) {
+        dx = -dx;
+        dy = -dy;
+      } else if (p2.x >= p1.x && p2.y <= p1.y) {
+        dy = -dy;
+      }
+      for (var i = 0; i < steps; i++) {
+        if (isPointInsideObjectUnvisible({x: p1.x+i*dx, y: p1.y+i*dy})) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    var isPointInsideObjectUnvisible = function(point) {
+      for (var i in objects) {
+        if (objects[i].visibleThrough != "undefined" && objects[i].visibleThrough == false) {
+          if (point.x > objects[i].sceneObj.position.x-objects[i].size.w/2 && point.x < objects[i].sceneObj.position.x+objects[i].size.w/2) {
+            if (point.y > objects[i].sceneObj.position.y-objects[i].size.h/2 && point.y < objects[i].sceneObj.position.y+objects[i].size.h/2) {
+              return true;
+            }
+          }
+        }
+      }
+      return false;
+    };
+
+    var sendMove = function() {
+      if (pressedKeys.w && !pressedKeys.s) {
+        socket.emit('sendChgSpeedPlayerS', idObjMyPlayer, null, 1);
+      }
+      if (!pressedKeys.w && pressedKeys.s) {
+        socket.emit('sendChgSpeedPlayerS', idObjMyPlayer, null, -1);
+      }
+      if ((!pressedKeys.w && !pressedKeys.s) || (pressedKeys.w && pressedKeys.s)) {
+        socket.emit('sendChgSpeedPlayerS', idObjMyPlayer, null, 0);
+      }
+      if (pressedKeys.d && !pressedKeys.a) {
+        socket.emit('sendChgSpeedPlayerS', idObjMyPlayer, 1, null);
+      }
+      if (!pressedKeys.d && pressedKeys.a) {
+        socket.emit('sendChgSpeedPlayerS', idObjMyPlayer, -1, null);
+      }
+      if ((!pressedKeys.d && !pressedKeys.a) || (pressedKeys.d && pressedKeys.a)) {
+        socket.emit('sendChgSpeedPlayerS', idObjMyPlayer, 0, null);
+      }
+    };
+
+    var objects = [];
+
+    var idObjMyPlayer = null;
+    function respawn(coords) {
+      var coordSpawn = {
+        x: Math.round(getRandom(-50, 50)),
+        y: Math.round(getRandom(-50, 50))
+      };
+      camera.position.x = coordSpawn.x;
+      camera.position.y = coordSpawn.y;
+      socket.emit('sendAddObjectsS', [{
+        tag: 'player',
+        coord: coordSpawn,
+        speed: {x: 0, y: 0}
+      }], 'me');
+    }
+
+    function getRandom(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    var setSizeWindow = function() {
+      document.body.style.width = window.innerWidth+"px";
+      document.body.style.height = window.innerHeight+"px";
+      renderer.setSize(window.innerWidth-10, window.innerHeight-10);
+      camera.aspect = (window.innerWidth-10)/(window.innerHeight-10);
+      camera.updateProjectionMatrix();
+    };
+
+    var setAnimationPlayer = function(obj) {
+      if (obj.speed.x == 0 && obj.speed.y == 0 && obj.activeAnimation != 'Standing') {
+        obj.mixer.stopAllAction();
+        obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'Standing')).play();
+        obj.activeAnimation = 'Standing';
+      } else if (obj.speed.x != 0 || obj.speed.y != 0) {
+
+        var directionKey = 0;
+        if (obj.speed.x > 0 && obj.speed.y == 0) {
+          directionKey = 1;
+        } else if (obj.speed.x > 0 && obj.speed.y > 0) {
+          directionKey = 2;
+        } else if (obj.speed.x == 0 && obj.speed.y > 0) {
+          directionKey = 3;
+        } else if (obj.speed.x < 0 && obj.speed.y > 0) {
+          directionKey = 4;
+        } else if (obj.speed.x < 0 && obj.speed.y == 0) {
+          directionKey = 5;
+        } else if (obj.speed.x < 0 && obj.speed.y < 0) {
+          directionKey = 6;
+        } else if (obj.speed.x == 0 && obj.speed.y < 0) {
+          directionKey = 7;
+        } else if (obj.speed.x > 0 && obj.speed.y < 0) {
+          directionKey = 8;
+        }
+
+        if (obj.activeAnimation != 'Forward' && obj.lookingDirect == directionKey) {
+          obj.mixer.stopAllAction();
+          obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'Forward')).play();
+          obj.activeAnimation = 'Forward';
+        } else if (obj.activeAnimation != 'ForwardRight' && (obj.lookingDirect-directionKey == 1 || obj.lookingDirect-directionKey == -7)) {
+          obj.mixer.stopAllAction();
+          obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'ForwardRight')).play();
+          obj.activeAnimation = 'ForwardRight';
+        } else if (obj.activeAnimation != 'ForwardLeft' && (obj.lookingDirect-directionKey == -1 || obj.lookingDirect-directionKey == 7)) {
+          obj.mixer.stopAllAction();
+          obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'ForwardLeft')).play();
+          obj.activeAnimation = 'ForwardLeft';
+        } else if (obj.activeAnimation != 'Back' && Math.abs(obj.lookingDirect-directionKey) == 4) {
+          obj.mixer.stopAllAction();
+          obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'Back')).play();
+          obj.activeAnimation = 'Back';
+        } else if (obj.activeAnimation != 'BackRight' && (obj.lookingDirect-directionKey == -5 || obj.lookingDirect-directionKey == 3 )) {
+          obj.mixer.stopAllAction();
+          obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'BackRight')).play();
+          obj.activeAnimation = 'BackRight';
+        } else if (obj.activeAnimation != 'BackLeft' && (obj.lookingDirect-directionKey == -3 || obj.lookingDirect-directionKey == 5)) {
+          obj.mixer.stopAllAction();
+          obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'BackLeft')).play();
+          obj.activeAnimation = 'BackLeft';
+        } else if (obj.activeAnimation != 'Right' && (obj.lookingDirect-directionKey == 2 || obj.lookingDirect-directionKey == -6)) {
+          obj.mixer.stopAllAction();
+          obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'Right')).play();
+          obj.activeAnimation = 'Right';
+        } else if (obj.activeAnimation != 'Left' && (obj.lookingDirect-directionKey == -2 || obj.lookingDirect-directionKey == 6)) {
+          obj.mixer.stopAllAction();
+          obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'Left')).play();
+          obj.activeAnimation = 'Left';
+        }
+
+      }
+    };
+
+    var keyDownHome = function(e) {
+      switch (e.code) {
+        case 'Digit1':
+          if (!pressedKeys.hnum1) {
+            pressedKeys.hnum1 = true;
+            switchSearchGame();
+          }
+          break;
+      }
+    };
+
+    var keyUpHome = function(e) {
+      switch (e.code) {
+        case 'Digit1':
+          if (pressedKeys.hnum1) {
+            pressedKeys.hnum1 = false;
+          }
+          break;
+      }
+    };
+
+    var keyDownGame = function(e) {
+      switch (e.code) {
+        case 'KeyW':
+          if (!pressedKeys.w) {
+            pressedKeys.w = true;
+          }
+          break;
+        case 'KeyD':
+          if (!pressedKeys.d) {
+            pressedKeys.d = true;
+          }
+          break;
+        case 'KeyS':
+          if (!pressedKeys.s) {
+            pressedKeys.s = true;
+          }
+          break;
+        case 'KeyA':
+          if (!pressedKeys.a) {
+            pressedKeys.a = true;
+          }
+          break;
+      }
+      sendMove();
+    };
+
+    var keyUpGame = function(e) {
+      switch (e.code) {
+        case 'KeyW':
+          if (pressedKeys.w) {
+            pressedKeys.w = false;
+          }
+          break;
+        case 'KeyD':
+          if (pressedKeys.d) {
+            pressedKeys.d = false;
+          }
+          break;
+        case 'KeyS':
+          if (pressedKeys.s) {
+            pressedKeys.s = false;
+          }
+          break;
+        case 'KeyA':
+          if (pressedKeys.a) {
+            pressedKeys.a = false;
+          }
+          break;
+      }
+      sendMove();
+    };
+
+    var rotateMe = function(e) {
+      var mouse = {
+        x: e.pageX,
+        y: e.pageY
+      }
+      var center = {
+        x: window.innerWidth/2,
+        y: window.innerHeight/2
+      }
+      var angle = Math.atan(Math.abs(center.y-mouse.y)/Math.abs(center.x-mouse.x));
+
+      if (mouse.x > center.x && mouse.y < center.y) {
+        // quater 1
+        targetEyesLight.position.x = objects[idObjMyPlayer].coord.x+Math.cos(angle);
+        targetEyesLight.position.y = objects[idObjMyPlayer].coord.y+Math.sin(angle);
+
+        objects[idObjMyPlayer].sceneObj.rotation.y = angle+Math.PI/2;
+        if (angle <= Math.PI/6) {
+          objects[idObjMyPlayer].lookingDirect = 1;
+        } else if (angle > Math.PI/6 && angle < 2*Math.PI/6) {
+          objects[idObjMyPlayer].lookingDirect = 2;
+        } else if (angle >= 2*Math.PI/6) {
+          objects[idObjMyPlayer].lookingDirect = 3;
+        }
+      } else if (mouse.x < center.x && mouse.y < center.y) {
+        // quater 2
+        targetEyesLight.position.x = objects[idObjMyPlayer].coord.x-Math.cos(angle);
+        targetEyesLight.position.y = objects[idObjMyPlayer].coord.y+Math.sin(angle);
+
+        objects[idObjMyPlayer].sceneObj.rotation.y = Math.PI-angle+Math.PI/2;
+        if (angle <= Math.PI/6) {
+          objects[idObjMyPlayer].lookingDirect = 5;
+        } else if (angle > Math.PI/6 && angle < 2*Math.PI/6) {
+          objects[idObjMyPlayer].lookingDirect = 4;
+        } else if (angle >= 2*Math.PI/6) {
+          objects[idObjMyPlayer].lookingDirect = 3;
+        }
+      } else if (mouse.x < center.x && mouse.y > center.y) {
+        // quater 3
+        targetEyesLight.position.x = objects[idObjMyPlayer].coord.x-Math.cos(angle);
+        targetEyesLight.position.y = objects[idObjMyPlayer].coord.y-Math.sin(angle);
+
+        objects[idObjMyPlayer].sceneObj.rotation.y = -(Math.PI-angle)+Math.PI/2;
+        if (angle <= Math.PI/6) {
+          objects[idObjMyPlayer].lookingDirect = 5;
+        } else if (angle > Math.PI/6 && angle < 2*Math.PI/6) {
+          objects[idObjMyPlayer].lookingDirect = 6;
+        } else if (angle >= 2*Math.PI/6) {
+          objects[idObjMyPlayer].lookingDirect = 7;
+        }
+      } else if (mouse.x > center.x && mouse.y > center.y) {
+        // quater 4
+        targetEyesLight.position.x = objects[idObjMyPlayer].coord.x+Math.cos(angle);
+        targetEyesLight.position.y = objects[idObjMyPlayer].coord.y-Math.sin(angle);
+
+        objects[idObjMyPlayer].sceneObj.rotation.y = -angle+Math.PI/2;
+        if (angle <= Math.PI/6) {
+          objects[idObjMyPlayer].lookingDirect = 1;
+        } else if (angle > Math.PI/6 && angle < 2*Math.PI/6) {
+          objects[idObjMyPlayer].lookingDirect = 8;
+        } else if (angle >= 2*Math.PI/6) {
+          objects[idObjMyPlayer].lookingDirect = 7;
+        }
+      }
+
+      socket.emit('rotatePlayerS', idObjMyPlayer, objects[idObjMyPlayer].sceneObj.rotation.y, objects[idObjMyPlayer].lookingDirect);
+    };
+
+    var update = function() {
+      movePlayers();
+      for (i in objects) {
+        if (objects[i].mixer) {
+          objects[i].mixer.update(deltaClock);
+        }
+      }
+    };
+
+    var render = function() {
+      renderer.render(scene, camera);
+    };
+
+    var clock = new THREE.Clock();
+    var deltaClock = 0;
+    var loop = function() {
+      requestAnimationFrame(loop);
+
+      deltaClock = clock.getDelta();
+
+      update();
+      render();
+    };
+
+    var switchSearchGame = function() {
+      var textDom = document.getElementById('textSearchingGame');
+      if (textDom.getAttribute('searching') == "false") {
+        textDom.setAttribute('searching', true);
+        textDom.innerHTML = 'press 1 to cancel searching';
+        socket.emit('switchSearchingGameS');
+      } else if (textDom.getAttribute('searching') == "true") {
+        textDom.setAttribute('searching', false);
+        textDom.innerHTML = 'press 1 to search game';
+        socket.emit('switchSearchingGameS');
+      }
+    };
+
+    var initHome = function() {
+      clearGame();
+
+      document.body.style.backgroundColor = '#ffffff';
+
+      var guiHomeDom = document.createElement('div');
+      guiHomeDom.setAttribute('id', 'guiHome');
+      document.body.appendChild(guiHomeDom);
+
+      var textDom = document.createElement('div');
+      textDom.setAttribute('searching', false);
+      textDom.setAttribute('id', 'textSearchingGame');
+      textDom.innerHTML = 'press 1 to search game';
+      document.getElementById('guiHome').appendChild(textDom);
+
+      //+Listeners home
+      window.addEventListener("keydown", keyDownHome);
+      window.addEventListener("keyup", keyUpHome);
+      //-Listeners home
+    };
+    var clearHome = function() {
+      document.getElementById('guiHome').remove();
+
+      window.removeEventListener("keydown", keyDownHome);
+      window.removeEventListener("keyup", keyUpHome);
+    };
+
+    var scene, camera, renderer, eyesLight, targetEyesLight;
+    var initGame = function() {
+    clearHome();
+
+    scene = new THREE.Scene();
+
+    camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 1, 1000);
+    camera.position.z = 80;
+    scene.add(camera);
+
+    renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+		renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+		// renderer.outputEncoding = THREE.sRGBEncoding;
+    var domObjRenderer = renderer.domElement;
+    domObjRenderer.setAttribute('id', 'gameCanvas');
+    domObjRenderer.style.marginLeft = '5px';
+    domObjRenderer.style.marginTop = '5px';
+    document.body.appendChild(domObjRenderer);
+    document.body.style.backgroundColor = '#000';
+    setSizeWindow();
+
+    var light = new THREE.AmbientLight(0xFFFFFF, 0.3);
+    scene.add(light);
+    // var light = new THREE.PointLight(0xFFFFFF, 0.3, 50);
+    // light.position.set(0, 0, 3);
+    scene.add(light);
+
+    targetEyesLight = new THREE.Object3D();
+    targetEyesLight.position.z = 0.5;
+    scene.add(targetEyesLight);
+    eyesLight = new THREE.SpotLight(0xFF0000, 2);
+    eyesLight.position.z = 0.5;
+		eyesLight.angle = Math.PI/4;
+		eyesLight.penumbra = 0;
+		eyesLight.decay = 1;
+		eyesLight.distance = 50;
+    eyesLight.castShadow = true;
+    eyesLight.target = targetEyesLight;
+    eyesLight.shadow.mapSize.width = 200;
+		eyesLight.shadow.mapSize.height = 200;
+		eyesLight.shadow.camera.near = 0.01;
+		eyesLight.shadow.camera.far = 200;
+    scene.add(eyesLight);
+    loop();
+
+    //+Listeners game
+    window.addEventListener("resize", setSizeWindow);
+    window.addEventListener("keydown", keyDownGame);
+    window.addEventListener("keyup", keyUpGame);
+    window.addEventListener("mousemove", rotateMe);
+    //-Listeners game
+    //+FPS
+    //javascript:(function(){var script=document.createElement('script');script.onload=function(){var stats=new Stats();document.body.appendChild(stats.dom);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop)});};script.src='//mrdoob.github.io/stats.js/build/stats.min.js';document.head.appendChild(script);})()
+    //-FPS
+    };
+    var clearGame = function() {
+      if (document.getElementById('gameCanvas')) {
+        document.getElementById('gameCanvas').remove();
+        scene.remove.apply(scene, scene.children);
+
+        window.removeEventListener("resize", setSizeWindow);
+        window.removeEventListener("keydown", keyDownGame);
+        window.removeEventListener("keyup", keyUpGame);
+        window.removeEventListener("mousemove", rotateMe);
+      }
+    };
+
+    //+listeners io
+    socket.on('startRoomS', function() {
+      initGame();
+      respawn();
+    });
+    socket.on('addObjectsS', function(arrObjects) {
+      for (var i = 0; i < arrObjects.length; i++) {
+        objects[arrObjects[i].id] = arrObjects[i];
+        addScene(arrObjects[i]);
+      }
+    });
+    socket.on('takeIdObjPlayerS', function(idObj) {
+      idObjMyPlayer = idObj;
+    });
+    var layoutRoom;
+    socket.on('takeLayoutS', function(layout) {
+      layoutRoom = layout;
+      console.log("layout: "+layoutRoom);
+    });
+    socket.on('chgSpeedPlayerS', function(idObj, speedx, speedy) {
+      if (speedx != null) {
+        objects[idObj].speed.x = speedx;
+      }
+      if (speedy != null) {
+        objects[idObj].speed.y = speedy;
+      }
+      if (idObj == idObjMyPlayer && objects[idObj].speed.x == 0 && objects[idObj].speed.y == 0) {
+        countStep = maxCountStep-1;
+      }
+    });
+    socket.on('updateCoordS', function() {
+      socket.emit('sendMyCoordToAllS', idObjMyPlayer, objects[idObjMyPlayer].coord);
+    });
+    socket.on('takeNewCoordPlayerS', function(idObj, coords) {
+      objects[idObj].coord = coords;
+      objects[idObj].sceneObj.position.x = coords.x;
+      objects[idObj].sceneObj.position.y = coords.y;
+    });
+    socket.on('takeNewRotatePlayerS', function(idObj, angle, direct) {
+      objects[idObj].sceneObj.rotation.y = angle;
+      objects[idObj].lookingDirect = direct;
+    });
+    socket.on('removePlayerS', function(idObj) {
+      scene.remove(objects[idObj].sceneObj);
+    });
+    socket.on('exitToHomeS', function() {
+      console.log('go to home');
+      initHome();
+    });
+    //-listeners io
+    </script>
+
+    <style>
+      body {
+        margin: 0px;
+        padding: 0px;
+        background-color: #fff;
+      }
+    </style>
+  </body>
+</html>

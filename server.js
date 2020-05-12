@@ -1,0 +1,1197 @@
+//filesystem
+const fs = require('fs');
+//filesystem---
+//mysql
+const mysql = require('mysql');
+//mysql---
+//mail
+const nodemailer = require('nodemailer');
+//mail---
+
+//http connect ------------------
+const express = require('express');
+var app = express();
+const http = require('http');
+var server = http.createServer(app);
+const io = require('socket.io').listen(server);
+
+var port = 80;
+server.listen(port);
+//end http connect --------------
+
+// //https connect ------------------
+//
+// const server = require('https');
+// const fs = require('fs');
+// const express = require('express');
+// const app = express();
+//
+// const options = {
+//     cert: fs.readFileSync('/etc/letsencrypt/live/gmer.io/fullchain.pem'),
+//     key: fs.readFileSync('/etc/letsencrypt/live/gmer.io/privkey.pem')
+// };
+// //express.listen(80);
+// var port = 443;
+// var serverIO = server.createServer(options, app);
+// serverIO.listen(port);
+//
+// //redirect to https
+// var http = require('http');
+// http.createServer(function (req, res) {
+//     res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
+//     res.end();
+// }).listen(80);
+//
+// var io = require('socket.io').listen(serverIO);
+//
+// //end https connect --------------
+
+app.get('/', function(request, respons) {
+  respons.sendFile(__dirname+'/games/cannons/index.html');
+});
+app.get('/g/*', function(request, respons) {
+  urlRequest = request.originalUrl;
+  var url = request.originalUrl.split("/");
+  if (url.length == 3) {
+    if (fs.existsSync(__dirname+'/games/'+url[2]+'/index.html')) {
+      respons.sendFile(__dirname+'/games/'+url[2]+'/index.html');
+    } else {
+      respons.status(404).send();
+    }
+  } else if (url.length > 3) {
+    var flagExistPage = false;
+    for (var i = url.length; i > 3; i--) {
+      var relativeURL = "";
+      for (var j = 3; j < i; j++) {
+        relativeURL += "/"+url[j];
+      }
+      if (fs.existsSync(__dirname+'/games/'+url[2]+'/pages'+relativeURL+'.html')) {
+        respons.sendFile(__dirname+'/games/'+url[2]+'/pages'+relativeURL+'.html');
+        flagExistPage = true;
+        break;
+      }
+    }
+
+    if (!flagExistPage) {
+      var relativeURL = "";
+      for (var i = 3; i < url.length; i++) {
+        relativeURL += "/"+url[i];
+      }
+      if (fs.existsSync(__dirname+'/games/'+url[2]+relativeURL)) {
+        respons.sendFile(__dirname+'/games/'+url[2]+relativeURL);
+      } else {
+        respons.status(404).send();
+      }
+    }
+  }
+});
+
+// app.use('/img', express.static('img'));
+// app.use('/resource', express.static('resource'));
+// app.use('/request', express.static('pages/request.html'));
+// app.use('/stats/:id', express.static('pages/stats.html'));
+// app.use('/design', express.static('pages/design.html'));
+app.use('/', function (req, res, next) {
+  res.redirect('/');
+});
+
+
+//start code fortress ----------------
+//crypt
+const crypto = require('crypto');
+const algorithm = 'aes-256-cbc';
+// const key = crypto.randomBytes(32);
+// const iv = crypto.randomBytes(16);
+const key = new Buffer([0x36, 0x1e, 0x5f, 0xc8, 0x64, 0x10, 0xe4, 0x0b, 0x33, 0x9a, 0x60, 0x0e, 0xbf, 0x8e, 0xc0, 0xa8, 0xc1, 0x41, 0xfc, 0x80, 0x51, 0x14, 0x18, 0xa9, 0x3b, 0x21, 0x2c, 0x01, 0x4a, 0xe6, 0x41, 0xa6]);
+const iv = new Buffer([0xbc, 0xc4, 0xca, 0xc2, 0x5a, 0xf0, 0xa7, 0x65, 0xdd, 0xc7, 0x4d, 0x4c, 0x40, 0x6a, 0x29, 0x1f]);
+function encrypt(text) {
+ let cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(key), iv);
+ let encrypted = cipher.update(text);
+ encrypted = Buffer.concat([encrypted, cipher.final()]);
+ // return { iv: iv.toString('hex'), encryptedData: encrypted.toString('hex') };
+ return iv.toString('hex')+"~~"+encrypted.toString('hex');
+}
+function decrypt(hash) {
+ var ivv = hash.split("~~")[0];
+ var data = hash.split("~~")[1];
+ let iv = Buffer.from(ivv, 'hex');
+ let encryptedText = Buffer.from(data, 'hex');
+ let decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(key), iv);
+ let decrypted = decipher.update(encryptedText);
+ decrypted = Buffer.concat([decrypted, decipher.final()]);
+ return decrypted.toString();
+}
+//crypt---
+
+var rooms = {};
+var players = {};
+
+function getRandomInt(max) {
+  return Math.floor(Math.random()*Math.floor(max));
+}
+
+function getID(length) {
+  var letters = "QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm1234567890-+";
+  var answer = "";
+  for (var i = 0; i < length; i++) {
+    answer += letters[getRandomInt(64)];
+  }
+  return answer;
+}
+
+function createRoom(idPlayer) {
+  var id = getID(10);
+  while (rooms[id]) {
+    id = getID(10);
+  }
+  rooms[id] = {player1: idPlayer, player2: 0}
+  players[idPlayer].status = 2;
+
+  io.to(idPlayer).emit('sendIdRoom', id);
+
+  console.log("");
+  console.log("create room: "+id);
+  console.log("");
+}
+
+function startRoom(idRoom) {
+  players[rooms[idRoom].player1].status = 3;
+  players[rooms[idRoom].player2].status = 3;
+  players[rooms[idRoom].player1].side = 1;
+  players[rooms[idRoom].player2].side = 2;
+
+  var data = {me: players[rooms[idRoom].player1], enemy: players[rooms[idRoom].player2], room: idRoom}
+  io.to(rooms[idRoom].player1).emit('sendNewData', data);
+  data = {me: players[rooms[idRoom].player2], enemy: players[rooms[idRoom].player1], room: idRoom}
+  io.to(rooms[idRoom].player2).emit('sendNewData', data);
+
+  console.log("");
+  console.log("start room: "+idRoom);
+  console.log("");
+}
+
+function abortRoom(idRoom) {
+  delete rooms[idRoom];
+  console.log("");
+  console.log("delete room: "+idRoom);
+  console.log("");
+}
+
+function exitToMenu(idPlayer) {
+  players[idPlayer] = {};
+  players[idPlayer].status = 0;
+  var data = {};
+  data.me = players[idPlayer];
+  data.enemy = {}
+  io.to(idPlayer).emit('sendNewData', data);
+}
+
+//search rooms
+setInterval(function() {
+  for (var i in players) {
+    if (players[i].status == 1) {
+      var flagFreeRoom = false;
+      for (var j in rooms) {
+        if (rooms[j].player1 == 0) {
+          rooms[j].player1 = i;
+          players[i].status = 2;
+          flagFreeRoom = true;
+          startRoom(j);
+        } else if (rooms[j].player2 == 0) {
+          rooms[j].player2 = i;
+          players[i].status = 2;
+          flagFreeRoom = true;
+          startRoom(j);
+        }
+      }
+      if (!flagFreeRoom) {
+        createRoom(i);
+      }
+    }
+  }
+}, 3000);
+//end code fortress ----------------
+
+
+//start code stealth ----------------
+var playersS = [];
+var roomsS = [];
+
+function getRandomS(min, max) {
+	return Math.random() * (max - min) + min;
+}
+
+function addObjectsS(idRoom, arrObj) {
+	for (var i = 0; i < arrObj.length; i++) {
+		roomsS[idRoom].objects[arrObj[i].id] = arrObj[i];
+	}
+
+	for (var i = 0; i < roomsS[idRoom].players.length; i++) {
+		io.to(roomsS[idRoom].players[i]).emit('addObjectsS', arrObj);
+	}
+}
+
+function removeFromArrayByDataS(arr, data) {
+	for (var i = 0; i < arr.length; i++) {
+		if (arr[i] == data) {
+			arr.splice(i, 1);
+			break;
+		}
+	}
+}
+
+function createRoomS(idCreator) {
+	roomsS[idCreator] = {
+		id: idCreator,
+		status: 'searchingPlayers',
+		players: [],
+		objects: []
+	};
+}
+
+
+function generateMapS(idRoom) {
+	var layout = Math.round(getRandomS(1,8));
+	//var layout = 3;
+
+	var objectsMap = require('./games/stealth/resource/js/objectsMap.js');
+
+	for (var i = 0; i < roomsS[idRoom].players.length; i++) {
+		io.to(roomsS[idRoom].players[i]).emit('takeLayoutS', layout);
+	}
+
+	addObjectsS(idRoom, objectsMap.getHall(roomsS[idRoom].objects.length));
+	addObjectsS(idRoom, objectsMap.getRestaurant(roomsS[idRoom].objects.length));
+	addObjectsS(idRoom, objectsMap.getRooms(roomsS[idRoom].objects.length));
+	addObjectsS(idRoom, objectsMap.getSecurity(roomsS[idRoom].objects.length));
+}
+
+function startRoomS(idRoom) {
+	console.log('start rooom '+idRoom);
+	roomsS[idRoom].status = 'playing';
+
+	for (var i = 0; i < roomsS[idRoom].players.length; i++) {
+		io.to(roomsS[idRoom].players[i]).emit('startRoomS');
+	}
+
+	generateMapS(idRoom);
+
+}
+
+var maxSizeRoom = 3;
+function addPlayerToRoomS(idPlayer) {
+	var flag = true;
+	for (i in roomsS) {
+		if (roomsS[i].status == 'searchingPlayers') {
+			roomsS[i].players[roomsS[i].players.length] = idPlayer;
+			playersS[idPlayer].idRoom = i;
+			flag = false;
+			if (roomsS[i].players.length == maxSizeRoom) {
+				startRoomS(i);
+			}
+			break;
+		}
+	}
+	if (flag) {
+		createRoomS(idPlayer);
+		roomsS[idPlayer].players[roomsS[idPlayer].players.length] = idPlayer;
+		playersS[idPlayer].idRoom = idPlayer;
+	}
+}
+
+function removePlayerFromRoomS(idPlayer) {
+	if (playersS[idPlayer].idRoom) {
+		var idRoom = playersS[idPlayer].idRoom;
+		if (roomsS[idRoom] && roomsS[idRoom].players.length > 1) {
+			removeFromArrayByDataS(roomsS[idRoom].players, idPlayer);
+
+			for (var i = 0; i < roomsS[idRoom].players.length; i++) {
+				io.to(roomsS[idRoom].players[i]).emit('removePlayerS', playersS[idPlayer].idObj);
+			}
+			delete roomsS[idRoom].objects[playersS[idPlayer]];
+
+			if (roomsS[idRoom].players.length < 2) {
+				io.to(roomsS[idRoom].players[0]).emit('exitToHomeS');
+				playersS[roomsS[idRoom].players[0]].idRoom = '';
+				playersS[roomsS[idRoom].players[0]].status = 'home';
+				playersS[roomsS[idRoom].players[0]].idObj = '';
+				delete roomsS[idRoom];
+			}
+		}
+	}
+}
+
+//synchronize
+setInterval(function() {
+	for (i in roomsS) {
+		if (roomsS[i].players && roomsS[i].status == 'playing') {
+			for (var j = 0; j < roomsS[i].players.length; j++) {
+				io.to(roomsS[i].players[j]).emit('updateCoordS');
+			}
+		}
+	}
+}, 5000);
+//end code stealth ----------------
+
+
+
+io.sockets.on('connection', function(socket) {
+
+
+  //start code fortress into socket ----------------
+  socket.on('updateMe', function(player) {
+    players[socket.id] = player;
+
+		//search room player
+		if (player.status == 0) {
+			for (i in rooms) {
+				if (rooms[i].player1 == socket.id || rooms[i].player2 == socket.id ) {
+					abortRoom(i);
+				}
+			}
+		}
+  });
+
+	socket.on('shoot', function(bullet, sideSource, idRoom) {
+		if (rooms[idRoom]) {
+			if (sideSource == 1) {
+				io.to(rooms[idRoom].player2).emit('sendShoot', bullet);
+			} else if (sideSource == 2) {
+				io.to(rooms[idRoom].player1).emit('sendShoot', bullet);
+			}
+		}
+  });
+
+  socket.on('changeAngle', function(cannon, sideSource, idRoom) {
+		if (rooms[idRoom]) {
+			if (sideSource == 1) {
+				io.to(rooms[idRoom].player2).emit('sendChangeAngle', cannon);
+			} else if (sideSource == 2) {
+				io.to(rooms[idRoom].player1).emit('sendChangeAngle', cannon);
+			}
+		}
+  });
+
+	socket.on('imready', function(idRoom, sideSource, sign) {
+		if (rooms[idRoom]) {
+			if (sideSource == 1) {
+				io.to(rooms[idRoom].player2).emit('sendReady', sign);
+			} else if (sideSource == 2) {
+				io.to(rooms[idRoom].player1).emit('sendReady', sign);
+			}
+		}
+  });
+
+	socket.on('startGame', function(idRoom) {
+		if (rooms[idRoom]) {
+			io.to(rooms[idRoom].player1).emit('sendStartGame');
+			io.to(rooms[idRoom].player2).emit('sendStartGame');
+		}
+  });
+
+	socket.on('showMyBuilding', function(idRoom, sideSource, obj) {
+		if (rooms[idRoom]) {
+			if (sideSource == 1) {
+				io.to(rooms[idRoom].player2).emit('sendBuildingEnemy', obj);
+			} else if (sideSource == 2) {
+				io.to(rooms[idRoom].player1).emit('sendBuildingEnemy', obj);
+			}
+		}
+  });
+
+	socket.on('changeTurn', function(idRoom) {
+		if (rooms[idRoom]) {
+			io.to(rooms[idRoom].player1).emit('sendChangeTurn');
+			io.to(rooms[idRoom].player2).emit('sendChangeTurn');
+		}
+  });
+
+	socket.on('finishGame', function(idRoom, data) {
+		if (rooms[idRoom]) {
+			io.to(rooms[idRoom].player1).emit('sendWinner', data);
+			io.to(rooms[idRoom].player2).emit('sendWinner', data);
+			abortRoom(idRoom);
+		}
+  });
+
+	socket.on('exitToMenu', function() {
+			exitToMenu(socket.id);
+  });
+
+	socket.on('startRoomBot', function(idRoom) {
+		var bot = {status: 3, bot: true};
+		players[socket.id].status = 3;
+		players[socket.id].side = getRandomInt(2)+1;
+		if (players[socket.id].side == 1) {
+			bot.side = 2;
+		} else if (players[socket.id].side == 2) {
+			bot.side = 1;
+		}
+
+		var data = {me: players[socket.id], enemy: bot, room: idRoom}
+		io.to(socket.id).emit('sendNewData', data);
+
+		console.log("");
+		console.log("start bot room: "+idRoom);
+		console.log("");
+  });
+
+  socket.on('getOnline', function() {
+    var length = Object.keys(players).length;
+		io.to(socket.id).emit('sendOnline', length);
+  });
+
+  socket.on('getEmail', function(email) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+
+    connection.connect(function(err) {
+      //if (err) throw err;
+      connection.query("SELECT * FROM users", function (err, result, fields) {
+        //if (err) throw err;
+        var flag = true;
+        for (i in result) {
+          if (result[i].email == email) {
+            io.to(socket.id).emit('sendServerSignEmail', true, result[i].confirm, result[i].email);
+            flag = false;
+            break;
+          }
+        }
+        if (flag) {
+          io.to(socket.id).emit('sendServerSignEmail', false, false, email);
+        }
+      });
+			setTimeout(function() {
+					connection.end();
+			}, 1500);
+    });
+  });
+
+  socket.on('addQuery', function(link) {
+		var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+
+    connection.connect(function(err) {
+      connection.query("INSERT INTO queries (link, dateAdd) VALUES ('"+link+"', NOW())", function (err) {
+        if (err) {
+          io.to(socket.id).emit('sendAnswer2Signup', false, "Something goes wrong with database. Try sign up again.");
+        } else {
+          io.to(socket.id).emit('addedQuery');
+        }
+      });
+    });
+    setTimeout(function() {
+        connection.end();
+    }, 1500);
+  });
+
+	socket.on('sendMail', function(type, email) {
+		var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+
+		connection.connect(function(err) {
+      //if (err) throw err;
+			var link = "https://gmer.io/request";
+			var key = getID(20);
+
+			link += "?";
+			link += "type="+type;
+			link += "&";
+			link += "mail="+email;
+			link += "&";
+			link += "key="+key;
+
+			connection.query("INSERT INTO queries (link, dateAdd) VALUES ('"+link+"', NOW())", function (err) {
+        //if (err) throw err;
+				var themeMail = "";
+				var textMail = "";
+
+				var transporter = nodemailer.createTransport({
+					host: "smtp.timeweb.ru",
+					port: 2525,
+			    secure: false,
+				  auth: {
+				    user: 'admin@gmer.io',
+				    pass: 'wU5qcL6x'
+				  }
+				});
+
+				if (type == "signup") {
+					themeMail = "gmer.io registration";
+
+					fs.readFile('code/mail/register.html', {encoding: 'utf-8'}, function(err, data) {
+						textMail = data;
+						textMail = textMail.replace('~~LINK~~', link).replace('~~LINK~~', link);
+
+						var mailOptions = {
+						  from: 'admin@gmer.io',
+						  to: email,
+						  subject: themeMail,
+						  html: textMail
+						};
+
+						transporter.sendMail(mailOptions, function(error, info) {
+						  if (!error) {
+								io.to(socket.id).emit('sendAnswer2Signup', true, "Confirm letter was submitted on <b>"+email+"</b> check it to sign in.");
+						  } else {
+								io.to(socket.id).emit('sendAnswer2Signup', false, "Something goes wrong. Try sign up again.");
+							}
+						});
+
+					});
+				} else if (type == "signin") {
+					themeMail = "gmer.io sign in";
+
+					fs.readFile('code/mail/enter.html', {encoding: 'utf-8'}, function(err, data) {
+						textMail = data;
+						textMail = textMail.replace('~~LINK~~', link).replace('~~LINK~~', link);
+
+						var mailOptions = {
+						  from: 'admin@gmer.io',
+						  to: email,
+						  subject: themeMail,
+						  html: textMail
+						};
+
+						transporter.sendMail(mailOptions, function(error, info) {
+							if (!error) {
+								io.to(socket.id).emit('sendAnswer2Signup', true, "Confirm letter was submitted on "+email+" . Check it to sign in.");
+						  } else {
+								io.to(socket.id).emit('sendAnswer2Signup', false, "Something goes wrong. Try sign in again.");
+							}
+						});
+
+					});
+				}
+
+
+
+      });
+			setTimeout(function() {
+					connection.end();
+			}, 1500);
+		});
+	});
+
+	socket.on('requestLink', function(link) {
+		var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+
+    connection.connect(function(err) {
+      //if (err) throw err;
+      connection.query("SELECT * FROM queries WHERE link='"+link+"'", function (err, result, fields) {
+        //if (err) throw err;
+        if (result[0]) {
+					var attr = link.split("?");
+					attr = attr[1].split("&");
+
+					var oneattr = attr[0].split("=");
+					if (oneattr[0] == "type" && (oneattr[1] == "signup" || oneattr[1] == "signin")) {
+						var mail = attr[1].split("=");
+						mail = mail[1];
+						if (oneattr[1] == "signup") {
+							connection.query("INSERT INTO users (email) VALUES ('"+mail+"')");
+						}
+						connection.query("DELETE FROM queries WHERE link='"+link+"'");
+
+						io.to(socket.id).emit('answerRequestLink', "cookie", "mid", encrypt(mail));
+					}
+				} else {
+					io.to(socket.id).emit('answerRequestLink', "cookie", "error", "This link doesn't work try sign in again.");
+				}
+      });
+			setTimeout(function() {
+					connection.end();
+			}, 1500);
+    });
+	});
+
+	socket.on('decryptMail', function(hex) {
+    var mail = decrypt(hex);
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+
+    connection.connect(function(err) {
+      //if (err) throw err;
+      connection.query("SELECT * FROM users", function (err, result, fields) {
+        //if (err) throw err;
+        var answer = "!nomail";
+        for (i in result) {
+          if (result[i].email == mail) {
+            answer = result[i].id+"|"+mail;
+            break;
+          }
+        }
+        io.to(socket.id).emit('sendDecryptMail', answer);
+
+        if (answer != "!nomail") {
+          //console.log(answer.split("|")[0]);
+          connection.query("SELECT * FROM dataFortress WHERE id = "+answer.split("|")[0], function (err1, result1, fields1) {
+            if (!result1[0]) {
+              connection.query("INSERT INTO dataFortress (id, rating) VALUES ('"+answer.split("|")[0]+"', '100')");
+
+              io.to(socket.id).emit('getAdditionalCookie', answer);
+              socket.on('giveAdditionalCookie', function(additional) {
+                var nowadd = decrypt(additional);
+                nowadd = nowadd.split(";");
+                for (var i = 0; i < nowadd.length; i++) {
+                  var curradd = nowadd[i].split("=");
+                  if (curradd[0] == "rating" && parseInt(curradd[1]) > 100) {
+                    var endstroke = "";
+                    for (var j = 0; j < nowadd.length; j++) {
+                      if (nowadd[j].split("=")[0] == "items" && nowadd[j].split("=")[1] != "1,2,3") {
+                        var getIdItemRecieved = nowadd[j].split("=")[1].split(",");
+                        getIdItemRecieved = getIdItemRecieved[getIdItemRecieved.length-1];
+
+                        connection.query("SELECT * FROM itemsFortress WHERE id = '"+getIdItemRecieved+"'", function (err3, result3, fields3) {
+                          var received = parseInt(result3[0].received)+1;
+                          connection.query("UPDATE itemsFortress SET `received` = '"+received+"' WHERE id = '"+getIdItemRecieved+"'", function () {});
+                        });
+                      }
+
+                      if (j == 0) {
+                        endstroke += "`"+nowadd[j].split("=")[0]+"`='"+nowadd[j].split("=")[1]+"'";
+                        continue;
+                      }
+                      endstroke += ",`"+nowadd[j].split("=")[0]+"`='"+nowadd[j].split("=")[1]+"'";
+                    }
+                    // console.log(endstroke);
+                    // console.log(answer.split("|")[0]);
+                    connection.query("UPDATE dataFortress SET "+endstroke+" WHERE id = "+answer.split("|")[0]);
+                    io.to(socket.id).emit('removeAdditionalCookie');
+                    break;
+                  }
+                }
+              });
+            }
+          });
+        }
+      });
+      io.to(socket.id).emit('removeAdditionalCookie');//testing
+			setTimeout(function() {
+					connection.end();
+			}, 1500);
+    });
+	});
+
+  socket.on('getUserData', function(id) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+
+    connection.connect(function(err) {
+      //if (err) throw err;
+      connection.query("SELECT * FROM dataFortress WHERE id = '"+id+"'", function (err, result, fields) {
+        //if (err) throw err;
+        var answer = "";
+        for (var i in result[0]) {
+          if (answer == "") {
+            answer += i+"~~"+result[0][i];
+            continue;
+          }
+          answer += "||"+i+"~~"+result[0][i];
+        }
+        io.to(socket.id).emit('sendUserData', answer);
+      });
+			setTimeout(function() {
+					connection.end();
+			}, 1500);
+    });
+  });
+
+  socket.on('getItems', function(items) {
+
+    //var regexp = items.replace(/\,/g, '|');
+    var regexp = items.split(",");
+    for (var i = 0; i < regexp.length; i++) {
+      regexp[i] = "^"+regexp[i]+"$";
+    }
+    regexp = regexp.join("|");
+
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+
+    connection.connect(function(err) {
+      //if (err) throw err;
+      connection.query("SELECT * FROM itemsFortress WHERE id REGEXP '("+regexp+")'", function (err, result, fields) {
+        //if (err) throw err;
+        var answer = "";
+        for (var i in result) {
+          if (i == 0) {
+            answer += result[i].id+"~~"+result[i].type+"~~"+result[i].name+"~~"+result[i].received;
+            continue;
+          }
+          answer += "||"+result[i].id+"~~"+result[i].type+"~~"+result[i].name+"~~"+result[i].received;
+        }
+        io.to(socket.id).emit('sendItems', answer);
+      });
+			setTimeout(function() {
+					connection.end();
+			}, 1500);
+    });
+  });
+
+  socket.on('setItem', function(id, item) {
+    item = item.split("~~");
+    var type = item[0];
+    var name = item[1];
+    var field = "";
+    switch (type) {
+      case "cannon1":
+        field = "equipItemCannon1";
+        break;
+      case "cannon2":
+        field = "equipItemCannon2";
+        break;
+      case "wall":
+        field = "equipItemWall";
+        break;
+    }
+
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+
+    connection.connect(function(err) {
+      //if (err) throw err;
+      connection.query("UPDATE dataFortress SET `"+field+"` = '"+name+"' WHERE id = '"+id+"'", function (err, result, fields) {
+        //if (err) throw err;
+        io.to(socket.id).emit('sendAnwerSetItem');
+      });
+			setTimeout(function() {
+					connection.end();
+			}, 1500);
+    });
+  });
+
+  socket.on('alert', function(idRoom, text) {
+		if (rooms[idRoom]) {
+      io.to(rooms[idRoom].player1).emit('sendAlert', text);
+			io.to(rooms[idRoom].player2).emit('sendAlert', text);
+		}
+  });
+
+  socket.on('getMyRrating', function(iduser) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+
+    connection.connect(function(err) {
+      //if (err) throw err;
+      connection.query("SELECT * FROM dataFortress WHERE id = '"+iduser+"'", function (err, result, fields) {
+        //if (err) throw err;
+        // var answer = "";
+        // for (var i in result) {
+        //   if (i == 0) {
+        //     answer += result[i].id+"~~"+result[i].type+"~~"+result[i].name+"~~"+result[i].received;
+        //     continue;
+        //   }
+        //   answer += "||"+result[i].id+"~~"+result[i].type+"~~"+result[i].name+"~~"+result[i].received;
+        // }
+        // io.to(socket.id).emit('sendItems', answer);
+          io.to(socket.id).emit('sendRating', result[0].rating);
+      });
+			setTimeout(function() {
+					connection.end();
+			}, 1500);
+    });
+  });
+
+  socket.on('giveMyRatingToEnemy', function(idRoom, sideSource, rating) {
+		if (rooms[idRoom]) {
+      if (sideSource == 1) {
+        io.to(rooms[idRoom].player2).emit('sendEnemyRating', rating);
+      } else if (sideSource == 2) {
+        io.to(rooms[idRoom].player1).emit('sendEnemyRating', rating);
+      }
+		}
+  });
+
+  socket.on('giveMyIdToEnemy', function(idRoom, sideSource, id) {
+		if (rooms[idRoom]) {
+      if (sideSource == 1) {
+        io.to(rooms[idRoom].player2).emit('sendEnemyId', id);
+      } else if (sideSource == 2) {
+        io.to(rooms[idRoom].player1).emit('sendEnemyId', id);
+      }
+		}
+  });
+
+  socket.on('addDataUser', function(id, column, value) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+
+    connection.connect(function(err) {
+      //if (err) throw err;
+      connection.query("SELECT * FROM dataFortress WHERE id = '"+id+"'", function (err, result, fields) {
+        var insert = result[0][column]+value;
+        connection.query("UPDATE dataFortress SET `"+column+"` = '"+insert+"' WHERE id = '"+id+"'", function (err, result, fields) {});
+      });
+
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
+    });
+  });
+
+  socket.on('cookieAdditionalData', function(datacookie) {
+    io.to(socket.id).emit('sendEncryptAdditionalData', encrypt(datacookie));
+  });
+
+  socket.on('decryptAdditional', function(additional) {
+    io.to(socket.id).emit('sendDecryptAdditional', decrypt(additional));
+  });
+
+  socket.on('getItemIdonHave', function(iduser) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+
+    connection.connect(function(err) {
+      //if (err) throw err;
+      if (iduser == "!noid") {
+          var myItems = "1,2,3";
+          myItems = myItems.split(",");
+
+          connection.query("SELECT * FROM itemsFortress", function (err, result, fields) {
+            var answer = "";
+            var flagfirst1 = true;
+            for (var i = 0; i < result.length; i++) {
+              var idonthave = true;
+              for (var j = 0; j < myItems.length; j++) {
+                if (myItems[j] == result[i].id) {
+                  idonthave = false;
+                  break;
+                }
+              }
+              if (idonthave) {
+                // answer += "";
+                var flagfirst2 = true;
+                for (j in result[i]) {
+                  if (flagfirst2) {
+                    if (flagfirst1) {
+                      answer += j+"="+result[i][j];
+                      flagfirst1 = false;
+                      flagfirst2 = false;
+                      continue;
+                    }
+                    answer += ";"+j+"="+result[i][j];
+                    flagfirst2 = false;
+                    continue;
+                  }
+                  answer += ","+j+"="+result[i][j];
+                }
+              }
+            }
+            io.to(socket.id).emit('sendItemYouDontHave', answer);
+          });
+      } else {
+        connection.query("SELECT * FROM dataFortress WHERE id = '"+iduser+"'", function (err, result, fields) {
+          var myItems = result[0].items;
+          myItems = myItems.split(",");
+
+          connection.query("SELECT * FROM itemsFortress", function (err, result, fields) {
+            var answer = "";
+            var flagfirst1 = true;
+            for (var i = 0; i < result.length; i++) {
+              var idonthave = true;
+              for (var j = 0; j < myItems.length; j++) {
+                if (myItems[j] == result[i].id) {
+                  idonthave = false;
+                  break;
+                }
+              }
+              if (idonthave) {
+                // answer += "";
+                var flagfirst2 = true;
+                for (j in result[i]) {
+                  if (flagfirst2) {
+                    if (flagfirst1) {
+                      answer += j+"="+result[i][j];
+                      flagfirst1 = false;
+                      flagfirst2 = false;
+                      continue;
+                    }
+                    answer += ";"+j+"="+result[i][j];
+                    flagfirst2 = false;
+                    continue;
+                  }
+                  answer += ","+j+"="+result[i][j];
+                }
+              }
+            }
+            io.to(socket.id).emit('sendItemYouDontHave', answer);
+          });
+        });
+      }
+
+			setTimeout(function() {
+					connection.end();
+			}, 1500);
+    });
+  });
+
+  socket.on('getCounterUsers', function() {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+
+    connection.connect(function(err) {
+      //if (err) throw err;
+      connection.query("SELECT * FROM dataFortress", function (err, result, fields) {
+        io.to(socket.id).emit('sendCounterUsers', result.length);
+      });
+			setTimeout(function() {
+					connection.end();
+			}, 1500);
+    });
+  });
+
+  socket.on('addItemUser', function(iduser, iditem) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+
+    connection.connect(function(err) {
+      //if (err) throw err;
+      connection.query("SELECT * FROM dataFortress WHERE id = '"+iduser+"'", function (err, result, fields) {
+        var items = result[0].items+","+iditem;
+        connection.query("UPDATE dataFortress SET `items` = '"+items+"' WHERE id = '"+iduser+"'", function (err, result, fields) {});
+
+        connection.query("SELECT * FROM itemsFortress WHERE id = '"+iditem+"'", function (err2, result2, fields2) {
+          if (result2[0].received) {
+            var received = parseInt(result2[0].received)+1;
+            connection.query("UPDATE itemsFortress SET `received` = '"+received+"' WHERE id = '"+iditem+"'", function () {});
+          }
+        });
+      });
+			setTimeout(function() {
+					connection.end();
+			}, 1500);
+    });
+  });
+
+  socket.on('getTextures', function(iduser) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+
+    connection.connect(function(err) {
+      //if (err) throw err;
+      connection.query("SELECT * FROM dataFortress WHERE id = '"+iduser+"'", function (err, result, fields) {
+        io.to(socket.id).emit('sendTextures', result[0].equipItemCannon1+"~~"+result[0].equipItemCannon2+"~~"+result[0].equipItemWall);
+      });
+			setTimeout(function() {
+					connection.end();
+			}, 1500);
+    });
+  });
+
+  socket.on('sendEnemyTextures', function(idRoom, sideSource, textures) {
+		if (rooms[idRoom]) {
+      if (sideSource == 1) {
+        io.to(rooms[idRoom].player2).emit('takeEnemyRating', textures);
+      } else if (sideSource == 2) {
+        io.to(rooms[idRoom].player1).emit('takeEnemyRating', textures);
+      }
+		}
+  });
+
+  socket.on('upload', function(file, name) {
+    fs.writeFile(__dirname+'/img/designers/'+name, file, function (err) {});
+
+    io.to(socket.id).emit('uploaded');
+  });
+
+  // socket.on('uploadMultiply', function(files, idDesigner) {
+  //   var imgs = [];
+  //   var count = 0;
+  //   fs.readdir(__dirname+'/img', function(err, imgFiles) {
+  //     imgFiles.forEach(function (file) {
+  //       if (file.split(".")[1] == "png") {
+  //         imgs[count] = file;
+  //         count++;
+  //       }
+  //     });
+  //
+  //     for (var i = 0; i < files.length; i++) {
+  //       //check name
+  //       for (var j = 0; j < imgs.length; j++) {
+  //         if (imgs[j] == files[i].name) {
+  //           //add file
+  //           fs.writeFile(__dirname+'/img/designers/'+idDesigner+"~~"+files[i].name, imgone, function (err) {});
+  //           break;
+  //         }
+  //       }
+  //     }
+  //   });
+  //   io.to(socket.id).emit('uploaded');
+  // });
+
+  socket.on('getAllImg', function() {
+    fs.readdir(__dirname+'/img', function(err, files) {
+      var answer = "";
+      var flag = true;
+      files.forEach(function (file) {
+        if (file.split(".")[1] == "png") {
+          if (flag) {
+            answer += file;
+            flag = false;
+          } else {
+            answer += ";"+file;
+          }
+        }
+      });
+      io.to(socket.id).emit('sendAllImg', answer);
+    });
+  });
+
+  socket.on('removeFile', function(url) {
+    fs.unlink(__dirname+url, function (err) {});
+
+    io.to(socket.id).emit('uploaded');
+  });
+  //end code fortress into socket ----------------
+
+
+  //start code stealth into socket ----------------
+  playersS[socket.id] = {
+		id: socket.id,
+		status: 'home'
+	};
+
+	socket.on('switchSearchingGameS', function() {
+		if (playersS[socket.id].status == 'home') {
+			addPlayerToRoomS(socket.id);
+			playersS[socket.id].status = 'intoRoom';
+		} else if (playersS[socket.id].status == 'intoRoom') {
+			removePlayerFromRoomS(socket.id);
+			playersS[socket.id].idRoom = '';
+			playersS[socket.id].status = 'home';
+			playersS[socket.id].idObj = '';
+		}
+  });
+
+	socket.on('sendAddObjectsS', function(arrObjects, flag) {
+		var idRoom = playersS[socket.id].idRoom;
+		var lengthObjects = roomsS[idRoom].objects.length;
+		for (var i = 0; i < arrObjects.length; i++) {
+			arrObjects[i].id = lengthObjects+i;
+		}
+		addObjectsS(idRoom, arrObjects);
+
+		if (flag == 'me') {
+			playersS[socket.id].idObj = lengthObjects;
+			io.to(socket.id).emit('takeIdObjPlayerS', lengthObjects);
+		}
+  });
+
+	socket.on('sendChgSpeedPlayerS', function(idObjPlayer, speedx, speedy) {
+		var idRoom = playersS[socket.id].idRoom;
+		if (roomsS[idRoom] && roomsS[idRoom].objects[idObjPlayer]) {
+		if (speedx != null) {
+			roomsS[idRoom].objects[idObjPlayer].speed.x = speedx;
+			for (var i = 0; i < roomsS[idRoom].players.length; i++) {
+				io.to(roomsS[idRoom].players[i]).emit('chgSpeedPlayerS', idObjPlayer, speedx, null);
+			}
+		}
+		if (speedy != null) {
+			roomsS[idRoom].objects[idObjPlayer].speed.y = speedy;
+			for (var i = 0; i < roomsS[idRoom].players.length; i++) {
+				io.to(roomsS[idRoom].players[i]).emit('chgSpeedPlayerS', idObjPlayer, null, speedy);
+			}
+		}
+		}
+  });
+
+	socket.on('sendMyCoordToAllS', function(idObj, coord) {
+		var idRoom = playersS[socket.id].idRoom;
+		for (var i = 0; i < roomsS[idRoom].players.length; i++) {
+			if (roomsS[idRoom].players[i] != socket.id) {
+				io.to(roomsS[idRoom].players[i]).emit('takeNewCoordPlayerS', idObj, coord);
+			}
+		}
+  });
+
+	socket.on('rotatePlayerS', function(idObj, angle, direct) {
+		var idRoom = playersS[socket.id].idRoom;
+		for (var i = 0; i < roomsS[idRoom].players.length; i++) {
+			if (roomsS[idRoom].players[i] != socket.id) {
+				io.to(roomsS[idRoom].players[i]).emit('takeNewRotatePlayerS', idObj, angle, direct);
+			}
+		}
+  });
+  //end code stealth into socket ----------------
+
+  socket.on('disconnect', function() {
+		if (players[socket.id]) {
+	    if (players[socket.id].status == 2 || players[socket.id].status == 3) {
+	      for (var i in rooms) {
+	        if (rooms[i].player1 == socket.id || rooms[i].player2 == socket.id) {
+	          if (rooms[i].player1 == socket.id) {
+	            exitToMenu(rooms[i].player2);
+	          } else if (rooms[i].player2 == socket.id) {
+	            exitToMenu(rooms[i].player1);
+	          }
+	          abortRoom(i);
+	          break;
+	        }
+	      }
+	    }
+		}
+    delete players[socket.id];
+
+
+    removePlayerFromRoomS(socket.id);
+		delete playersS[socket.id];
+	});
+});
