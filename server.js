@@ -22,7 +22,6 @@ const nodemailer = require('nodemailer');
 //https connect ------------------
 
 const server = require('https');
-const fs = require('fs');
 const express = require('express');
 const app = express();
 
