@@ -17,7 +17,13 @@ function transXY(id) {
       objects[id].sceneObj.rotation.z += Math.PI/2;
     }
   } else {
-    objects[id].sceneObj.rotation.z = Math.PI/2;
+    if (objects[id].sceneObj.rotation.z == 0) {
+      objects[id].sceneObj.rotation.z += -Math.PI/2;
+    } else if (objects[id].sceneObj.rotation.z == Math.PI/2) {
+      objects[id].sceneObj.rotation.z += Math.PI/2;
+    } else {
+      objects[id].sceneObj.rotation.z += Math.PI/2;
+    }
   }
   if (objects[id].ghostMode == "2") {
     var tmp = objects[id].size.w;
@@ -60,15 +66,44 @@ function addScene(obj) {
   var wallDepth = 1;
   var deltaBug = 0.1;
   switch (obj.tag) {
+    case 'blood':
+      var bloodGeometry = new THREE.CircleBufferGeometry(3, 16);
+      var bloodMaterial = new THREE.MeshPhongMaterial({color: 0xFF0000, side: THREE.DoubleSide});
+      var bloodObject = new THREE.Mesh(bloodGeometry, bloodMaterial);
+      bloodObject.position.set(objects[obj.id].coord.x, objects[obj.id].coord.y, 0.1);
+      objects[obj.id].stopBullet = false;
+      objects[obj.id].visibleThrough = true;
+      objects[obj.id].sceneObj = bloodObject;
+      scene.add(bloodObject);
+      break;
+    case 'bullet':
+      var bulletGeometry = new THREE.BoxGeometry(1, 1, 1);
+      var bulletMaterial = [
+        new THREE.MeshPhongMaterial({color: 0xFCF403, side: THREE.DoubleSide}),
+        new THREE.MeshPhongMaterial({color: 0xFCF403, side: THREE.DoubleSide}),
+        new THREE.MeshPhongMaterial({color: 0xFCF403, side: THREE.DoubleSide}),
+        new THREE.MeshPhongMaterial({color: 0xFCF403, side: THREE.DoubleSide}),
+        new THREE.MeshPhongMaterial({color: 0xFCF403, side: THREE.DoubleSide}),
+        new THREE.MeshPhongMaterial({color: 0xFCF403, side: THREE.DoubleSide})
+      ];
+      var bulletObject = new THREE.Mesh(bulletGeometry, bulletMaterial);
+      bulletObject.scale.set(0.1, 5, 0.1);
+      bulletObject.position.set(objects[obj.id].coord.x, objects[obj.id].coord.y, 5);
+      bulletObject.rotation.z = Math.atan(objects[obj.id].speed.y/objects[obj.id].speed.x)+Math.PI/2;
+      objects[obj.id].stopBullet = false;
+      objects[obj.id].visibleThrough = true;
+      objects[obj.id].ghostMode = "1";
+      objects[obj.id].sceneObj = bulletObject;
+      scene.add(bulletObject);
+      break;
     case 'player':
       var loader = new THREE.GLTFLoader();
       loader.load('/g/stealth/resource/models/human.glb', function(gltf) {
-
-        gltf.scene.traverse(function (child) {
-          if (child instanceof THREE.Mesh) {
-            child.material = new THREE.MeshPhongMaterial({color: 0xFF0000, side: THREE.DoubleSide, skinning: true});
-          }
-        });
+        // gltf.scene.traverse(function (child) {
+        //   if (child instanceof THREE.Mesh) {
+        //     child.material = new THREE.MeshPhongMaterial({color: 0xFF0000, side: THREE.DoubleSide, skinning: true});
+        //   }
+        // });
         gltf.scene.position.set(obj.coord.x, obj.coord.y, 0);
         gltf.scene.rotation.x = Math.PI/2;
 
@@ -77,6 +112,14 @@ function addScene(obj) {
         objects[obj.id].animations = gltf.animations;
         objects[obj.id].sceneObj = gltf.scene;
         objects[obj.id].mixer = mixer;
+        objects[obj.id].activeWeapon = 1;
+        objects[obj.id].stopBullet = true;
+        objects[obj.id].size = {w: 2, h: 2, d: 5};
+        objects[obj.id].health = 100;
+        objects[obj.id].bleeding = 0;
+        objects[obj.id].bullets = 7;
+        objects[obj.id].dead = false;
+        visibleObj(objects[obj.id], "KnifeObj", false);
 
         var loaderTexture = new THREE.TextureLoader();
         loaderTexture.load('/g/stealth/resource/models/texture.png', function (textureSkin) {
@@ -94,19 +137,34 @@ function addScene(obj) {
                     textureEye2.wrapT = THREE.RepeatWrapping;
                     textureEye2.mapping = THREE.CubeUVReflectionMapping;
                     textureEye2.repeat.set(1, -1);
-                    gltf.scene.traverse(function (child) {
-                      if (child instanceof THREE.Mesh) {
-                        if (child.name == "Sphere") {
-                          child.material = new THREE.MeshPhongMaterial({side: THREE.DoubleSide, skinning: true, map: textureEye});
-                        } else if (child.name == "Sphere001") {
-                          child.material = new THREE.MeshPhongMaterial({side: THREE.DoubleSide, skinning: true, map: textureEye2});
-                        } else {
-                          child.material = new THREE.MeshPhongMaterial({side: THREE.DoubleSide, skinning: true, map: textureSkin});
-                        }
+                    loaderTexture.load('/g/stealth/resource/models/knife.png', function (textureKnife) {
+                        textureKnife.wrapS = THREE.RepeatWrapping;
+                        textureKnife.wrapT = THREE.RepeatWrapping;
+                        textureKnife.mapping = THREE.CubeUVReflectionMapping;
+                        textureKnife.repeat.set(1, -1);
+                        gltf.scene.traverse(function (child) {
+                          if (child instanceof THREE.Mesh) {
+                            if (child.name == "Sphere") {
+                              child.material = new THREE.MeshPhongMaterial({side: THREE.DoubleSide, skinning: true, map: textureEye});
+                            } else if (child.name == "Sphere001") {
+                              child.material = new THREE.MeshPhongMaterial({side: THREE.DoubleSide, skinning: true, map: textureEye2});
+                            } else if (child.name == "Gun") {
+                              child.material = new THREE.MeshPhongMaterial({side: THREE.DoubleSide, skinning: true, color: 0x000000});
+                            } else if (child.name == "knife") {
+                              child.material = new THREE.MeshPhongMaterial({side: THREE.DoubleSide, skinning: true, map: textureKnife});
+                            } else {
+                              child.material = new THREE.MeshPhongMaterial({side: THREE.DoubleSide, skinning: true, map: textureSkin});
+                            }
+                          }
+                        });
+                        objects[obj.id].visibleThrough = true;
+                        scene.add(gltf.scene);
+                      },
+                      undefined,
+                      function (err) {
+                        console.error(err);
                       }
-                    });
-                    objects[obj.id].visibleThrough = true;
-                    scene.add(gltf.scene);
+                    );
                   },
                   undefined,
                   function (err) {
@@ -136,6 +194,7 @@ function addScene(obj) {
       var circleObject = new THREE.Mesh(circleGeometry, circleMaterial);
       circleObject.position.set(objects[obj.id].coord.x, objects[obj.id].coord.y, 5);
       circleObject.visible = false;
+      objects[obj.id].stopBullet = false;
       objects[obj.id].visibleThrough = true;
       objects[obj.id].sceneObj = circleObject;
       scene.add(circleObject);
@@ -152,6 +211,7 @@ function addScene(obj) {
       floorObject.texture.repeat.set(30, 30);
       floorObject.receiveShadow = true;
       floorObject.castShadow = true;
+      objects[obj.id].stopBullet = false;
       objects[obj.id].visibleThrough = true;
       objects[obj.id].sceneObj = floorObject;
       scene.add(floorObject);
@@ -172,6 +232,7 @@ function addScene(obj) {
       floorObject.texture.rotateable = true;
       floorObject.receiveShadow = true;
       floorObject.castShadow = true;
+      objects[obj.id].stopBullet = false;
       objects[obj.id].visibleThrough = true;
       objects[obj.id].sceneObj = floorObject;
       setPlaceLayout(obj.id);
@@ -193,6 +254,7 @@ function addScene(obj) {
       floorObject.texture.rotateable = true;
       floorObject.receiveShadow = true;
       floorObject.castShadow = true;
+      objects[obj.id].stopBullet = false;
       objects[obj.id].visibleThrough = true;
       objects[obj.id].sceneObj = floorObject;
       setPlaceLayout(obj.id);
@@ -215,6 +277,7 @@ function addScene(obj) {
       floorObject.texture.rotateable = true;
       floorObject.receiveShadow = true;
       floorObject.castShadow = true;
+      objects[obj.id].stopBullet = false;
       objects[obj.id].visibleThrough = true;
       objects[obj.id].sceneObj = floorObject;
       setPlaceLayout(obj.id);
@@ -237,6 +300,7 @@ function addScene(obj) {
       floorObject.texture.rotateable = true;
       floorObject.receiveShadow = true;
       floorObject.castShadow = true;
+      objects[obj.id].stopBullet = false;
       objects[obj.id].visibleThrough = true;
       objects[obj.id].sceneObj = floorObject;
       setPlaceLayout(obj.id);
@@ -260,6 +324,7 @@ function addScene(obj) {
       floorObject.texture.rotateable = true;
       floorObject.receiveShadow = true;
       floorObject.castShadow = true;
+      objects[obj.id].stopBullet = false;
       objects[obj.id].visibleThrough = true;
       objects[obj.id].sceneObj = floorObject;
       setPlaceLayout(obj.id);
@@ -282,6 +347,7 @@ function addScene(obj) {
       floorObject.texture.rotateable = true;
       floorObject.receiveShadow = true;
       floorObject.castShadow = true;
+      objects[obj.id].stopBullet = false;
       objects[obj.id].visibleThrough = true;
       objects[obj.id].sceneObj = floorObject;
       setPlaceLayout(obj.id);
@@ -303,6 +369,7 @@ function addScene(obj) {
       floorObject.texture.repeat.set(2, 6);
       floorObject.receiveShadow = true;
       floorObject.castShadow = true;
+      objects[obj.id].stopBullet = false;
       objects[obj.id].visibleThrough = true;
       objects[obj.id].sceneObj = floorObject;
       setPlaceLayout(obj.id);
@@ -332,6 +399,7 @@ function addScene(obj) {
       wallObject.texture.repeat.set(16, 1);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -361,6 +429,7 @@ function addScene(obj) {
       wallObject.texture.repeat.set(4, 1);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -395,6 +464,7 @@ function addScene(obj) {
       currTexture2.repeat.set(6, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -429,6 +499,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 0.6);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = false;
       objects[obj.id].visibleThrough = true;
       objects[obj.id].ghostMode = "1";
       objects[obj.id].sceneObj = wallObject;
@@ -461,6 +532,7 @@ function addScene(obj) {
       currTexture2.wrapS = THREE.RepeatWrapping;
       currTexture2.wrapT = THREE.RepeatWrapping;
       currTexture2.repeat.set(2, 2);
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       wallObject.receiveShadow = true;
@@ -498,6 +570,7 @@ function addScene(obj) {
       currTexture2.repeat.set(4, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -533,6 +606,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 0.6);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = false;
       objects[obj.id].visibleThrough = true;
       objects[obj.id].ghostMode = "1";
       objects[obj.id].sceneObj = wallObject;
@@ -568,6 +642,7 @@ function addScene(obj) {
       currTexture2.repeat.set(28, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -598,6 +673,7 @@ function addScene(obj) {
       wallObject.texture.repeat.set(16, 1);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -627,6 +703,7 @@ function addScene(obj) {
       wallObject.texture.repeat.set(16, 1);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -661,6 +738,7 @@ function addScene(obj) {
       currTexture2.repeat.set(28, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -691,6 +769,7 @@ function addScene(obj) {
       wallObject.texture.repeat.set(16, 1);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -720,6 +799,7 @@ function addScene(obj) {
       wallObject.texture.repeat.set(26, 1);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -753,6 +833,7 @@ function addScene(obj) {
       currTexture2.repeat.set(28, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -787,6 +868,7 @@ function addScene(obj) {
       currTexture2.repeat.set(24, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -821,6 +903,7 @@ function addScene(obj) {
       currTexture2.repeat.set(4, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -851,6 +934,7 @@ function addScene(obj) {
       wallObject.texture.repeat.set(6, 1);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -881,6 +965,7 @@ function addScene(obj) {
       wallObject.texture.repeat.set(6, 1);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -911,6 +996,7 @@ function addScene(obj) {
       wallObject.texture.repeat.set(6, 1);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -941,6 +1027,7 @@ function addScene(obj) {
       wallObject.texture.repeat.set(6, 1);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -975,6 +1062,7 @@ function addScene(obj) {
       currTexture2.repeat.set(10, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -1005,6 +1093,7 @@ function addScene(obj) {
       wallObject.texture.repeat.set(6, 1);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -1035,6 +1124,7 @@ function addScene(obj) {
       wallObject.texture.repeat.set(6, 1);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -1065,6 +1155,7 @@ function addScene(obj) {
       wallObject.texture.repeat.set(6, 1);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -1095,6 +1186,7 @@ function addScene(obj) {
       wallObject.texture.repeat.set(6, 1);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -1125,6 +1217,7 @@ function addScene(obj) {
       wallObject.texture.repeat.set(6, 1);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -1159,6 +1252,7 @@ function addScene(obj) {
       currTexture2.repeat.set(10, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -1189,6 +1283,7 @@ function addScene(obj) {
       wallObject.texture.repeat.set(6, 1);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -1219,6 +1314,7 @@ function addScene(obj) {
       wallObject.texture.repeat.set(6, 1);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -1249,6 +1345,7 @@ function addScene(obj) {
       wallObject.texture.repeat.set(6, 1);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -1279,6 +1376,7 @@ function addScene(obj) {
       wallObject.texture.repeat.set(6, 1);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -1309,6 +1407,7 @@ function addScene(obj) {
       wallObject.texture.repeat.set(6, 1);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -1343,6 +1442,7 @@ function addScene(obj) {
       currTexture2.repeat.set(10, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -1377,6 +1477,7 @@ function addScene(obj) {
       currTexture2.repeat.set(10, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -1412,6 +1513,7 @@ function addScene(obj) {
       currTexture2.repeat.set(6, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -1447,6 +1549,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 0.6);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = false;
       objects[obj.id].visibleThrough = true;
       objects[obj.id].ghostMode = "1";
       objects[obj.id].sceneObj = wallObject;
@@ -1482,6 +1585,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -1517,6 +1621,7 @@ function addScene(obj) {
       currTexture2.repeat.set(6, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -1552,6 +1657,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 0.6);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = false;
       objects[obj.id].visibleThrough = true;
       objects[obj.id].ghostMode = "1";
       objects[obj.id].sceneObj = wallObject;
@@ -1587,6 +1693,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -1622,6 +1729,7 @@ function addScene(obj) {
       currTexture2.repeat.set(6, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -1657,6 +1765,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 0.6);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = false;
       objects[obj.id].visibleThrough = true;
       objects[obj.id].ghostMode = "1";
       objects[obj.id].sceneObj = wallObject;
@@ -1692,6 +1801,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -1727,6 +1837,7 @@ function addScene(obj) {
       currTexture2.repeat.set(6, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -1762,6 +1873,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 0.6);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = false;
       objects[obj.id].visibleThrough = true;
       objects[obj.id].ghostMode = "1";
       objects[obj.id].sceneObj = wallObject;
@@ -1797,6 +1909,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -1832,6 +1945,7 @@ function addScene(obj) {
       currTexture2.repeat.set(6, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -1867,6 +1981,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 0.6);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = false;
       objects[obj.id].visibleThrough = true;
       objects[obj.id].ghostMode = "1";
       objects[obj.id].sceneObj = wallObject;
@@ -1902,6 +2017,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -1937,6 +2053,7 @@ function addScene(obj) {
       currTexture2.repeat.set(6, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -1972,6 +2089,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 0.6);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = false;
       objects[obj.id].visibleThrough = true;
       objects[obj.id].ghostMode = "1";
       objects[obj.id].sceneObj = wallObject;
@@ -2007,6 +2125,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -2042,6 +2161,7 @@ function addScene(obj) {
       currTexture2.repeat.set(6, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -2077,6 +2197,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 0.6);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = false;
       objects[obj.id].visibleThrough = true;
       objects[obj.id].ghostMode = "1";
       objects[obj.id].sceneObj = wallObject;
@@ -2112,6 +2233,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -2147,6 +2269,7 @@ function addScene(obj) {
       currTexture2.repeat.set(6, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -2182,6 +2305,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 0.6);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = false;
       objects[obj.id].visibleThrough = true;
       objects[obj.id].ghostMode = "1";
       objects[obj.id].sceneObj = wallObject;
@@ -2217,6 +2341,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -2251,6 +2376,7 @@ function addScene(obj) {
       currTexture2.repeat.set(6, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -2285,6 +2411,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 0.6);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = false;
       objects[obj.id].visibleThrough = true;
       objects[obj.id].ghostMode = "1";
       objects[obj.id].sceneObj = wallObject;
@@ -2319,6 +2446,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -2353,6 +2481,7 @@ function addScene(obj) {
       currTexture2.repeat.set(6, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -2387,6 +2516,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 0.6);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = false;
       objects[obj.id].visibleThrough = true;
       objects[obj.id].ghostMode = "1";
       objects[obj.id].sceneObj = wallObject;
@@ -2421,6 +2551,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -2455,6 +2586,7 @@ function addScene(obj) {
       currTexture2.repeat.set(6, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -2489,6 +2621,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 0.6);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = false;
       objects[obj.id].visibleThrough = true;
       objects[obj.id].ghostMode = "1";
       objects[obj.id].sceneObj = wallObject;
@@ -2523,6 +2656,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -2557,6 +2691,7 @@ function addScene(obj) {
       currTexture2.repeat.set(6, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -2591,6 +2726,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 0.6);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = false;
       objects[obj.id].visibleThrough = true;
       objects[obj.id].ghostMode = "1";
       objects[obj.id].sceneObj = wallObject;
@@ -2625,6 +2761,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -2659,6 +2796,7 @@ function addScene(obj) {
       currTexture2.repeat.set(6, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -2693,6 +2831,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 0.6);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = false;
       objects[obj.id].visibleThrough = true;
       objects[obj.id].ghostMode = "1";
       objects[obj.id].sceneObj = wallObject;
@@ -2727,6 +2866,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -2762,6 +2902,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -2797,6 +2938,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -2832,6 +2974,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 0.6);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = false;
       objects[obj.id].visibleThrough = true;
       objects[obj.id].ghostMode = "1";
       objects[obj.id].sceneObj = wallObject;
@@ -2862,6 +3005,7 @@ function addScene(obj) {
       wallObject.texture.repeat.set(12, 1);
       wallObject.receiveShadow = true;
       wallObject.castShadow = false;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -2892,6 +3036,7 @@ function addScene(obj) {
       wallObject.texture.repeat.set(4, 1);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -2927,6 +3072,7 @@ function addScene(obj) {
       currTexture2.repeat.set(9, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -2962,6 +3108,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 0.6);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = false;
       objects[obj.id].visibleThrough = true;
       objects[obj.id].ghostMode = "1";
       objects[obj.id].sceneObj = wallObject;
@@ -2997,6 +3144,7 @@ function addScene(obj) {
       currTexture2.repeat.set(2, 2);
       wallObject.receiveShadow = true;
       wallObject.castShadow = true;
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -3023,6 +3171,7 @@ function addScene(obj) {
       wallObject.texture.wrapS = THREE.RepeatWrapping;
       wallObject.texture.wrapT = THREE.RepeatWrapping;
       wallObject.texture.repeat.set(28, 2);
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -3048,6 +3197,7 @@ function addScene(obj) {
       wallObject.texture.wrapS = THREE.RepeatWrapping;
       wallObject.texture.wrapT = THREE.RepeatWrapping;
       wallObject.texture.repeat.set(2, 2);
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
@@ -3074,11 +3224,1437 @@ function addScene(obj) {
       wallObject.texture.wrapS = THREE.RepeatWrapping;
       wallObject.texture.wrapT = THREE.RepeatWrapping;
       wallObject.texture.repeat.set(2, 2);
+      objects[obj.id].stopBullet = true;
       objects[obj.id].visibleThrough = false;
       objects[obj.id].ghostMode = "2";
       objects[obj.id].sceneObj = wallObject;
       setPlaceLayout(obj.id);
       scene.add(wallObject);
+      break;
+    case 'tableRestaurant1':
+      var w = 0.2*worldSize.w;
+      var h = 0.8*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/tableRestaurant.glb', function(gltf) {
+        new THREE.TextureLoader().load('/g/stealth/resource/img/chairRestaurant.png', function(textureChair) {
+          textureChair.wrapS = THREE.RepeatWrapping;
+          textureChair.wrapT = THREE.RepeatWrapping;
+          textureChair.mapping = THREE.CubeUVReflectionMapping;
+          textureChair.repeat.set(1, -1);
+          new THREE.TextureLoader().load('/g/stealth/resource/img/tableRestaurant.png', function(textureTable) {
+            textureTable.wrapS = THREE.RepeatWrapping;
+            textureTable.wrapT = THREE.RepeatWrapping;
+            textureTable.mapping = THREE.CubeUVReflectionMapping;
+            textureTable.repeat.set(1, -1);
+            gltf.scene.traverse(function (child) {
+              if (child instanceof THREE.Mesh) {
+                if (child.name == "re_chair" || child.name == "re_chair_(1)" || child.name == "re_chair_(2)" || child.name == "re_chair_(3)") {
+                  child.material = new THREE.MeshPhongMaterial({map: textureChair, side: THREE.DoubleSide, skinning: true});
+                } else if (child.name == "re_tb_01" || child.name == "re_tb_01_(1)") {
+                  child.material = new THREE.MeshPhongMaterial({map: textureTable, side: THREE.DoubleSide, skinning: true});
+                }
+              }
+            });
+          },
+          undefined,
+          function (err) {
+            console.error(err);
+          });
+        },
+        undefined,
+        function (err) {
+          console.error(err);
+        });
+        objects[obj.id].size = {w: 10, h: 14, d: 6};
+        gltf.scene.scale.set(6, 6, 6);
+        gltf.scene.position.set(-worldSize.w/2+objects[obj.id].size.w/2+wallDepth/2+padding, -worldSize.h/2+objects[obj.id].size.h/2+wallDepth/2+padding, 0);
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "2";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'tableRestaurant2':
+      var w = 0.2*worldSize.w;
+      var h = 0.8*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/tableRestaurant.glb', function(gltf) {
+        new THREE.TextureLoader().load('/g/stealth/resource/img/chairRestaurant.png', function(textureChair) {
+          textureChair.wrapS = THREE.RepeatWrapping;
+          textureChair.wrapT = THREE.RepeatWrapping;
+          textureChair.mapping = THREE.CubeUVReflectionMapping;
+          textureChair.repeat.set(1, -1);
+          new THREE.TextureLoader().load('/g/stealth/resource/img/tableRestaurant.png', function(textureTable) {
+            textureTable.wrapS = THREE.RepeatWrapping;
+            textureTable.wrapT = THREE.RepeatWrapping;
+            textureTable.mapping = THREE.CubeUVReflectionMapping;
+            textureTable.repeat.set(1, -1);
+            gltf.scene.traverse(function (child) {
+              if (child instanceof THREE.Mesh) {
+                if (child.name == "re_chair" || child.name == "re_chair_(1)" || child.name == "re_chair_(2)" || child.name == "re_chair_(3)") {
+                  child.material = new THREE.MeshPhongMaterial({map: textureChair, side: THREE.DoubleSide, skinning: true});
+                } else if (child.name == "re_tb_01" || child.name == "re_tb_01_(1)") {
+                  child.material = new THREE.MeshPhongMaterial({map: textureTable, side: THREE.DoubleSide, skinning: true});
+                }
+              }
+            });
+          },
+          undefined,
+          function (err) {
+            console.error(err);
+          });
+        },
+        undefined,
+        function (err) {
+          console.error(err);
+        });
+        objects[obj.id].size = {w: 10, h: 14, d: 6};
+        gltf.scene.scale.set(6, 6, 6);
+        gltf.scene.position.set(-worldSize.w/2+objects[obj.id].size.w/2+wallDepth/2+padding, -worldSize.h/2+objects[obj.id].size.h/2+wallDepth/2+padding+(objects[obj.id].size.h+padding), 0);
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "2";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'tableRestaurant3':
+      var w = 0.2*worldSize.w;
+      var h = 0.8*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/tableRestaurant.glb', function(gltf) {
+        new THREE.TextureLoader().load('/g/stealth/resource/img/chairRestaurant.png', function(textureChair) {
+          textureChair.wrapS = THREE.RepeatWrapping;
+          textureChair.wrapT = THREE.RepeatWrapping;
+          textureChair.mapping = THREE.CubeUVReflectionMapping;
+          textureChair.repeat.set(1, -1);
+          new THREE.TextureLoader().load('/g/stealth/resource/img/tableRestaurant.png', function(textureTable) {
+            textureTable.wrapS = THREE.RepeatWrapping;
+            textureTable.wrapT = THREE.RepeatWrapping;
+            textureTable.mapping = THREE.CubeUVReflectionMapping;
+            textureTable.repeat.set(1, -1);
+            gltf.scene.traverse(function (child) {
+              if (child instanceof THREE.Mesh) {
+                if (child.name == "re_chair" || child.name == "re_chair_(1)" || child.name == "re_chair_(2)" || child.name == "re_chair_(3)") {
+                  child.material = new THREE.MeshPhongMaterial({map: textureChair, side: THREE.DoubleSide, skinning: true});
+                } else if (child.name == "re_tb_01" || child.name == "re_tb_01_(1)") {
+                  child.material = new THREE.MeshPhongMaterial({map: textureTable, side: THREE.DoubleSide, skinning: true});
+                }
+              }
+            });
+          },
+          undefined,
+          function (err) {
+            console.error(err);
+          });
+        },
+        undefined,
+        function (err) {
+          console.error(err);
+        });
+        objects[obj.id].size = {w: 10, h: 14, d: 6};
+        gltf.scene.scale.set(6, 6, 6);
+        gltf.scene.position.set(-worldSize.w/2+objects[obj.id].size.w/2+wallDepth/2+padding, -worldSize.h/2+objects[obj.id].size.h/2+wallDepth/2+padding+2*(objects[obj.id].size.h+padding), 0);
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "2";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'tableRestaurant4':
+      var w = 0.2*worldSize.w;
+      var h = 0.8*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/tableRestaurant.glb', function(gltf) {
+        new THREE.TextureLoader().load('/g/stealth/resource/img/chairRestaurant.png', function(textureChair) {
+          textureChair.wrapS = THREE.RepeatWrapping;
+          textureChair.wrapT = THREE.RepeatWrapping;
+          textureChair.mapping = THREE.CubeUVReflectionMapping;
+          textureChair.repeat.set(1, -1);
+          new THREE.TextureLoader().load('/g/stealth/resource/img/tableRestaurant.png', function(textureTable) {
+            textureTable.wrapS = THREE.RepeatWrapping;
+            textureTable.wrapT = THREE.RepeatWrapping;
+            textureTable.mapping = THREE.CubeUVReflectionMapping;
+            textureTable.repeat.set(1, -1);
+            gltf.scene.traverse(function (child) {
+              if (child instanceof THREE.Mesh) {
+                if (child.name == "re_chair" || child.name == "re_chair_(1)" || child.name == "re_chair_(2)" || child.name == "re_chair_(3)") {
+                  child.material = new THREE.MeshPhongMaterial({map: textureChair, side: THREE.DoubleSide, skinning: true});
+                } else if (child.name == "re_tb_01" || child.name == "re_tb_01_(1)") {
+                  child.material = new THREE.MeshPhongMaterial({map: textureTable, side: THREE.DoubleSide, skinning: true});
+                }
+              }
+            });
+          },
+          undefined,
+          function (err) {
+            console.error(err);
+          });
+        },
+        undefined,
+        function (err) {
+          console.error(err);
+        });
+        objects[obj.id].size = {w: 10, h: 14, d: 6};
+        gltf.scene.scale.set(6, 6, 6);
+        gltf.scene.position.set(-worldSize.w/2+objects[obj.id].size.w/2+wallDepth/2+padding, -worldSize.h/2+objects[obj.id].size.h/2+wallDepth/2+padding+3*(objects[obj.id].size.h+padding), 0);
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "2";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'tableRestaurant5':
+      var w = 0.2*worldSize.w;
+      var h = 0.8*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/tableRestaurant.glb', function(gltf) {
+        new THREE.TextureLoader().load('/g/stealth/resource/img/chairRestaurant.png', function(textureChair) {
+          textureChair.wrapS = THREE.RepeatWrapping;
+          textureChair.wrapT = THREE.RepeatWrapping;
+          textureChair.mapping = THREE.CubeUVReflectionMapping;
+          textureChair.repeat.set(1, -1);
+          new THREE.TextureLoader().load('/g/stealth/resource/img/tableRestaurant.png', function(textureTable) {
+            textureTable.wrapS = THREE.RepeatWrapping;
+            textureTable.wrapT = THREE.RepeatWrapping;
+            textureTable.mapping = THREE.CubeUVReflectionMapping;
+            textureTable.repeat.set(1, -1);
+            gltf.scene.traverse(function (child) {
+              if (child instanceof THREE.Mesh) {
+                if (child.name == "re_chair" || child.name == "re_chair_(1)" || child.name == "re_chair_(2)" || child.name == "re_chair_(3)") {
+                  child.material = new THREE.MeshPhongMaterial({map: textureChair, side: THREE.DoubleSide, skinning: true});
+                } else if (child.name == "re_tb_01" || child.name == "re_tb_01_(1)") {
+                  child.material = new THREE.MeshPhongMaterial({map: textureTable, side: THREE.DoubleSide, skinning: true});
+                }
+              }
+            });
+          },
+          undefined,
+          function (err) {
+            console.error(err);
+          });
+        },
+        undefined,
+        function (err) {
+          console.error(err);
+        });
+        objects[obj.id].size = {w: 10, h: 14, d: 6};
+        gltf.scene.scale.set(6, 6, 6);
+        gltf.scene.position.set(-worldSize.w/2+objects[obj.id].size.w/2+wallDepth/2+padding, -worldSize.h/2+objects[obj.id].size.h/2+wallDepth/2+padding+4*(objects[obj.id].size.h+padding), 0);
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "2";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'tableRestaurant6':
+      var w = 0.2*worldSize.w;
+      var h = 0.8*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/tableRestaurant.glb', function(gltf) {
+        new THREE.TextureLoader().load('/g/stealth/resource/img/chairRestaurant.png', function(textureChair) {
+          textureChair.wrapS = THREE.RepeatWrapping;
+          textureChair.wrapT = THREE.RepeatWrapping;
+          textureChair.mapping = THREE.CubeUVReflectionMapping;
+          textureChair.repeat.set(1, -1);
+          new THREE.TextureLoader().load('/g/stealth/resource/img/tableRestaurant.png', function(textureTable) {
+            textureTable.wrapS = THREE.RepeatWrapping;
+            textureTable.wrapT = THREE.RepeatWrapping;
+            textureTable.mapping = THREE.CubeUVReflectionMapping;
+            textureTable.repeat.set(1, -1);
+            gltf.scene.traverse(function (child) {
+              if (child instanceof THREE.Mesh) {
+                if (child.name == "re_chair" || child.name == "re_chair_(1)" || child.name == "re_chair_(2)" || child.name == "re_chair_(3)") {
+                  child.material = new THREE.MeshPhongMaterial({map: textureChair, side: THREE.DoubleSide, skinning: true});
+                } else if (child.name == "re_tb_01" || child.name == "re_tb_01_(1)") {
+                  child.material = new THREE.MeshPhongMaterial({map: textureTable, side: THREE.DoubleSide, skinning: true});
+                }
+              }
+            });
+          },
+          undefined,
+          function (err) {
+            console.error(err);
+          });
+        },
+        undefined,
+        function (err) {
+          console.error(err);
+        });
+        objects[obj.id].size = {w: 10, h: 14, d: 6};
+        gltf.scene.scale.set(6, 6, 6);
+        gltf.scene.position.set(-worldSize.w/2+objects[obj.id].size.w/2+wallDepth/2+padding, -worldSize.h/2+objects[obj.id].size.h/2+wallDepth/2+padding+5*(objects[obj.id].size.h+padding), 0);
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "2";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'tableRestaurant7':
+      var w = 0.2*worldSize.w;
+      var h = 0.8*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/tableRestaurant.glb', function(gltf) {
+        new THREE.TextureLoader().load('/g/stealth/resource/img/chairRestaurant.png', function(textureChair) {
+          textureChair.wrapS = THREE.RepeatWrapping;
+          textureChair.wrapT = THREE.RepeatWrapping;
+          textureChair.mapping = THREE.CubeUVReflectionMapping;
+          textureChair.repeat.set(1, -1);
+          new THREE.TextureLoader().load('/g/stealth/resource/img/tableRestaurant.png', function(textureTable) {
+            textureTable.wrapS = THREE.RepeatWrapping;
+            textureTable.wrapT = THREE.RepeatWrapping;
+            textureTable.mapping = THREE.CubeUVReflectionMapping;
+            textureTable.repeat.set(1, -1);
+            gltf.scene.traverse(function (child) {
+              if (child instanceof THREE.Mesh) {
+                if (child.name == "re_chair" || child.name == "re_chair_(1)" || child.name == "re_chair_(2)" || child.name == "re_chair_(3)") {
+                  child.material = new THREE.MeshPhongMaterial({map: textureChair, side: THREE.DoubleSide, skinning: true});
+                } else if (child.name == "re_tb_01" || child.name == "re_tb_01_(1)") {
+                  child.material = new THREE.MeshPhongMaterial({map: textureTable, side: THREE.DoubleSide, skinning: true});
+                }
+              }
+            });
+          },
+          undefined,
+          function (err) {
+            console.error(err);
+          });
+        },
+        undefined,
+        function (err) {
+          console.error(err);
+        });
+        objects[obj.id].size = {w: 10, h: 14, d: 6};
+        gltf.scene.scale.set(6, 6, 6);
+        gltf.scene.position.set(-worldSize.w/2+objects[obj.id].size.w/2+wallDepth/2+padding, -worldSize.h/2+objects[obj.id].size.h/2+wallDepth/2+padding+6*(objects[obj.id].size.h+padding), 0);
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "2";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'counterbar':
+      var w = 0.2*worldSize.w;
+      var h = 0.8*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/counterbar.glb', function(gltf) {
+        new THREE.TextureLoader().load('/g/stealth/resource/img/counterbarCenter.png', function(texture) {
+          texture.wrapS = THREE.RepeatWrapping;
+          texture.wrapT = THREE.RepeatWrapping;
+          texture.mapping = THREE.CubeUVReflectionMapping;
+          texture.repeat.set(1, -1);
+          new THREE.TextureLoader().load('/g/stealth/resource/img/counterbarSide.png', function(texture2) {
+            texture2.wrapS = THREE.RepeatWrapping;
+            texture2.wrapT = THREE.RepeatWrapping;
+            texture2.mapping = THREE.CubeUVReflectionMapping;
+            texture2.repeat.set(1, -1);
+            gltf.scene.traverse(function (child) {
+              if (child instanceof THREE.Mesh) {
+                if (child.name == "re_bar_center" || child.name == "re_bar_center(1)") {
+                  child.material = new THREE.MeshPhongMaterial({map: texture, side: THREE.DoubleSide, skinning: true});
+                } else if (child.name == "re_bar_side_L" || child.name == "re_bar_side_L(1)" || child.name == "re_bar_side_R" || child.name == "re_bar_side_R(1)") {
+                  child.material = new THREE.MeshPhongMaterial({map: texture2, side: THREE.DoubleSide, skinning: true});
+                }
+              }
+            });
+          },
+          undefined,
+          function (err) {
+            console.error(err);
+          });
+        },
+        undefined,
+        function (err) {
+          console.error(err);
+        });
+        objects[obj.id].size = {w: 16, h: 5, d: 6};
+        gltf.scene.scale.set(4, 4, 4);
+        gltf.scene.position.set(-worldSize.w/2+objects[obj.id].size.w/2+wallDepth/2+padding/2, -worldSize.h/2+h-objects[obj.id].size.h/2-wallDepth/2-padding, 0);
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "2";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'tableRestaurant9':
+      var w = 0.2*worldSize.w;
+      var h = 0.8*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/tableRestaurant2.glb', function(gltf) {
+        new THREE.TextureLoader().load('/g/stealth/resource/img/chairRestaurant.png', function(textureChair) {
+          textureChair.wrapS = THREE.RepeatWrapping;
+          textureChair.wrapT = THREE.RepeatWrapping;
+          textureChair.mapping = THREE.CubeUVReflectionMapping;
+          textureChair.repeat.set(1, -1);
+          new THREE.TextureLoader().load('/g/stealth/resource/img/tableRestaurant.png', function(textureTable) {
+            textureTable.wrapS = THREE.RepeatWrapping;
+            textureTable.wrapT = THREE.RepeatWrapping;
+            textureTable.mapping = THREE.CubeUVReflectionMapping;
+            textureTable.repeat.set(1, -1);
+            gltf.scene.traverse(function (child) {
+              if (child instanceof THREE.Mesh) {
+                if (child.name == "re_arm" || child.name == "re_arm_(1)" || child.name == "re_arm_(2)" || child.name == "re_arm_(3)") {
+                  child.material = new THREE.MeshPhongMaterial({map: textureChair, side: THREE.DoubleSide, skinning: true});
+                } else if (child.name == "re_tb_02") {
+                  child.material = new THREE.MeshPhongMaterial({map: textureTable, side: THREE.DoubleSide, skinning: true});
+                }
+              }
+            });
+          },
+          undefined,
+          function (err) {
+            console.error(err);
+          });
+        },
+        undefined,
+        function (err) {
+          console.error(err);
+        });
+        objects[obj.id].size = {w: 5, h: 14, d: 6};
+        gltf.scene.scale.set(6, 6, 6);
+        gltf.scene.position.set(-worldSize.w/2+w-objects[obj.id].size.w/2-wallDepth/2-padding/2, -worldSize.h/2+h-objects[obj.id].size.h/2-padding-(objects[obj.id].size.h+padding), 0);
+        gltf.scene.receiveShadow = true;
+        gltf.scene.castShadow = true;
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "2";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'tableRestaurant10':
+      var w = 0.2*worldSize.w;
+      var h = 0.8*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/tableRestaurant2.glb', function(gltf) {
+        new THREE.TextureLoader().load('/g/stealth/resource/img/chairRestaurant.png', function(textureChair) {
+          textureChair.wrapS = THREE.RepeatWrapping;
+          textureChair.wrapT = THREE.RepeatWrapping;
+          textureChair.mapping = THREE.CubeUVReflectionMapping;
+          textureChair.repeat.set(1, -1);
+          new THREE.TextureLoader().load('/g/stealth/resource/img/tableRestaurant.png', function(textureTable) {
+            textureTable.wrapS = THREE.RepeatWrapping;
+            textureTable.wrapT = THREE.RepeatWrapping;
+            textureTable.mapping = THREE.CubeUVReflectionMapping;
+            textureTable.repeat.set(1, -1);
+            gltf.scene.traverse(function (child) {
+              if (child instanceof THREE.Mesh) {
+                if (child.name == "re_arm" || child.name == "re_arm_(1)" || child.name == "re_arm_(2)" || child.name == "re_arm_(3)") {
+                  child.material = new THREE.MeshPhongMaterial({map: textureChair, side: THREE.DoubleSide, skinning: true});
+                } else if (child.name == "re_tb_02") {
+                  child.material = new THREE.MeshPhongMaterial({map: textureTable, side: THREE.DoubleSide, skinning: true});
+                }
+              }
+            });
+          },
+          undefined,
+          function (err) {
+            console.error(err);
+          });
+        },
+        undefined,
+        function (err) {
+          console.error(err);
+        });
+        objects[obj.id].size = {w: 5, h: 14, d: 6};
+        gltf.scene.scale.set(6, 6, 6);
+        gltf.scene.position.set(-worldSize.w/2+w-objects[obj.id].size.w/2-wallDepth/2-padding/2, -worldSize.h/2+h-objects[obj.id].size.h/2-padding-2*(objects[obj.id].size.h+padding), 0);
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "2";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'tableRestaurant11':
+      var w = 0.2*worldSize.w;
+      var h = 0.8*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/tableRestaurant2.glb', function(gltf) {
+        new THREE.TextureLoader().load('/g/stealth/resource/img/chairRestaurant.png', function(textureChair) {
+          textureChair.wrapS = THREE.RepeatWrapping;
+          textureChair.wrapT = THREE.RepeatWrapping;
+          textureChair.mapping = THREE.CubeUVReflectionMapping;
+          textureChair.repeat.set(1, -1);
+          new THREE.TextureLoader().load('/g/stealth/resource/img/tableRestaurant.png', function(textureTable) {
+            textureTable.wrapS = THREE.RepeatWrapping;
+            textureTable.wrapT = THREE.RepeatWrapping;
+            textureTable.mapping = THREE.CubeUVReflectionMapping;
+            textureTable.repeat.set(1, -1);
+            gltf.scene.traverse(function (child) {
+              if (child instanceof THREE.Mesh) {
+                if (child.name == "re_arm" || child.name == "re_arm_(1)" || child.name == "re_arm_(2)" || child.name == "re_arm_(3)") {
+                  child.material = new THREE.MeshPhongMaterial({map: textureChair, side: THREE.DoubleSide, skinning: true});
+                } else if (child.name == "re_tb_02") {
+                  child.material = new THREE.MeshPhongMaterial({map: textureTable, side: THREE.DoubleSide, skinning: true});
+                }
+              }
+            });
+          },
+          undefined,
+          function (err) {
+            console.error(err);
+          });
+        },
+        undefined,
+        function (err) {
+          console.error(err);
+        });
+        objects[obj.id].size = {w: 5, h: 14, d: 6};
+        gltf.scene.scale.set(6, 6, 6);
+        gltf.scene.position.set(-worldSize.w/2+w-objects[obj.id].size.w/2-wallDepth/2-padding/2, -worldSize.h/2+h-objects[obj.id].size.h/2-padding-3*(objects[obj.id].size.h+padding), 0);
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "2";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'tableRestaurant12':
+      var w = 0.2*worldSize.w;
+      var h = 0.8*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/tableRestaurant2.glb', function(gltf) {
+        new THREE.TextureLoader().load('/g/stealth/resource/img/chairRestaurant.png', function(textureChair) {
+          textureChair.wrapS = THREE.RepeatWrapping;
+          textureChair.wrapT = THREE.RepeatWrapping;
+          textureChair.mapping = THREE.CubeUVReflectionMapping;
+          textureChair.repeat.set(1, -1);
+          new THREE.TextureLoader().load('/g/stealth/resource/img/tableRestaurant.png', function(textureTable) {
+            textureTable.wrapS = THREE.RepeatWrapping;
+            textureTable.wrapT = THREE.RepeatWrapping;
+            textureTable.mapping = THREE.CubeUVReflectionMapping;
+            textureTable.repeat.set(1, -1);
+            gltf.scene.traverse(function (child) {
+              if (child instanceof THREE.Mesh) {
+                if (child.name == "re_arm" || child.name == "re_arm_(1)" || child.name == "re_arm_(2)" || child.name == "re_arm_(3)") {
+                  child.material = new THREE.MeshPhongMaterial({map: textureChair, side: THREE.DoubleSide, skinning: true});
+                } else if (child.name == "re_tb_02") {
+                  child.material = new THREE.MeshPhongMaterial({map: textureTable, side: THREE.DoubleSide, skinning: true});
+                }
+              }
+            });
+          },
+          undefined,
+          function (err) {
+            console.error(err);
+          });
+        },
+        undefined,
+        function (err) {
+          console.error(err);
+        });
+        objects[obj.id].size = {w: 5, h: 14, d: 6};
+        gltf.scene.scale.set(6, 6, 6);
+        gltf.scene.position.set(-worldSize.w/2+w-objects[obj.id].size.w/2-wallDepth/2-padding/2, -worldSize.h/2+h-objects[obj.id].size.h/2-padding-4*(objects[obj.id].size.h+padding), 0);
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "2";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'tableRestaurant13':
+      var w = 0.2*worldSize.w;
+      var h = 0.8*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/tableRestaurant2.glb', function(gltf) {
+        new THREE.TextureLoader().load('/g/stealth/resource/img/chairRestaurant.png', function(textureChair) {
+          textureChair.wrapS = THREE.RepeatWrapping;
+          textureChair.wrapT = THREE.RepeatWrapping;
+          textureChair.mapping = THREE.CubeUVReflectionMapping;
+          textureChair.repeat.set(1, -1);
+          new THREE.TextureLoader().load('/g/stealth/resource/img/tableRestaurant.png', function(textureTable) {
+            textureTable.wrapS = THREE.RepeatWrapping;
+            textureTable.wrapT = THREE.RepeatWrapping;
+            textureTable.mapping = THREE.CubeUVReflectionMapping;
+            textureTable.repeat.set(1, -1);
+            gltf.scene.traverse(function (child) {
+              if (child instanceof THREE.Mesh) {
+                if (child.name == "re_arm" || child.name == "re_arm_(1)" || child.name == "re_arm_(2)" || child.name == "re_arm_(3)") {
+                  child.material = new THREE.MeshPhongMaterial({map: textureChair, side: THREE.DoubleSide, skinning: true});
+                } else if (child.name == "re_tb_02") {
+                  child.material = new THREE.MeshPhongMaterial({map: textureTable, side: THREE.DoubleSide, skinning: true});
+                }
+              }
+            });
+          },
+          undefined,
+          function (err) {
+            console.error(err);
+          });
+        },
+        undefined,
+        function (err) {
+          console.error(err);
+        });
+        objects[obj.id].size = {w: 5, h: 14, d: 6};
+        gltf.scene.scale.set(6, 6, 6);
+        gltf.scene.position.set(-worldSize.w/2+w-objects[obj.id].size.w/2-wallDepth/2-padding/2, -worldSize.h/2+h-objects[obj.id].size.h/2-padding-5*(objects[obj.id].size.h+padding), 0);
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "2";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'tableRestaurant14':
+      var w = 0.2*worldSize.w;
+      var h = 0.8*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/tableRestaurant2.glb', function(gltf) {
+        new THREE.TextureLoader().load('/g/stealth/resource/img/chairRestaurant.png', function(textureChair) {
+          textureChair.wrapS = THREE.RepeatWrapping;
+          textureChair.wrapT = THREE.RepeatWrapping;
+          textureChair.mapping = THREE.CubeUVReflectionMapping;
+          textureChair.repeat.set(1, -1);
+          new THREE.TextureLoader().load('/g/stealth/resource/img/tableRestaurant.png', function(textureTable) {
+            textureTable.wrapS = THREE.RepeatWrapping;
+            textureTable.wrapT = THREE.RepeatWrapping;
+            textureTable.mapping = THREE.CubeUVReflectionMapping;
+            textureTable.repeat.set(1, -1);
+            gltf.scene.traverse(function (child) {
+              if (child instanceof THREE.Mesh) {
+                if (child.name == "re_arm" || child.name == "re_arm_(1)" || child.name == "re_arm_(2)" || child.name == "re_arm_(3)") {
+                  child.material = new THREE.MeshPhongMaterial({map: textureChair, side: THREE.DoubleSide, skinning: true});
+                } else if (child.name == "re_tb_02") {
+                  child.material = new THREE.MeshPhongMaterial({map: textureTable, side: THREE.DoubleSide, skinning: true});
+                }
+              }
+            });
+          },
+          undefined,
+          function (err) {
+            console.error(err);
+          });
+        },
+        undefined,
+        function (err) {
+          console.error(err);
+        });
+        objects[obj.id].size = {w: 5, h: 14, d: 6};
+        gltf.scene.scale.set(6, 6, 6);
+        gltf.scene.position.set(-worldSize.w/2+w-objects[obj.id].size.w/2-wallDepth/2-padding/2, -worldSize.h/2+h-objects[obj.id].size.h/2-padding-6*(objects[obj.id].size.h+padding), 0);
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "2";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'windowRestaurant1':
+      var w = 0.2*worldSize.w;
+      var h = 0.8*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/window.glb', function(gltf) {
+        gltf.scene.traverse(function (child) {
+          if (child instanceof THREE.Mesh) {
+            if (child.name == "window3_0") {
+              child.material = new THREE.MeshPhongMaterial({color: 0x363000, side: THREE.DoubleSide, skinning: true});
+            } else if (child.name == "window3_1") {
+              child.material = new THREE.MeshPhongMaterial({color: 0x00001C, side: THREE.DoubleSide, skinning: true});
+            }
+          }
+        });
+        objects[obj.id].size = {w: 5, h: 1, d: 5};
+        gltf.scene.scale.set(5, 5, 5);
+        gltf.scene.position.set(-worldSize.w/2+wallDepth/2+0.1, -worldSize.h/2+(h/5), 5);
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "q";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'windowRestaurant2':
+      var w = 0.2*worldSize.w;
+      var h = 0.8*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/window.glb', function(gltf) {
+        gltf.scene.traverse(function (child) {
+          if (child instanceof THREE.Mesh) {
+            if (child.name == "window3_0") {
+              child.material = new THREE.MeshPhongMaterial({color: 0x363000, side: THREE.DoubleSide, skinning: true});
+            } else if (child.name == "window3_1") {
+              child.material = new THREE.MeshPhongMaterial({color: 0x00001C, side: THREE.DoubleSide, skinning: true});
+            }
+          }
+        });
+        objects[obj.id].size = {w: 5, h: 1, d: 5};
+        gltf.scene.scale.set(5, 5, 5);
+        gltf.scene.position.set(-worldSize.w/2+wallDepth/2+0.1, -worldSize.h/2+2*(h/5), 5);
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "1";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'windowRestaurant3':
+      var w = 0.2*worldSize.w;
+      var h = 0.8*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/window.glb', function(gltf) {
+        gltf.scene.traverse(function (child) {
+          if (child instanceof THREE.Mesh) {
+            if (child.name == "window3_0") {
+              child.material = new THREE.MeshPhongMaterial({color: 0x363000, side: THREE.DoubleSide, skinning: true});
+            } else if (child.name == "window3_1") {
+              child.material = new THREE.MeshPhongMaterial({color: 0x00001C, side: THREE.DoubleSide, skinning: true});
+            }
+          }
+        });
+        objects[obj.id].size = {w: 5, h: 1, d: 5};
+        gltf.scene.scale.set(5, 5, 5);
+        gltf.scene.position.set(-worldSize.w/2+wallDepth/2+0.1, -worldSize.h/2+3*(h/5), 5);
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "1";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'windowRestaurant4':
+      var w = 0.2*worldSize.w;
+      var h = 0.8*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/window.glb', function(gltf) {
+        gltf.scene.traverse(function (child) {
+          if (child instanceof THREE.Mesh) {
+            if (child.name == "window3_0") {
+              child.material = new THREE.MeshPhongMaterial({color: 0x363000, side: THREE.DoubleSide, skinning: true});
+            } else if (child.name == "window3_1") {
+              child.material = new THREE.MeshPhongMaterial({color: 0x00001C, side: THREE.DoubleSide, skinning: true});
+            }
+          }
+        });
+        objects[obj.id].size = {w: 5, h: 1, d: 5};
+        gltf.scene.scale.set(5, 5, 5);
+        gltf.scene.position.set(-worldSize.w/2+wallDepth/2+0.1, -worldSize.h/2+4*(h/5), 5);
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "1";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'lightRestaurant1':
+      var w = 0.2*worldSize.w;
+      var h = 0.8*worldSize.h;
+      var lightRestaurant = new THREE.PointLight(0xFFFFFF, 0.6, 50);
+      lightRestaurant.position.set(-worldSize.w/2+w/2, -worldSize.h/2+(h/6), 10);
+      objects[obj.id].stopBullet = false;
+      objects[obj.id].visibleThrough = true;
+      objects[obj.id].ghostMode = "1";
+      objects[obj.id].sceneObj = lightRestaurant;
+      setPlaceLayout(obj.id);
+      scene.add(lightRestaurant);
+      break;
+    case 'lightRestaurant2':
+      var w = 0.2*worldSize.w;
+      var h = 0.8*worldSize.h;
+      var lightRestaurant = new THREE.PointLight(0xFFFFFF, 0.6, 50);
+      lightRestaurant.position.set(-worldSize.w/2+w/2, -worldSize.h/2+2*(h/6), 10);
+      objects[obj.id].stopBullet = false;
+      objects[obj.id].visibleThrough = true;
+      objects[obj.id].ghostMode = "1";
+      objects[obj.id].sceneObj = lightRestaurant;
+      setPlaceLayout(obj.id);
+      scene.add(lightRestaurant);
+      break;
+    case 'lightRestaurant3':
+      var w = 0.2*worldSize.w;
+      var h = 0.8*worldSize.h;
+      var lightRestaurant = new THREE.PointLight(0xFFFFFF, 0.6, 50);
+      lightRestaurant.position.set(-worldSize.w/2+w/2, -worldSize.h/2+3*(h/6), 10);
+      objects[obj.id].stopBullet = false;
+      objects[obj.id].visibleThrough = true;
+      objects[obj.id].ghostMode = "1";
+      objects[obj.id].sceneObj = lightRestaurant;
+      setPlaceLayout(obj.id);
+      scene.add(lightRestaurant);
+      break;
+    case 'lightRestaurant4':
+      var w = 0.2*worldSize.w;
+      var h = 0.8*worldSize.h;
+      var lightRestaurant = new THREE.PointLight(0xFFFFFF, 0.6, 50);
+      lightRestaurant.position.set(-worldSize.w/2+w/2, -worldSize.h/2+4*(h/6), 10);
+      objects[obj.id].stopBullet = false;
+      objects[obj.id].visibleThrough = true;
+      objects[obj.id].ghostMode = "1";
+      objects[obj.id].sceneObj = lightRestaurant;
+      setPlaceLayout(obj.id);
+      scene.add(lightRestaurant);
+      break;
+    case 'lightRestaurant5':
+      var w = 0.2*worldSize.w;
+      var h = 0.8*worldSize.h;
+      var lightRestaurant = new THREE.PointLight(0xFFFFFF, 0.6, 50);
+      lightRestaurant.position.set(-worldSize.w/2+w/2, -worldSize.h/2+5*(h/6), 10);
+      objects[obj.id].stopBullet = false;
+      objects[obj.id].visibleThrough = true;
+      objects[obj.id].ghostMode = "1";
+      objects[obj.id].sceneObj = lightRestaurant;
+      setPlaceLayout(obj.id);
+      scene.add(lightRestaurant);
+      break;
+    case 'lightKitchen1':
+      var w = 0.2*worldSize.w;
+      var h = 0.2*worldSize.h;
+      var lightRestaurant = new THREE.PointLight(0xFFFFFF, 0.9, 50);
+      lightRestaurant.position.set(-worldSize.w/2+(w/3), worldSize.h/2-h/2, 10);
+      objects[obj.id].stopBullet = false;
+      objects[obj.id].visibleThrough = true;
+      objects[obj.id].ghostMode = "1";
+      objects[obj.id].sceneObj = lightRestaurant;
+      setPlaceLayout(obj.id);
+      scene.add(lightRestaurant);
+      break;
+    case 'lightKitchen2':
+      var w = 0.2*worldSize.w;
+      var h = 0.2*worldSize.h;
+      var lightRestaurant = new THREE.PointLight(0xFFFFFF, 0.9, 50);
+      lightRestaurant.position.set(-worldSize.w/2+2*(w/3), worldSize.h/2-h/2, 10);
+      objects[obj.id].stopBullet = false;
+      objects[obj.id].visibleThrough = true;
+      objects[obj.id].ghostMode = "1";
+      objects[obj.id].sceneObj = lightRestaurant;
+      setPlaceLayout(obj.id);
+      scene.add(lightRestaurant);
+      break;
+    case 'washbasin':
+      var w = 0.2*worldSize.w;
+      var h = 0.2*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/washbanish.glb', function(gltf) {
+        new THREE.TextureLoader().load('/g/stealth/resource/img/washbanish.png', function(textureWashbanish) {
+          textureWashbanish.wrapS = THREE.RepeatWrapping;
+          textureWashbanish.wrapT = THREE.RepeatWrapping;
+          textureWashbanish.mapping = THREE.CubeUVReflectionMapping;
+          textureWashbanish.repeat.set(1, -1);
+          gltf.scene.traverse(function (child) {
+            if (child instanceof THREE.Mesh) {
+              child.material = new THREE.MeshPhongMaterial({map: textureWashbanish, side: THREE.DoubleSide, skinning: true});
+            }
+          });
+        },
+        undefined,
+        function (err) {
+          console.error(err);
+        });
+        objects[obj.id].size = {w: 4.5, h: 4.5, d: 5};
+        gltf.scene.scale.set(2, 2, 1);
+        gltf.scene.position.set(-worldSize.w/2+wallDepth/2+objects[obj.id].size.w/2+objects[obj.id].size.w, worldSize.h/2-objects[obj.id].size.h/2-wallDepth/2, 0);
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "2";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'countertop1':
+      var w = 0.2*worldSize.w;
+      var h = 0.2*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/countertop.glb', function(gltf) {
+        new THREE.TextureLoader().load('/g/stealth/resource/img/countertop.png', function(textureWashbanish) {
+          textureWashbanish.wrapS = THREE.RepeatWrapping;
+          textureWashbanish.wrapT = THREE.RepeatWrapping;
+          textureWashbanish.mapping = THREE.CubeUVReflectionMapping;
+          textureWashbanish.repeat.set(1, -1);
+          gltf.scene.traverse(function (child) {
+            if (child instanceof THREE.Mesh) {
+              child.material = new THREE.MeshPhongMaterial({map: textureWashbanish, side: THREE.DoubleSide, skinning: true});
+            }
+          });
+        },
+        undefined,
+        function (err) {
+          console.error(err);
+        });
+        objects[obj.id].size = {w: 4.5, h: 4.5, d: 5};
+        gltf.scene.scale.set(2, 2, 1);
+        gltf.scene.position.set(-worldSize.w/2+wallDepth/2+objects[obj.id].size.w/2, worldSize.h/2-objects[obj.id].size.h/2-wallDepth/2, 0);
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "2";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'countertop2':
+      var w = 0.2*worldSize.w;
+      var h = 0.2*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/countertop.glb', function(gltf) {
+        new THREE.TextureLoader().load('/g/stealth/resource/img/countertop.png', function(textureWashbanish) {
+          textureWashbanish.wrapS = THREE.RepeatWrapping;
+          textureWashbanish.wrapT = THREE.RepeatWrapping;
+          textureWashbanish.mapping = THREE.CubeUVReflectionMapping;
+          textureWashbanish.repeat.set(1, -1);
+          gltf.scene.traverse(function (child) {
+            if (child instanceof THREE.Mesh) {
+              child.material = new THREE.MeshPhongMaterial({map: textureWashbanish, side: THREE.DoubleSide, skinning: true});
+            }
+          });
+        },
+        undefined,
+        function (err) {
+          console.error(err);
+        });
+        objects[obj.id].size = {w: 4.5, h: 4.5, d: 5};
+        gltf.scene.scale.set(2, 2, 1);
+        gltf.scene.position.set(-worldSize.w/2+wallDepth/2+objects[obj.id].size.w/2+2*objects[obj.id].size.w, worldSize.h/2-objects[obj.id].size.h/2-wallDepth/2, 0);
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "2";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'countertop3':
+      var w = 0.2*worldSize.w;
+      var h = 0.2*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/countertop.glb', function(gltf) {
+        new THREE.TextureLoader().load('/g/stealth/resource/img/countertop.png', function(textureWashbanish) {
+          textureWashbanish.wrapS = THREE.RepeatWrapping;
+          textureWashbanish.wrapT = THREE.RepeatWrapping;
+          textureWashbanish.mapping = THREE.CubeUVReflectionMapping;
+          textureWashbanish.repeat.set(1, -1);
+          gltf.scene.traverse(function (child) {
+            if (child instanceof THREE.Mesh) {
+              child.material = new THREE.MeshPhongMaterial({map: textureWashbanish, side: THREE.DoubleSide, skinning: true});
+            }
+          });
+        },
+        undefined,
+        function (err) {
+          console.error(err);
+        });
+        objects[obj.id].size = {w: 4.5, h: 4.5, d: 5};
+        gltf.scene.scale.set(2, 2, 1);
+        gltf.scene.position.set(-worldSize.w/2+wallDepth/2+objects[obj.id].size.w/2+3*objects[obj.id].size.w, worldSize.h/2-objects[obj.id].size.h/2-wallDepth/2, 0);
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "2";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'stove1':
+      var w = 0.2*worldSize.w;
+      var h = 0.2*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/stove.glb', function(gltf) {
+        new THREE.TextureLoader().load('/g/stealth/resource/img/stove.png', function(textureWashbanish) {
+          textureWashbanish.wrapS = THREE.RepeatWrapping;
+          textureWashbanish.wrapT = THREE.RepeatWrapping;
+          textureWashbanish.mapping = THREE.CubeUVReflectionMapping;
+          textureWashbanish.repeat.set(1, -1);
+          gltf.scene.traverse(function (child) {
+            if (child instanceof THREE.Mesh) {
+              child.material = new THREE.MeshPhongMaterial({map: textureWashbanish, side: THREE.DoubleSide, skinning: true});
+            }
+          });
+        },
+        undefined,
+        function (err) {
+          console.error(err);
+        });
+        objects[obj.id].size = {w: 4.5, h: 4.5, d: 5};
+        gltf.scene.scale.set(2, 2, 1.5);
+        gltf.scene.position.set(-worldSize.w/2+wallDepth/2+objects[obj.id].size.w/2+4*objects[obj.id].size.w, worldSize.h/2-objects[obj.id].size.h/2-wallDepth/2, 0);
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "2";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'stove2':
+      var w = 0.2*worldSize.w;
+      var h = 0.2*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/stove.glb', function(gltf) {
+        new THREE.TextureLoader().load('/g/stealth/resource/img/stove.png', function(textureWashbanish) {
+          textureWashbanish.wrapS = THREE.RepeatWrapping;
+          textureWashbanish.wrapT = THREE.RepeatWrapping;
+          textureWashbanish.mapping = THREE.CubeUVReflectionMapping;
+          textureWashbanish.repeat.set(1, -1);
+          gltf.scene.traverse(function (child) {
+            if (child instanceof THREE.Mesh) {
+              child.material = new THREE.MeshPhongMaterial({map: textureWashbanish, side: THREE.DoubleSide, skinning: true});
+            }
+          });
+        },
+        undefined,
+        function (err) {
+          console.error(err);
+        });
+        objects[obj.id].size = {w: 4.5, h: 4.5, d: 5};
+        gltf.scene.scale.set(2, 2, 1.5);
+        gltf.scene.position.set(-worldSize.w/2+wallDepth/2+objects[obj.id].size.w/2+5*objects[obj.id].size.w, worldSize.h/2-objects[obj.id].size.h/2-wallDepth/2, 0);
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "2";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'stove3':
+      var w = 0.2*worldSize.w;
+      var h = 0.2*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/stove.glb', function(gltf) {
+        new THREE.TextureLoader().load('/g/stealth/resource/img/stove.png', function(textureWashbanish) {
+          textureWashbanish.wrapS = THREE.RepeatWrapping;
+          textureWashbanish.wrapT = THREE.RepeatWrapping;
+          textureWashbanish.mapping = THREE.CubeUVReflectionMapping;
+          textureWashbanish.repeat.set(1, -1);
+          gltf.scene.traverse(function (child) {
+            if (child instanceof THREE.Mesh) {
+              child.material = new THREE.MeshPhongMaterial({map: textureWashbanish, side: THREE.DoubleSide, skinning: true});
+            }
+          });
+        },
+        undefined,
+        function (err) {
+          console.error(err);
+        });
+        objects[obj.id].size = {w: 4.5, h: 4.5, d: 5};
+        gltf.scene.scale.set(2, 2, 1.5);
+        gltf.scene.position.set(-worldSize.w/2+wallDepth/2+objects[obj.id].size.w/2+6*objects[obj.id].size.w, worldSize.h/2-objects[obj.id].size.h/2-wallDepth/2, 0);
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "2";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'frige1':
+      var w = 0.2*worldSize.w;
+      var h = 0.2*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/frige.glb', function(gltf) {
+        new THREE.TextureLoader().load('/g/stealth/resource/img/frige.png', function(texture) {
+          texture.wrapS = THREE.RepeatWrapping;
+          texture.wrapT = THREE.RepeatWrapping;
+          texture.mapping = THREE.CubeUVReflectionMapping;
+          texture.repeat.set(1, -1);
+          gltf.scene.traverse(function (child) {
+            if (child instanceof THREE.Mesh) {
+              child.material = new THREE.MeshPhongMaterial({map: texture, side: THREE.DoubleSide, skinning: true});
+            }
+          });
+        },
+        undefined,
+        function (err) {
+          console.error(err);
+        });
+        objects[obj.id].size = {w: 5, h: 5.5, d: 5};
+        gltf.scene.scale.set(2, 2, 2);
+        gltf.scene.position.set(-worldSize.w/2+wallDepth/2+objects[obj.id].size.w/2, worldSize.h/2-h+objects[obj.id].size.h/2+wallDepth/2, 0);
+        gltf.scene.rotation.z = Math.PI/2;
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "2";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'frige2':
+      var w = 0.2*worldSize.w;
+      var h = 0.2*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/frige.glb', function(gltf) {
+        new THREE.TextureLoader().load('/g/stealth/resource/img/frige.png', function(texture) {
+          texture.wrapS = THREE.RepeatWrapping;
+          texture.wrapT = THREE.RepeatWrapping;
+          texture.mapping = THREE.CubeUVReflectionMapping;
+          texture.repeat.set(1, -1);
+          gltf.scene.traverse(function (child) {
+            if (child instanceof THREE.Mesh) {
+              child.material = new THREE.MeshPhongMaterial({map: texture, side: THREE.DoubleSide, skinning: true});
+            }
+          });
+        },
+        undefined,
+        function (err) {
+          console.error(err);
+        });
+        objects[obj.id].size = {w: 5, h: 5.5, d: 5};
+        gltf.scene.scale.set(2, 2, 2);
+        gltf.scene.position.set(-worldSize.w/2+wallDepth/2+objects[obj.id].size.w/2, worldSize.h/2-h+objects[obj.id].size.h/2+wallDepth/2+objects[obj.id].size.h, 0);
+        gltf.scene.rotation.z = Math.PI/2;
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "2";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'frige3':
+      var w = 0.2*worldSize.w;
+      var h = 0.2*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/frige.glb', function(gltf) {
+        new THREE.TextureLoader().load('/g/stealth/resource/img/frige.png', function(texture) {
+          texture.wrapS = THREE.RepeatWrapping;
+          texture.wrapT = THREE.RepeatWrapping;
+          texture.mapping = THREE.CubeUVReflectionMapping;
+          texture.repeat.set(1, -1);
+          gltf.scene.traverse(function (child) {
+            if (child instanceof THREE.Mesh) {
+              child.material = new THREE.MeshPhongMaterial({map: texture, side: THREE.DoubleSide, skinning: true});
+            }
+          });
+        },
+        undefined,
+        function (err) {
+          console.error(err);
+        });
+        objects[obj.id].size = {w: 5, h: 5.5, d: 5};
+        gltf.scene.scale.set(2, 2, 2);
+        gltf.scene.position.set(-worldSize.w/2+wallDepth/2+objects[obj.id].size.w/2, worldSize.h/2-h+objects[obj.id].size.h/2+wallDepth/2+2*objects[obj.id].size.h, 0);
+        gltf.scene.rotation.z = Math.PI/2;
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "2";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'rack1':
+      var w = 0.2*worldSize.w;
+      var h = 0.2*worldSize.h;
+      var sizeFrige = {w: 5, h: 5.5, d: 5};
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/rack.glb', function(gltf) {
+        new THREE.TextureLoader().load('/g/stealth/resource/img/woodRack.png', function(texture) {
+          texture.wrapS = THREE.RepeatWrapping;
+          texture.wrapT = THREE.RepeatWrapping;
+          texture.mapping = THREE.CubeUVReflectionMapping;
+          texture.repeat.set(1, -1);
+          new THREE.TextureLoader().load('/g/stealth/resource/img/mettalRack.png', function(texture2) {
+            texture2.wrapS = THREE.RepeatWrapping;
+            texture2.wrapT = THREE.RepeatWrapping;
+            texture2.mapping = THREE.CubeUVReflectionMapping;
+            texture2.repeat.set(1, -1);
+            gltf.scene.traverse(function (child) {
+              if (child instanceof THREE.Mesh) {
+                if (child.name == "wood" || child.name == "wood2" || child.name == "wood3") {
+                  child.material = new THREE.MeshPhongMaterial({map: texture, side: THREE.DoubleSide, skinning: true});
+                } else if (child.name == "mettal") {
+                  child.material = new THREE.MeshPhongMaterial({map: texture2, side: THREE.DoubleSide, skinning: true});
+                }
+              }
+            });
+          }, undefined,
+          function (err) {
+            console.error(err);
+          });
+        }, undefined,
+        function (err) {
+          console.error(err);
+        });
+        objects[obj.id].size = {w: 5, h: 11, d: 5};
+        gltf.scene.scale.set(2, 2, 2);
+        gltf.scene.position.set(-worldSize.w/2+wallDepth/2+objects[obj.id].size.w/2, worldSize.h/2-h+objects[obj.id].size.h/2+wallDepth/2+3*sizeFrige.h, 0);
+        gltf.scene.rotation.z = Math.PI/2;
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "2";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'rack2':
+      var w = 0.2*worldSize.w;
+      var h = 0.2*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/rack.glb', function(gltf) {
+        new THREE.TextureLoader().load('/g/stealth/resource/img/woodRack.png', function(texture) {
+          texture.wrapS = THREE.RepeatWrapping;
+          texture.wrapT = THREE.RepeatWrapping;
+          texture.mapping = THREE.CubeUVReflectionMapping;
+          texture.repeat.set(1, -1);
+          new THREE.TextureLoader().load('/g/stealth/resource/img/mettalRack.png', function(texture2) {
+            texture2.wrapS = THREE.RepeatWrapping;
+            texture2.wrapT = THREE.RepeatWrapping;
+            texture2.mapping = THREE.CubeUVReflectionMapping;
+            texture2.repeat.set(1, -1);
+            gltf.scene.traverse(function (child) {
+              if (child instanceof THREE.Mesh) {
+                if (child.name == "wood" || child.name == "wood2" || child.name == "wood3") {
+                  child.material = new THREE.MeshPhongMaterial({map: texture, side: THREE.DoubleSide, skinning: true});
+                } else if (child.name == "mettal") {
+                  child.material = new THREE.MeshPhongMaterial({map: texture2, side: THREE.DoubleSide, skinning: true});
+                }
+              }
+            });
+          }, undefined,
+          function (err) {
+            console.error(err);
+          });
+        }, undefined,
+        function (err) {
+          console.error(err);
+        });
+        objects[obj.id].size = {w: 5, h: 11, d: 5};
+        gltf.scene.scale.set(2, 2, 2);
+        gltf.scene.position.set(-worldSize.w/2+w-wallDepth/2-objects[obj.id].size.w/2, worldSize.h/2-h+objects[obj.id].size.h/2+wallDepth/2, 0);
+        gltf.scene.rotation.z = -Math.PI/2;
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "2";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'rack3':
+      var w = 0.2*worldSize.w;
+      var h = 0.2*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/rack.glb', function(gltf) {
+        new THREE.TextureLoader().load('/g/stealth/resource/img/woodRack.png', function(texture) {
+          texture.wrapS = THREE.RepeatWrapping;
+          texture.wrapT = THREE.RepeatWrapping;
+          texture.mapping = THREE.CubeUVReflectionMapping;
+          texture.repeat.set(1, -1);
+          new THREE.TextureLoader().load('/g/stealth/resource/img/mettalRack.png', function(texture2) {
+            texture2.wrapS = THREE.RepeatWrapping;
+            texture2.wrapT = THREE.RepeatWrapping;
+            texture2.mapping = THREE.CubeUVReflectionMapping;
+            texture2.repeat.set(1, -1);
+            gltf.scene.traverse(function (child) {
+              if (child instanceof THREE.Mesh) {
+                if (child.name == "wood" || child.name == "wood2" || child.name == "wood3") {
+                  child.material = new THREE.MeshPhongMaterial({map: texture, side: THREE.DoubleSide, skinning: true});
+                } else if (child.name == "mettal") {
+                  child.material = new THREE.MeshPhongMaterial({map: texture2, side: THREE.DoubleSide, skinning: true});
+                }
+              }
+            });
+          }, undefined,
+          function (err) {
+            console.error(err);
+          });
+        }, undefined,
+        function (err) {
+          console.error(err);
+        });
+        objects[obj.id].size = {w: 5, h: 11, d: 5};
+        gltf.scene.scale.set(2, 2, 2);
+        gltf.scene.position.set(-worldSize.w/2+w-wallDepth/2-objects[obj.id].size.w/2, worldSize.h/2-h+objects[obj.id].size.h/2+wallDepth/2+objects[obj.id].size.h, 0);
+        gltf.scene.rotation.z = -Math.PI/2;
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "2";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'tableKitchen':
+      var w = 0.2*worldSize.w;
+      var h = 0.2*worldSize.h;
+      var padding = 5;
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/tableKitchen.glb', function(gltf) {
+        gltf.scene.traverse(function (child) {
+          if (child instanceof THREE.Mesh) {
+            child.material = new THREE.MeshPhongMaterial({color: 0x111111, side: THREE.DoubleSide, skinning: true});
+          }
+        });
+        objects[obj.id].size = {w: 8, h: 20, d: 5};
+        gltf.scene.scale.set(6, 8, 4);
+        gltf.scene.position.set(-worldSize.w/2+w/2, worldSize.h/2-3-h/2, 0);
+        gltf.scene.rotation.z = Math.PI/2;
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "2";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'doorKitchen':
+      var w = 0.2*worldSize.w;
+      var h = 0.2*worldSize.h;
+      var padding = 5;
+      var door = {pos: 0.7, width: 6}
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/doorKitchen.glb', function(gltf) {
+        new THREE.TextureLoader().load('/g/stealth/resource/img/woodRack.png', function(texture) {
+          texture.wrapS = THREE.RepeatWrapping;
+          texture.wrapT = THREE.RepeatWrapping;
+          texture.mapping = THREE.CubeUVReflectionMapping;
+          texture.repeat.set(1, -1);
+
+          gltf.scene.traverse(function (child) {
+            if (child instanceof THREE.Mesh) {
+              if (child.name == "Mesh2_Steve_Book_0" || child.name == "Mesh4_Steve_Book_0") {
+                child.material = new THREE.MeshPhongMaterial({color: 0xEEEEEE, side: THREE.DoubleSide, skinning: true});
+              } else {
+                child.material = new THREE.MeshPhongMaterial({map: texture, side: THREE.DoubleSide, skinning: true});
+              }
+            }
+          });
+        }, undefined,
+        function (err) {
+          console.error(err);
+        });
+        objects[obj.id].size = {w: 6, h: 1, d: 5};
+        gltf.scene.scale.set(2.05, 3, 1.21);
+        gltf.scene.position.set(-worldSize.w/2+door.pos*w, worldSize.h/2-h, 0);
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "1";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
+      break;
+    case 'doorRestaurant':
+      var w = 0.2*worldSize.w;
+      var h = 0.8*worldSize.h;
+      var padding = 5;
+      var door = {pos: 0.1, width: 6}
+      new THREE.GLTFLoader().load('/g/stealth/resource/models/doorKitchen.glb', function(gltf) {
+        new THREE.TextureLoader().load('/g/stealth/resource/img/woodRack.png', function(texture) {
+          texture.wrapS = THREE.RepeatWrapping;
+          texture.wrapT = THREE.RepeatWrapping;
+          texture.mapping = THREE.CubeUVReflectionMapping;
+          texture.repeat.set(1, -1);
+
+          gltf.scene.traverse(function (child) {
+            if (child instanceof THREE.Mesh) {
+              if (child.name == "Mesh2_Steve_Book_0" || child.name == "Mesh4_Steve_Book_0") {
+                child.material = new THREE.MeshPhongMaterial({color: 0xEEEEEE, side: THREE.DoubleSide, skinning: true});
+              } else {
+                child.material = new THREE.MeshPhongMaterial({map: texture, side: THREE.DoubleSide, skinning: true});
+              }
+            }
+          });
+        }, undefined,
+        function (err) {
+          console.error(err);
+        });
+        objects[obj.id].size = {w: 6, h: 1, d: 5};
+        gltf.scene.scale.set(2.05, 3, 1.21);
+        gltf.scene.position.set(-worldSize.w/2+w, -worldSize.h/2+door.pos*h, 0);
+        gltf.scene.rotation.z = Math.PI/2;
+        objects[obj.id].stopBullet = false;
+        objects[obj.id].visibleThrough = true;
+        objects[obj.id].ghostMode = "1";
+        objects[obj.id].sceneObj = gltf.scene;
+        setPlaceLayout(obj.id);
+        scene.add(gltf.scene);
+      }, undefined, function(err) {
+        console.error(err);
+      });
       break;
   }
 }

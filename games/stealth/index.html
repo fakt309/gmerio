@@ -2,14 +2,23 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title></title>
+    <meta name="description" content="Real stealth game. Real time game. Real multiplayer game. Real online game. This is not a joke.">
+    <meta name="keywords" content="2d,stealth,play,online,socket,io,multiplayer,real,time,game">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="icon" type="image/png" id="icoico" href="/g/stealth/resource/img/favicon.png">
+    <title>Stealth, realtime, multiplayer game io</title>
   </head>
   <body onload="initHome()">
+    <div id="guitag"></div>
+
     <script src="/socket.io/socket.io.js"></script>
     <script src="/g/stealth/resource/js/three.min.js"></script>
     <script src="/g/stealth/resource/js/GLTFLoader.js"></script>
 
     <script src="/g/stealth/resource/js/addScene.js"></script>
+    <script src="/g/stealth/resource/js/setAnimationPlayer.js"></script>
 
     <script type="text/javascript">
     var socket = io();
@@ -19,15 +28,17 @@
       s: false,
       d: false,
       a: false,
-      hnum1: false
+      hnum1: false,
+      rightMouse: false
     };
 
     var maxCountStep = 30;
     var countStep = maxCountStep-1;
     var speedPlayers = 0.5;
+    var speedBullets = 5;
     var movePlayers = function() {
       for (var i = 0; i < objects.length; i++) {
-        if (objects[i] && objects[i].tag == 'player') {
+        if (objects[i] && objects[i].tag == 'player' && !objects[i].dead) {
           if (isPlayerIntoNoneGhostObj(objects[i], {x: objects[i].sceneObj.position.x+objects[i].speed.x*speedPlayers, y: objects[i].sceneObj.position.y+objects[i].speed.y*speedPlayers})) {
             if (!isPlayerIntoNoneGhostObj(objects[i], {x: objects[i].sceneObj.position.x+objects[i].speed.x*speedPlayers, y: objects[i].sceneObj.position.y})) {
               objects[i].speed.x = objects[i].speed.x;
@@ -47,7 +58,7 @@
           objects[i].sceneObj.position.x += objects[i].speed.x*speedPlayers;
           objects[i].sceneObj.position.y += objects[i].speed.y*speedPlayers;
 
-          if (objects[i].id == idObjMyPlayer) {
+          if (objects[i].id == idObjMyPlayer && !objects[i].dead) {
             camera.position.x = objects[i].coord.x;
             camera.position.y = objects[i].coord.y;
 
@@ -62,7 +73,8 @@
             if (countStep == maxCountStep) {
               socket.emit('sendAddObjectsS', [{
                 tag: 'circle',
-                coord: objects[i].coord
+                coord: objects[i].coord,
+                maxSize: 2
               }]);
               countStep = 0;
             }
@@ -73,15 +85,110 @@
           setAnimationPlayer(objects[i]);
 
           addSizeCirclesStep();
+        } else if (objects[i] && objects[i].tag == 'bullet') {
+          var steps = speedBullets/0.5;
+          for (var j = 0; j < steps; j++) {
+            objects[i].coord.x += objects[i].speed.x*0.5;
+            objects[i].coord.y += objects[i].speed.y*0.5;
+            objects[i].sceneObj.position.x += objects[i].speed.x*0.5;
+            objects[i].sceneObj.position.y += objects[i].speed.y*0.5;
+
+            var recipientBullet = isBulletAreaIntoStopBulletObj({x: objects[i].coord.x, y: objects[i].coord.y});
+            if (recipientBullet) {
+              if (recipientBullet.tag == "player" && recipientBullet.id == idObjMyPlayer) {
+                hurtMe(50, 10);
+              }
+              scene.remove(objects[i].sceneObj);
+              delete objects[i];
+              break;
+            }
+          }
+
         }
       }
+    };
+
+    var timerBleeding = setInterval(function() {}, 60*60*1000);
+    var timeoutShowHealth = setTimeout(function() {}, 1);
+    var hurtMe = function(hp, blood) {
+      var myPlayer = objects[idObjMyPlayer];
+
+      myPlayer.health -= hp;
+      myPlayer.bleeding += blood;
+
+      if (document.getElementById('health')) {
+        document.getElementById('health').remove();
+      }
+      var healthGui = document.createElement("div");
+      healthGui.setAttribute("id", "health");
+      healthGui.setAttribute("class", "disable-select");
+      var color = getColorHealth(myPlayer.health);
+      healthGui.style.backgroundColor = "rgb("+color.r+", "+color.g+", "+color.b+")";
+      healthGui.style.width = (myPlayer.health)+"%";
+      healthGui.style.height = "100px";
+      healthGui.style.position = "fixed";
+      healthGui.style.left = "0px";
+      healthGui.style.top = "0px";
+      healthGui.style.opacity = "0.5";
+      document.getElementById('guitag').appendChild(healthGui);
+      clearTimeout(timeoutShowHealth);
+      timeoutShowHealth = setTimeout(function() {
+        if (document.getElementById('health')) {
+          document.getElementById('health').remove();
+        }
+      }, 500);
+
+      if (blood > 0) {
+        clearInterval(timerBleeding);
+        timerBleeding = setInterval(function() {
+          hurtMe(1, 0);
+        }, (60*1000)/myPlayer.bleeding);
+      }
+
+      var coordBlood = {x: myPlayer.coord.x+2*Math.cos(myPlayer.sceneObj.rotation.y-Math.PI/2), y:myPlayer.coord.y+2*Math.sin(myPlayer.sceneObj.rotation.y-Math.PI/2)};
+      socket.emit('sendAddObjectsS', [{
+        tag: 'blood',
+        coord: coordBlood
+      }]);
+
+      if (myPlayer.health <= 0) {
+        eyesLight.visible = false;
+        myPlayer.dead = true;
+        myPlayer.sceneObj.rotation.x = 0;
+        myPlayer.sceneObj.rotation.y = 0;
+        myPlayer.sceneObj.rotation.z = Math.PI/2;
+        myPlayer.sceneObj.position.z = 1;
+        myPlayer.mixer.stopAllAction();
+        myPlayer.health = 0;
+        myPlayer.bleeding = 0;
+        myPlayer.stopBullet = false;
+        socket.emit('sendDeadPlayer', idObjMyPlayer);
+      }
+
+      socket.emit('sendChgHpBloodS', idObjMyPlayer, hp, blood);
+    };
+
+    var getColorHealth = function(health) {
+      var pointsGradient = {};
+      var percent = 0;
+      if (health <= 50) {
+        pointsGradient.p1 = {r: 225, g: 0, b: 0};
+        pointsGradient.p2 = {r: 225, g: 225, b: 0};
+        percent = health/50;
+      } else if (health > 50) {
+        pointsGradient.p1 = {r: 225, g: 225, b: 0};
+        pointsGradient.p2 = {r: 0, g: 225, b: 0};
+        percent = (health-50)/50;
+      }
+      return {r: pointsGradient.p1.r+percent*(pointsGradient.p2.r-pointsGradient.p1.r), g: pointsGradient.p1.g+percent*(pointsGradient.p2.g-pointsGradient.p1.g), b: pointsGradient.p1.b+percent*(pointsGradient.p2.b-pointsGradient.p1.b)};
     };
 
     var addSizeCirclesStep = function() {
       for (i in objects) {
         if (objects[i].tag == "circle") {
-          if (objects[i].sceneObj.scale.x >= 3) {
+          if (objects[i].sceneObj.scale.x >= objects[i].maxSize) {
             scene.remove(objects[i].sceneObj);
+            // delete objects[i];
             continue;
           }
           objects[i].sceneObj.scale.x += 0.03;
@@ -112,7 +219,7 @@
 
     var showOtherPlayers = function() {
       for (var i = 0; i < objects.length; i++) {
-        if (objects[i] && i != idObjMyPlayer && objects[i].tag == "player") {
+        if (objects[i] && i != idObjMyPlayer && (objects[i].tag == "player" || objects[i].tag == "bullet" || objects[i].tag == "blood")) {
           var range = Math.sqrt(Math.pow(objects[idObjMyPlayer].coord.x-objects[i].coord.x, 2)+Math.pow(objects[idObjMyPlayer].coord.y-objects[i].coord.y, 2));
           if (range < 50) {
             var myAngle = objects[idObjMyPlayer].sceneObj.rotation.y;
@@ -185,6 +292,20 @@
       return false;
     };
 
+    var isBulletAreaIntoStopBulletObj = function(point) {
+      var sizeBulletArea = {w: 0.1, h: 0.1, d: 0.1};
+      for (var i = 0; i < objects.length; i++) {
+        if (objects[i] && objects[i].stopBullet == true) {
+          if ( (point.x-sizeBulletArea.w/2 >= objects[i].sceneObj.position.x-objects[i].size.w/2 && point.x-sizeBulletArea.w/2 <= objects[i].sceneObj.position.x+objects[i].size.w/2) || (point.x+sizeBulletArea.w/2 >= objects[i].sceneObj.position.x-objects[i].size.w/2 && point.x+sizeBulletArea.w/2 <= objects[i].sceneObj.position.x+objects[i].size.w/2) || (objects[i].sceneObj.position.x-objects[i].size.w/2 >= point.x-sizeBulletArea.w/2 && objects[i].sceneObj.position.x-objects[i].size.w/2 <= point.x+sizeBulletArea.w/2) || (objects[i].sceneObj.position.x+objects[i].size.w/2 >= point.x-sizeBulletArea.w/2 && objects[i].sceneObj.position.x+objects[i].size.w/2 <= point.x+sizeBulletArea.w/2) ) {
+            if ( (point.y-sizeBulletArea.h/2 >= objects[i].sceneObj.position.y-objects[i].size.h/2 && point.y-sizeBulletArea.h/2 <= objects[i].sceneObj.position.y+objects[i].size.h/2) || (point.y+sizeBulletArea.h/2 >= objects[i].sceneObj.position.y-objects[i].size.h/2 && point.y+sizeBulletArea.h/2 <= objects[i].sceneObj.position.y+objects[i].size.h/2) || (objects[i].sceneObj.position.y-objects[i].size.h/2 >= point.y-sizeBulletArea.h/2 && objects[i].sceneObj.position.y-objects[i].size.h/2 <= point.y+sizeBulletArea.h/2) || (objects[i].sceneObj.position.y+objects[i].size.h/2 >= point.y-sizeBulletArea.h/2 && objects[i].sceneObj.position.y+objects[i].size.h/2 <= point.y+sizeBulletArea.h/2) ) {
+              return objects[i];
+            }
+          }
+        }
+      }
+      return false;
+    };
+
     var sendMove = function() {
       if (pressedKeys.w && !pressedKeys.s) {
         socket.emit('sendChgSpeedPlayerS', idObjMyPlayer, null, 1);
@@ -233,69 +354,6 @@
       renderer.setSize(window.innerWidth-10, window.innerHeight-10);
       camera.aspect = (window.innerWidth-10)/(window.innerHeight-10);
       camera.updateProjectionMatrix();
-    };
-
-    var setAnimationPlayer = function(obj) {
-      if (obj.speed.x == 0 && obj.speed.y == 0 && obj.activeAnimation != 'Standing') {
-        obj.mixer.stopAllAction();
-        obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'Standing')).play();
-        obj.activeAnimation = 'Standing';
-      } else if (obj.speed.x != 0 || obj.speed.y != 0) {
-
-        var directionKey = 0;
-        if (obj.speed.x > 0 && obj.speed.y == 0) {
-          directionKey = 1;
-        } else if (obj.speed.x > 0 && obj.speed.y > 0) {
-          directionKey = 2;
-        } else if (obj.speed.x == 0 && obj.speed.y > 0) {
-          directionKey = 3;
-        } else if (obj.speed.x < 0 && obj.speed.y > 0) {
-          directionKey = 4;
-        } else if (obj.speed.x < 0 && obj.speed.y == 0) {
-          directionKey = 5;
-        } else if (obj.speed.x < 0 && obj.speed.y < 0) {
-          directionKey = 6;
-        } else if (obj.speed.x == 0 && obj.speed.y < 0) {
-          directionKey = 7;
-        } else if (obj.speed.x > 0 && obj.speed.y < 0) {
-          directionKey = 8;
-        }
-
-        if (obj.activeAnimation != 'Forward' && obj.lookingDirect == directionKey) {
-          obj.mixer.stopAllAction();
-          obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'Forward')).play();
-          obj.activeAnimation = 'Forward';
-        } else if (obj.activeAnimation != 'ForwardRight' && (obj.lookingDirect-directionKey == 1 || obj.lookingDirect-directionKey == -7)) {
-          obj.mixer.stopAllAction();
-          obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'ForwardRight')).play();
-          obj.activeAnimation = 'ForwardRight';
-        } else if (obj.activeAnimation != 'ForwardLeft' && (obj.lookingDirect-directionKey == -1 || obj.lookingDirect-directionKey == 7)) {
-          obj.mixer.stopAllAction();
-          obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'ForwardLeft')).play();
-          obj.activeAnimation = 'ForwardLeft';
-        } else if (obj.activeAnimation != 'Back' && Math.abs(obj.lookingDirect-directionKey) == 4) {
-          obj.mixer.stopAllAction();
-          obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'Back')).play();
-          obj.activeAnimation = 'Back';
-        } else if (obj.activeAnimation != 'BackRight' && (obj.lookingDirect-directionKey == -5 || obj.lookingDirect-directionKey == 3 )) {
-          obj.mixer.stopAllAction();
-          obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'BackRight')).play();
-          obj.activeAnimation = 'BackRight';
-        } else if (obj.activeAnimation != 'BackLeft' && (obj.lookingDirect-directionKey == -3 || obj.lookingDirect-directionKey == 5)) {
-          obj.mixer.stopAllAction();
-          obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'BackLeft')).play();
-          obj.activeAnimation = 'BackLeft';
-        } else if (obj.activeAnimation != 'Right' && (obj.lookingDirect-directionKey == 2 || obj.lookingDirect-directionKey == -6)) {
-          obj.mixer.stopAllAction();
-          obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'Right')).play();
-          obj.activeAnimation = 'Right';
-        } else if (obj.activeAnimation != 'Left' && (obj.lookingDirect-directionKey == -2 || obj.lookingDirect-directionKey == 6)) {
-          obj.mixer.stopAllAction();
-          obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'Left')).play();
-          obj.activeAnimation = 'Left';
-        }
-
-      }
     };
 
     var keyDownHome = function(e) {
@@ -371,7 +429,199 @@
       sendMove();
     };
 
+    var cancelContextRightClick = function(e) {
+      e.preventDefault();
+    };
+
+
+    var aimGunDown = function(e) {
+      if (e.button == 2) {
+        pressedKeys.rightMouse = true;
+        objects[idObjMyPlayer].aiming = true;
+        socket.emit('sendActionS', idObjMyPlayer, "aiming", true);
+        setAnimationPlayer(objects[idObjMyPlayer]);
+      }
+    };
+
+    var aimGunUp = function(e) {
+      if (e.button == 2) {
+        pressedKeys.rightMouse = false;
+        objects[idObjMyPlayer].aiming = false;
+        socket.emit('sendActionS', idObjMyPlayer, "aiming", false);
+        setAnimationPlayer(objects[idObjMyPlayer]);
+      }
+    };
+
+    var wheelUsage = true;
+    var changeWeapon = function(e) {
+      if (wheelUsage) {
+        var myPlayer = objects[idObjMyPlayer];
+
+        switchWeapon(myPlayer);
+        showGuiWeapon(myPlayer.activeWeapon);
+        showGuiBullets();
+        socket.emit('sendActionS', idObjMyPlayer, "changeWeapon", myPlayer.activeWeapon);
+
+        wheelUsage = false;
+        setTimeout(function() {
+          wheelUsage = true;
+        }, 500);
+      }
+    };
+
+    var switchWeapon = function(obj) {
+      if (obj.activeWeapon == 1) {
+        obj.activeWeapon = 2;
+        visibleObj(obj, "GunObj", false);
+        visibleObj(obj, "KnifeObj", true);
+      } else if (obj.activeWeapon == 2) {
+        obj.activeWeapon = 1;
+        visibleObj(obj, "GunObj", true);
+        visibleObj(obj, "KnifeObj", false);
+      }
+    };
+
+    var timeoutChangeWeapon = setTimeout(function() {}, 1);
+    var showGuiWeapon = function(weapon) {
+      if (document.getElementById('imgWeapon')) {
+        document.getElementById('imgWeapon').remove();
+      }
+      var imgWeapon = document.createElement("img");
+      imgWeapon.setAttribute("id", "imgWeapon");
+      imgWeapon.setAttribute("class", "disable-select");
+      if (weapon == 1) {
+        imgWeapon.setAttribute("src", "/g/stealth/resource/img/imgGun.png");
+      } else if (weapon == 2) {
+        imgWeapon.setAttribute("src", "/g/stealth/resource/img/imgKnife.png");
+      }
+      imgWeapon.style.width = "200px";
+      imgWeapon.style.height = "200px";
+      imgWeapon.style.position = "fixed";
+      imgWeapon.style.left = "0px";
+      imgWeapon.style.bottom = "0px";
+      document.getElementById('guitag').appendChild(imgWeapon);
+
+      clearTimeout(timeoutChangeWeapon);
+      timeoutChangeWeapon = setTimeout(function() {
+        if (document.getElementById('imgWeapon')) {
+          document.getElementById('imgWeapon').remove();
+        }
+      }, 3000);
+    };
+
+    var timeoutBullets = setTimeout(function() {}, 1);
+    var showGuiBullets = function() {
+      if (objects[idObjMyPlayer].activeWeapon == 1) {
+        if (document.getElementById('bulletsGui')) {
+          document.getElementById('bulletsGui').remove();
+        }
+        var bulletsGui = document.createElement("div");
+        bulletsGui.innerHTML = objects[idObjMyPlayer].bullets;
+        bulletsGui.setAttribute("id", "bulletsGui");
+        bulletsGui.setAttribute("class", "disable-select");
+        bulletsGui.style.padding = "10px";
+        bulletsGui.style.position = "fixed";
+        bulletsGui.style.left = "0px";
+        bulletsGui.style.bottom = "0px";
+        bulletsGui.style.fontSize = "20px";
+        bulletsGui.style.textAlign = "center";
+        bulletsGui.style.fontFamily = "Arial";
+        bulletsGui.style.color = "#ffffff";
+        bulletsGui.style.backgroundColor = "#00000077";
+        document.getElementById('guitag').appendChild(bulletsGui);
+
+        clearTimeout(timeoutBullets);
+        timeoutBullets = setTimeout(function() {
+          if (document.getElementById('bulletsGui')) {
+            document.getElementById('bulletsGui').remove();
+          }
+        }, 3000);
+      } else if (document.getElementById('bulletsGui')) {
+        document.getElementById('bulletsGui').remove();
+      }
+    };
+
+    var visibleObj = function(obj, name, boolean) {
+      for (var i = 0; i < obj.sceneObj.children.length; i++) {
+        if (obj.sceneObj.children[i].name == name) {
+          obj.sceneObj.children[i].visible = boolean;
+          break;
+        }
+      }
+    };
+
+    var stabUsage = true;
+    var stab = function(e) {
+      var myPlayer = objects[idObjMyPlayer];
+      if (e.button == 0 && myPlayer.activeWeapon == 2 && stabUsage) {
+        socket.emit('sendActionS', idObjMyPlayer, "stab", false);
+        makeStab(myPlayer);
+        stabUsage = false;
+        setTimeout(function() {
+          stabUsage = true;
+        }, 500);
+      }
+    };
+
+    var makeStab = function(obj) {
+      var action = obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'Stab'));
+      action.setLoop(THREE.LoopOnce);
+      action.play();
+      var action2 = obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'KnifeStab')).play();
+      action2.setLoop(THREE.LoopOnce);
+      action2.play();
+
+      setTimeout(function() {
+        action.stop();
+        action2.stop();
+      }, 500);
+
+      if (obj.id != idObjMyPlayer) {
+        var coordKnife = {x: obj.coord.x+2*Math.cos(obj.sceneObj.rotation.y-Math.PI/2), y:obj.coord.y+2*Math.sin(obj.sceneObj.rotation.y-Math.PI/2)};
+        var range = Math.sqrt(Math.pow(coordKnife.x-objects[idObjMyPlayer].coord.x, 2)+Math.pow(coordKnife.y-objects[idObjMyPlayer].coord.y, 2));
+        if (range < 2) {
+          hurtMe(10, 5);
+        }
+      }
+    };
+
+    var shoot = function(e) {
+      var myPlayer = objects[idObjMyPlayer];
+      if (e.button == 0 && pressedKeys.rightMouse && myPlayer.activeWeapon == 1 && myPlayer.bullets > 0) {
+        var mouse = {
+          x: e.pageX,
+          y: e.pageY
+        }
+        var center = {
+          x: window.innerWidth/2,
+          y: window.innerHeight/2
+        }
+        var angle = Math.atan(Math.abs(center.y-mouse.y)/Math.abs(center.x-mouse.x));
+        if (mouse.x < center.x && mouse.y < center.y) {
+          angle = Math.PI-angle;
+        } else if (mouse.x < center.x && mouse.y > center.y) {
+          angle = Math.PI+angle;
+        } else if (mouse.x > center.x && mouse.y > center.y) {
+          angle = 2*Math.PI-angle;
+        }
+
+        myPlayer.bullets--;
+        showGuiBullets();
+
+        socket.emit('sendAddObjectsS', [{
+          tag: 'bullet',
+          coord: {x: myPlayer.coord.x+Math.cos(angle)*myPlayer.size.w, y: myPlayer.coord.y+Math.sin(angle)*myPlayer.size.w},
+          speed: {x: Math.cos(angle), y: Math.sin(angle)}
+        }, {
+          tag: 'circle',
+          coord: myPlayer.coord,
+          maxSize: 4
+        }]);
+      }
+    };
+
     var rotateMe = function(e) {
+      if (!objects[idObjMyPlayer].dead) {
       var mouse = {
         x: e.pageX,
         y: e.pageY
@@ -437,6 +687,7 @@
       }
 
       socket.emit('rotatePlayerS', idObjMyPlayer, objects[idObjMyPlayer].sceneObj.rotation.y, objects[idObjMyPlayer].lookingDirect);
+      }
     };
 
     var update = function() {
@@ -530,7 +781,7 @@
     scene.add(light);
     // var light = new THREE.PointLight(0xFFFFFF, 0.3, 50);
     // light.position.set(0, 0, 3);
-    scene.add(light);
+    //scene.add(light);
 
     targetEyesLight = new THREE.Object3D();
     targetEyesLight.position.z = 0.5;
@@ -555,6 +806,12 @@
     window.addEventListener("keydown", keyDownGame);
     window.addEventListener("keyup", keyUpGame);
     window.addEventListener("mousemove", rotateMe);
+    document.addEventListener("contextmenu", cancelContextRightClick);
+    window.addEventListener("mousedown", aimGunDown);
+    window.addEventListener("mouseup", aimGunUp);
+    window.addEventListener("wheel", changeWeapon);
+    window.addEventListener("mousedown", stab);
+    window.addEventListener("mousedown", shoot);
     //-Listeners game
     //+FPS
     //javascript:(function(){var script=document.createElement('script');script.onload=function(){var stats=new Stats();document.body.appendChild(stats.dom);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop)});};script.src='//mrdoob.github.io/stats.js/build/stats.min.js';document.head.appendChild(script);})()
@@ -569,6 +826,12 @@
         window.removeEventListener("keydown", keyDownGame);
         window.removeEventListener("keyup", keyUpGame);
         window.removeEventListener("mousemove", rotateMe);
+        document.removeEventListener("contextmenu", cancelContextRightClick);
+        window.removeEventListener("mousedown", aimGunDown);
+        window.removeEventListener("mouseup", aimGunUp);
+        window.removeEventListener("wheel", changeWeapon);
+        window.removeEventListener("mousedown", stab);
+        window.removeEventListener("mousedown", shoot);
       }
     };
 
@@ -614,6 +877,43 @@
       objects[idObj].sceneObj.rotation.y = angle;
       objects[idObj].lookingDirect = direct;
     });
+    socket.on('takeActionS', function(idObj, action, param) {
+      switch (action) {
+        case 'aiming':
+          objects[idObj].aiming = param;
+          break;
+        case 'changeWeapon':
+          objects[idObj].activeWeapon = param;
+          if (obj.activeWeapon == 1) {
+            visibleObj(obj, "GunObj", true);
+            visibleObj(obj, "KnifeObj", false);
+          } else if (obj.activeWeapon == 2) {
+            visibleObj(obj, "GunObj", false);
+            visibleObj(obj, "KnifeObj", true);
+          }
+          break;
+        case 'stab':
+          makeStab(objects[idObj]);
+          break;
+        default:
+
+      }
+    });
+    socket.on('takeChgHpBloodS', function(idPlayer, hp, blood) {
+      objects[idPlayer].health -= hp;
+      objects[idPlayer].bleeding += blood;
+    });
+    socket.on('takeDeadPlayerS', function(idPlayer) {
+      objects[idPlayer].dead = true;
+      objects[idPlayer].sceneObj.rotation.x = 0;
+      objects[idPlayer].sceneObj.rotation.y = 0;
+      objects[idPlayer].sceneObj.rotation.z = Math.PI/2;
+      objects[idPlayer].sceneObj.position.z = 1;
+      objects[idPlayer].mixer.stopAllAction();
+      objects[idPlayer].health = 0;
+      objects[idPlayer].bleeding = 0;
+      objects[idPlayer].stopBullet = false;
+    });
     socket.on('removePlayerS', function(idObj) {
       scene.remove(objects[idObj].sceneObj);
     });
@@ -629,6 +929,13 @@
         margin: 0px;
         padding: 0px;
         background-color: #fff;
+      }
+      .disable-select {
+        user-select: none; /* supported by Chrome and Opera */
+        -webkit-user-select: none; /* Safari */
+        -khtml-user-select: none; /* Konqueror HTML */
+        -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
       }
     </style>
   </body>

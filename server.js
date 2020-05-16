@@ -18,8 +18,8 @@ const nodemailer = require('nodemailer');
 // var port = 80;
 // server.listen(port);
 // //end http connect --------------
-
-//https connect ------------------
+//
+// //https connect ------------------
 
 const server = require('https');
 const express = require('express');
@@ -251,7 +251,7 @@ function createRoomS(idCreator) {
 
 function generateMapS(idRoom) {
 	var layout = Math.round(getRandomS(1,8));
-	//var layout = 3;
+	//var layout = 1;
 
 	var objectsMap = require('./games/stealth/resource/js/objectsMap.js');
 
@@ -1166,6 +1166,33 @@ io.sockets.on('connection', function(socket) {
 		for (var i = 0; i < roomsS[idRoom].players.length; i++) {
 			if (roomsS[idRoom].players[i] != socket.id) {
 				io.to(roomsS[idRoom].players[i]).emit('takeNewRotatePlayerS', idObj, angle, direct);
+			}
+		}
+  });
+
+  socket.on('sendActionS', function(idObj, action, param) {
+		var idRoom = playersS[socket.id].idRoom;
+		for (var i = 0; i < roomsS[idRoom].players.length; i++) {
+			if (roomsS[idRoom].players[i] != socket.id) {
+				io.to(roomsS[idRoom].players[i]).emit('takeActionS', idObj, action, param);
+			}
+		}
+  });
+
+  socket.on('sendChgHpBloodS', function(idPlayer, hp, blood) {
+		var idRoom = playersS[socket.id].idRoom;
+		for (var i = 0; i < roomsS[idRoom].players.length; i++) {
+			if (roomsS[idRoom].players[i] != socket.id) {
+				io.to(roomsS[idRoom].players[i]).emit('takeChgHpBloodS', idPlayer, hp, blood);
+			}
+		}
+  });
+
+  socket.on('sendDeadPlayer', function(idPlayer) {
+		var idRoom = playersS[socket.id].idRoom;
+		for (var i = 0; i < roomsS[idRoom].players.length; i++) {
+			if (roomsS[idRoom].players[i] != socket.id) {
+				io.to(roomsS[idRoom].players[i]).emit('takeDeadPlayerS', idPlayer);
 			}
 		}
   });
