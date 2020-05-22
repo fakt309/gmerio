@@ -426,6 +426,9 @@
       document.getElementById('guitag').appendChild(loading);
 
       intervalRespawn = setInterval(function() {
+        console.log('tick');
+        console.log(objects.length);
+        console.log(lengthMap);
         if (objects.length >= lengthMap) {
           var coordSpawn = {
             x: Math.round(getRandom(-100, 100)),
