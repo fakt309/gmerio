@@ -18,8 +18,8 @@ const nodemailer = require('nodemailer');
 // var port = 80;
 // server.listen(port);
 // //end http connect --------------
-//
-// //https connect ------------------
+
+//https connect ------------------
 
 const server = require('https');
 const express = require('express');
@@ -251,7 +251,7 @@ function createRoomS(idCreator) {
 
 function generateMapS(idRoom) {
 	var layout = Math.round(getRandomS(1,8));
-	//var layout = 1;
+	//var layout = 2;
 
 	var objectsMap = require('./games/stealth/resource/js/objectsMap.js');
 
@@ -269,15 +269,30 @@ function startRoomS(idRoom) {
 	console.log('start rooom '+idRoom);
 	roomsS[idRoom].status = 'playing';
 
+  roomsS[idRoom].alives = roomsS[idRoom].players.length;
+  roomsS[idRoom].finishData = [];
+
 	for (var i = 0; i < roomsS[idRoom].players.length; i++) {
-		io.to(roomsS[idRoom].players[i]).emit('startRoomS');
+		io.to(roomsS[idRoom].players[i]).emit('startRoomS', roomsS[idRoom].players.length);
 	}
 
 	generateMapS(idRoom);
 
 }
 
-var maxSizeRoom = 3;
+var checkFinishRoom = function(room) {
+  if (room.status == 'playing' && room.alives < 2) {
+    room.status = 'finished';
+    for (var i = 0; i < room.players.length; i++) {
+  		io.to(room.players[i]).emit('takeFinishDataS');
+  	}
+    // for (var i = 0; i < room.players.length; i++) {
+  	// 	io.to(room.players[i]).emit('finishGameS');
+  	// }
+  }
+};
+
+var maxSizeRoom = 4;
 function addPlayerToRoomS(idPlayer) {
 	var flag = true;
 	for (i in roomsS) {
@@ -308,15 +323,22 @@ function removePlayerFromRoomS(idPlayer) {
 				io.to(roomsS[idRoom].players[i]).emit('removePlayerS', playersS[idPlayer].idObj);
 			}
 			delete roomsS[idRoom].objects[playersS[idPlayer]];
+      roomsS[idRoom].alives--;
+      checkFinishRoom(roomsS[idRoom]);
 
 			if (roomsS[idRoom].players.length < 2) {
-				io.to(roomsS[idRoom].players[0]).emit('exitToHomeS');
+				//io.to(roomsS[idRoom].players[0]).emit('exitToHomeS');
 				playersS[roomsS[idRoom].players[0]].idRoom = '';
 				playersS[roomsS[idRoom].players[0]].status = 'home';
 				playersS[roomsS[idRoom].players[0]].idObj = '';
 				delete roomsS[idRoom];
 			}
-		}
+		} else if (roomsS[idRoom] && roomsS[idRoom].players.length < 2) {
+      playersS[roomsS[idRoom].players[0]].idRoom = '';
+      playersS[roomsS[idRoom].players[0]].status = 'home';
+      playersS[roomsS[idRoom].players[0]].idObj = '';
+      delete roomsS[idRoom];
+    }
 	}
 }
 
@@ -1121,22 +1143,24 @@ io.sockets.on('connection', function(socket) {
   });
 
 	socket.on('sendAddObjectsS', function(arrObjects, flag) {
-		var idRoom = playersS[socket.id].idRoom;
-		var lengthObjects = roomsS[idRoom].objects.length;
-		for (var i = 0; i < arrObjects.length; i++) {
-			arrObjects[i].id = lengthObjects+i;
-		}
-		addObjectsS(idRoom, arrObjects);
+    if (playersS[socket.id] && roomsS[playersS[socket.id].idRoom]) {
+  		var idRoom = playersS[socket.id].idRoom;
+  		var lengthObjects = roomsS[idRoom].objects.length;
+  		for (var i = 0; i < arrObjects.length; i++) {
+  			arrObjects[i].id = lengthObjects+i;
+  		}
+  		addObjectsS(idRoom, arrObjects);
 
-		if (flag == 'me') {
-			playersS[socket.id].idObj = lengthObjects;
-			io.to(socket.id).emit('takeIdObjPlayerS', lengthObjects);
-		}
+  		if (flag == 'me') {
+  			playersS[socket.id].idObj = lengthObjects;
+  			io.to(socket.id).emit('takeIdObjPlayerS', lengthObjects);
+  		}
+    }
   });
 
 	socket.on('sendChgSpeedPlayerS', function(idObjPlayer, speedx, speedy) {
-		var idRoom = playersS[socket.id].idRoom;
-		if (roomsS[idRoom] && roomsS[idRoom].objects[idObjPlayer]) {
+		if (playersS[socket.id].idRoom && roomsS[playersS[socket.id].idRoom] && roomsS[playersS[socket.id].idRoom].objects[idObjPlayer]) {
+    var idRoom = playersS[socket.id].idRoom;
 		if (speedx != null) {
 			roomsS[idRoom].objects[idObjPlayer].speed.x = speedx;
 			for (var i = 0; i < roomsS[idRoom].players.length; i++) {
@@ -1153,49 +1177,83 @@ io.sockets.on('connection', function(socket) {
   });
 
 	socket.on('sendMyCoordToAllS', function(idObj, coord) {
+    if (playersS[socket.id] && playersS[socket.id].idRoom) {
 		var idRoom = playersS[socket.id].idRoom;
-		for (var i = 0; i < roomsS[idRoom].players.length; i++) {
-			if (roomsS[idRoom].players[i] != socket.id) {
-				io.to(roomsS[idRoom].players[i]).emit('takeNewCoordPlayerS', idObj, coord);
-			}
-		}
+  		for (var i = 0; i < roomsS[idRoom].players.length; i++) {
+  			if (roomsS[idRoom].players[i] != socket.id) {
+  				io.to(roomsS[idRoom].players[i]).emit('takeNewCoordPlayerS', idObj, coord);
+  			}
+  		}
+    }
   });
 
 	socket.on('rotatePlayerS', function(idObj, angle, direct) {
+    if (playersS[socket.id] && playersS[socket.id].idRoom) {
 		var idRoom = playersS[socket.id].idRoom;
-		for (var i = 0; i < roomsS[idRoom].players.length; i++) {
-			if (roomsS[idRoom].players[i] != socket.id) {
-				io.to(roomsS[idRoom].players[i]).emit('takeNewRotatePlayerS', idObj, angle, direct);
-			}
-		}
+  		for (var i = 0; i < roomsS[idRoom].players.length; i++) {
+  			if (roomsS[idRoom].players[i] != socket.id) {
+  				io.to(roomsS[idRoom].players[i]).emit('takeNewRotatePlayerS', idObj, angle, direct);
+  			}
+  		}
+    }
   });
 
   socket.on('sendActionS', function(idObj, action, param) {
+    if (playersS[socket.id] && roomsS[playersS[socket.id].idRoom]) {
 		var idRoom = playersS[socket.id].idRoom;
-		for (var i = 0; i < roomsS[idRoom].players.length; i++) {
-			if (roomsS[idRoom].players[i] != socket.id) {
-				io.to(roomsS[idRoom].players[i]).emit('takeActionS', idObj, action, param);
-			}
-		}
+  		for (var i = 0; i < roomsS[idRoom].players.length; i++) {
+  			if (roomsS[idRoom].players[i] != socket.id) {
+  				io.to(roomsS[idRoom].players[i]).emit('takeActionS', idObj, action, param);
+  			}
+  		}
+    }
   });
 
   socket.on('sendChgHpBloodS', function(idPlayer, hp, blood) {
+    if (playersS[socket.id] && roomsS[playersS[socket.id].idRoom]) {
 		var idRoom = playersS[socket.id].idRoom;
-		for (var i = 0; i < roomsS[idRoom].players.length; i++) {
-			if (roomsS[idRoom].players[i] != socket.id) {
-				io.to(roomsS[idRoom].players[i]).emit('takeChgHpBloodS', idPlayer, hp, blood);
-			}
-		}
+  		for (var i = 0; i < roomsS[idRoom].players.length; i++) {
+  			if (roomsS[idRoom].players[i] != socket.id) {
+  				io.to(roomsS[idRoom].players[i]).emit('takeChgHpBloodS', idPlayer, hp, blood);
+  			}
+  		}
+    }
   });
 
-  socket.on('sendDeadPlayer', function(idPlayer) {
+  socket.on('sendDeadPlayerS', function(idPlayer) {
+    if (playersS[socket.id] && roomsS[playersS[socket.id].idRoom]) {
 		var idRoom = playersS[socket.id].idRoom;
-		for (var i = 0; i < roomsS[idRoom].players.length; i++) {
-			if (roomsS[idRoom].players[i] != socket.id) {
-				io.to(roomsS[idRoom].players[i]).emit('takeDeadPlayerS', idPlayer);
-			}
-		}
+      roomsS[idRoom].alives--;
+  		for (var i = 0; i < roomsS[idRoom].players.length; i++) {
+  			if (roomsS[idRoom].players[i] != socket.id) {
+  				io.to(roomsS[idRoom].players[i]).emit('takeDeadPlayerS', idPlayer);
+  			}
+  		}
+      checkFinishRoom(roomsS[idRoom]);
+    }
   });
+
+  socket.on('giveFinishDataS', function(finishData) {
+    if (playersS[socket.id] && roomsS[playersS[socket.id].idRoom]) {
+      var room = roomsS[playersS[socket.id].idRoom];
+      finishData.id = socket.id;
+      room.finishData[room.finishData.length] = finishData;
+      if (room.finishData.length == room.players.length) {
+        for (var i = 0; i < room.players.length; i++) {
+    			io.to(room.players[i]).emit('finishGameS', room.finishData);
+    		}
+        //delete roomsS[playersS[socket.id].idRoom];
+      }
+    }
+  });
+
+  socket.on('exitToMainMenuS', function() {
+  	playersS[socket.id].idRoom = '';
+  	playersS[socket.id].status = 'home';
+  	playersS[socket.id].idObj = '';
+  });
+
+
   //end code stealth into socket ----------------
 
   socket.on('disconnect', function() {
