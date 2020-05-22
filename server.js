@@ -290,7 +290,7 @@ var checkFinishRoom = function(room) {
   }
 };
 
-var maxSizeRoom = 2;
+var maxSizeRoom = 4;
 function addPlayerToRoomS(idPlayer) {
 	var flag = true;
 	for (i in roomsS) {
