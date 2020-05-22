@@ -11,11 +11,16 @@
     <title>Stealth, realtime, multiplayer game io</title>
   </head>
   <body onload="initHome()">
+
     <div id="guitag"></div>
+
+    <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" async defer></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="/g/stealth/resource/js/three.min.js"></script>
     <script src="/g/stealth/resource/js/GLTFLoader.js"></script>
+    <script src="/g/stealth/resource/js/FontLoader.js"></script>
 
     <script src="/g/stealth/resource/js/addScene.js"></script>
     <script src="/g/stealth/resource/js/setAnimationPlayer.js"></script>
@@ -55,8 +60,13 @@
           objects[i].coord.x += objects[i].speed.x*speedPlayers;
           objects[i].coord.y += objects[i].speed.y*speedPlayers;
 
-          objects[i].sceneObj.position.x += objects[i].speed.x*speedPlayers;
-          objects[i].sceneObj.position.y += objects[i].speed.y*speedPlayers;
+          objects[i].sceneObj.position.x = objects[i].coord.x;
+          objects[i].sceneObj.position.y = objects[i].coord.y;
+
+          //setNameCoord(i, {x: objects[i].coord.x, y: objects[i].coord.y-10});
+
+          objects[i].nameObj.position.x = objects[i].coord.x-objects[i].shiftName;
+          objects[i].nameObj.position.y = objects[i].coord.y;
 
           if (objects[i].id == idObjMyPlayer && !objects[i].dead) {
             camera.position.x = objects[i].coord.x;
@@ -76,6 +86,10 @@
                 coord: objects[i].coord,
                 maxSize: 2
               }]);
+              if (i == idObjMyPlayer) {
+                if (typeof finishData.steps == 'undefined') { finishData.steps = 0; }
+                finishData.steps++;
+              }
               countStep = 0;
             }
             if (objects[i].speed.x != 0 || objects[i].speed.y != 0) {countStep++;}
@@ -85,6 +99,9 @@
           setAnimationPlayer(objects[i]);
 
           addSizeCirclesStep();
+        } else if (i == idObjMyPlayer && objects[idObjMyPlayer].dead) {
+          camera.position.x = objects[objects[idObjMyPlayer].spectating].coord.x;
+          camera.position.y = objects[objects[idObjMyPlayer].spectating].coord.y;
         } else if (objects[i] && objects[i].tag == 'bullet') {
           var steps = speedBullets/0.5;
           for (var j = 0; j < steps; j++) {
@@ -97,6 +114,8 @@
             if (recipientBullet) {
               if (recipientBullet.tag == "player" && recipientBullet.id == idObjMyPlayer) {
                 hurtMe(50, 10);
+              } else if (recipientBullet.tag == "player" && recipientBullet.id != idObjMyPlayer && objects[i].idOwner == idObjMyPlayer) {
+                addKilling(recipientBullet.id);
               }
               scene.remove(objects[i].sceneObj);
               delete objects[i];
@@ -108,64 +127,100 @@
       }
     };
 
+    // var setNameCoord = function(id, point) {
+    //   var name = objects[id].name;
+    //   var myCoord = camera.position;
+    //   var newCoord = {};
+    //   newCoord.x = point.x-myCoord.x;
+    //   newCoord.y = -(point.y-myCoord.y);
+    //
+    //   if (!document.getElementById(id+'LabelName')) {
+    //     var labelName = document.createElement("div");
+    //     labelName.setAttribute('id', id+'LabelName');
+    //     labelName.innerHTML = name;
+    //     labelName.style.position = 'fixed';
+    //     labelName.style.zIndex = '10';
+    //     document.getElementById('guitag').appendChild(labelName);
+    //   }
+    //   document.getElementById(id+'LabelName').style.left = (window.innerWidth+newCoord.x)+'px';
+    //   document.getElementById(id+'LabelName').style.top = (window.innerHeight+newCoord.y)+'px';
+    // };
+
     var timerBleeding = setInterval(function() {}, 60*60*1000);
     var timeoutShowHealth = setTimeout(function() {}, 1);
     var hurtMe = function(hp, blood) {
       var myPlayer = objects[idObjMyPlayer];
+      if (!myPlayer.dead) {
 
-      myPlayer.health -= hp;
-      myPlayer.bleeding += blood;
+        myPlayer.health -= hp;
+        myPlayer.bleeding += blood;
 
-      if (document.getElementById('health')) {
-        document.getElementById('health').remove();
-      }
-      var healthGui = document.createElement("div");
-      healthGui.setAttribute("id", "health");
-      healthGui.setAttribute("class", "disable-select");
-      var color = getColorHealth(myPlayer.health);
-      healthGui.style.backgroundColor = "rgb("+color.r+", "+color.g+", "+color.b+")";
-      healthGui.style.width = (myPlayer.health)+"%";
-      healthGui.style.height = "100px";
-      healthGui.style.position = "fixed";
-      healthGui.style.left = "0px";
-      healthGui.style.top = "0px";
-      healthGui.style.opacity = "0.5";
-      document.getElementById('guitag').appendChild(healthGui);
-      clearTimeout(timeoutShowHealth);
-      timeoutShowHealth = setTimeout(function() {
         if (document.getElementById('health')) {
           document.getElementById('health').remove();
         }
-      }, 500);
+        var healthGui = document.createElement("div");
+        healthGui.setAttribute("id", "health");
+        healthGui.setAttribute("class", "disable-select");
+        var color = getColorHealth(myPlayer.health);
+        healthGui.style.backgroundColor = "rgb("+color.r+", "+color.g+", "+color.b+")";
+        healthGui.style.width = (myPlayer.health)+"%";
+        healthGui.style.height = "100px";
+        healthGui.style.position = "fixed";
+        healthGui.style.left = "0px";
+        healthGui.style.top = "0px";
+        healthGui.style.opacity = "0.5";
+        document.getElementById('guitag').appendChild(healthGui);
+        clearTimeout(timeoutShowHealth);
+        timeoutShowHealth = setTimeout(function() {
+          if (document.getElementById('health')) {
+            document.getElementById('health').remove();
+          }
+        }, 500);
 
-      if (blood > 0) {
-        clearInterval(timerBleeding);
-        timerBleeding = setInterval(function() {
-          hurtMe(1, 0);
-        }, (60*1000)/myPlayer.bleeding);
+        if (blood > 0) {
+          clearInterval(timerBleeding);
+          timerBleeding = setInterval(function() {
+            hurtMe(1, 0);
+          }, (60*1000)/myPlayer.bleeding);
+        }
+
+        var coordBlood = {x: myPlayer.coord.x+2*Math.cos(myPlayer.sceneObj.rotation.y-Math.PI/2), y:myPlayer.coord.y+2*Math.sin(myPlayer.sceneObj.rotation.y-Math.PI/2)};
+        socket.emit('sendAddObjectsS', [{
+          tag: 'blood',
+          coord: coordBlood
+        }]);
+        if (typeof finishData.spotsBlood == 'undefined') { finishData.spotsBlood = 0; }
+        finishData.spotsBlood++;
+
+        if (myPlayer.health <= 0) {
+          eyesLight.visible = false;
+          myPlayer.dead = true;
+          myPlayer.sceneObj.rotation.x = 0;
+          myPlayer.sceneObj.rotation.y = 0;
+          myPlayer.sceneObj.rotation.z = Math.PI/2;
+          myPlayer.sceneObj.position.z = 1;
+          myPlayer.mixer.stopAllAction();
+          myPlayer.health = 0;
+          myPlayer.bleeding = 0;
+          myPlayer.stopBullet = false;
+          socket.emit('sendDeadPlayerS', idObjMyPlayer);
+          myPlayer.spectating = idObjMyPlayer;
+          showAllPlayers();
+          camera.position.z = 80;
+
+          finishData.time = Math.round((Date.now()-timeStartGame)/1000);
+        }
+
+        socket.emit('sendChgHpBloodS', idObjMyPlayer, hp, blood);
       }
+    };
 
-      var coordBlood = {x: myPlayer.coord.x+2*Math.cos(myPlayer.sceneObj.rotation.y-Math.PI/2), y:myPlayer.coord.y+2*Math.sin(myPlayer.sceneObj.rotation.y-Math.PI/2)};
-      socket.emit('sendAddObjectsS', [{
-        tag: 'blood',
-        coord: coordBlood
-      }]);
-
-      if (myPlayer.health <= 0) {
-        eyesLight.visible = false;
-        myPlayer.dead = true;
-        myPlayer.sceneObj.rotation.x = 0;
-        myPlayer.sceneObj.rotation.y = 0;
-        myPlayer.sceneObj.rotation.z = Math.PI/2;
-        myPlayer.sceneObj.position.z = 1;
-        myPlayer.mixer.stopAllAction();
-        myPlayer.health = 0;
-        myPlayer.bleeding = 0;
-        myPlayer.stopBullet = false;
-        socket.emit('sendDeadPlayer', idObjMyPlayer);
+    var showAllPlayers = function() {
+      for (i in objects) {
+        if (objects[i].tag == 'player' || objects[i].tag == 'blood') {
+          objects[i].sceneObj.visible = true;
+        }
       }
-
-      socket.emit('sendChgHpBloodS', idObjMyPlayer, hp, blood);
     };
 
     var getColorHealth = function(health) {
@@ -220,8 +275,9 @@
     var showOtherPlayers = function() {
       for (var i = 0; i < objects.length; i++) {
         if (objects[i] && i != idObjMyPlayer && (objects[i].tag == "player" || objects[i].tag == "bullet" || objects[i].tag == "blood")) {
+        //if (objects[i] && i != idObjMyPlayer && (objects[i].tag == "player")) {
           var range = Math.sqrt(Math.pow(objects[idObjMyPlayer].coord.x-objects[i].coord.x, 2)+Math.pow(objects[idObjMyPlayer].coord.y-objects[i].coord.y, 2));
-          if (range < 50) {
+          if (range < 20) {
             var myAngle = objects[idObjMyPlayer].sceneObj.rotation.y;
             if (myAngle >= 0 && myAngle < Math.PI/2) {
               myAngle += Math.PI*3/2;
@@ -243,21 +299,33 @@
             if (Math.abs(myAngle-angleOther) < Math.PI/4 || 2*Math.PI-Math.abs(myAngle-angleOther) < Math.PI/4) {
               if (!isBetweenObject(objects[idObjMyPlayer].coord, objects[i].coord)) {
                 objects[i].sceneObj.visible = true;
+                if (objects[i].tag == "player") {
+                  objects[i].nameObj.visible = true;
+                }
               } else {
                 objects[i].sceneObj.visible = false;
+                if (objects[i].tag == "player") {
+                  objects[i].nameObj.visible = false;
+                }
               }
             } else {
               objects[i].sceneObj.visible = false;
+              if (objects[i].tag == "player") {
+                objects[i].nameObj.visible = false;
+              }
             }
           } else {
             objects[i].sceneObj.visible = false;
+            if (objects[i].tag == "player") {
+              objects[i].nameObj.visible = false;
+            }
           }
         }
       }
     };
 
     var isBetweenObject = function(p1, p2) {
-      var step = 0.5;
+      var step = 0.9;
       var length = Math.sqrt(Math.pow(p2.x-p1.x, 2)+Math.pow(p2.y-p1.y, 2));
       var steps = length/step;
       var angle = Math.atan(Math.abs(p1.y-p2.y)/Math.abs(p1.x-p2.x));
@@ -330,18 +398,61 @@
     var objects = [];
 
     var idObjMyPlayer = null;
+    var intervalRespawn = setTimeout(function() {}, 1);
     function respawn(coords) {
-      var coordSpawn = {
-        x: Math.round(getRandom(-50, 50)),
-        y: Math.round(getRandom(-50, 50))
-      };
-      camera.position.x = coordSpawn.x;
-      camera.position.y = coordSpawn.y;
-      socket.emit('sendAddObjectsS', [{
-        tag: 'player',
-        coord: coordSpawn,
-        speed: {x: 0, y: 0}
-      }], 'me');
+      var lengthMap = 418;
+
+      if (document.getElementById('loading')) {
+        document.getElementById('loading').remove();
+      }
+      var loading = document.createElement("div");
+      loading.setAttribute("id", "loading");
+      loading.setAttribute("class", "disable-select");
+      loading.innerHTML = "map generating";
+      loading.style.width = "100%";
+      loading.style.height = "100%";
+      loading.style.position = "fixed";
+      loading.style.left = "0px";
+      loading.style.bottom = "0px";
+      loading.style.display = "flex";
+      loading.style.flexDirection = "column";
+      loading.style.justifyContent = "center";
+      loading.style.alignItems = "center";
+      loading.style.fontSize = "16px";
+      loading.style.fontFamily = "Arial";
+      loading.style.color = "#fff";
+      loading.style.fontWeight = "100";
+      loading.style.backgroundColor = "#000";
+      loading.style.zIndex = "1000";
+      document.getElementById('guitag').appendChild(loading);
+
+      intervalRespawn = setInterval(function() {
+        if (objects.length >= lengthMap) {
+          var coordSpawn = {
+            x: Math.round(getRandom(-100, 100)),
+            y: Math.round(getRandom(-100, 100))
+          };
+          var flagSpawn = isPlayerIntoNoneGhostObj(objects[idObjMyPlayer], coordSpawn);
+          if (!flagSpawn) {
+            clearInterval(intervalRespawn);
+            camera.position.x = coordSpawn.x;
+            camera.position.y = coordSpawn.y;
+            var name = getCookie('name');
+            if (!name) {
+              name = '';
+            }
+            socket.emit('sendAddObjectsS', [{
+              tag: 'player',
+              coord: coordSpawn,
+              speed: {x: 0, y: 0},
+              name: name
+            }], 'me');
+            setTimeout(function() {
+              document.getElementById('loading').remove();
+            }, 1000);
+          }
+        }
+      }, 1000);
     }
 
     function getRandom(min, max) {
@@ -361,7 +472,7 @@
         case 'Digit1':
           if (!pressedKeys.hnum1) {
             pressedKeys.hnum1 = true;
-            switchSearchGame();
+            // switchSearchGame();
           }
           break;
       }
@@ -399,6 +510,16 @@
             pressedKeys.a = true;
           }
           break;
+        case 'ArrowRight':
+          if (objects[idObjMyPlayer].dead) {
+            slideSpectating(1);
+          }
+          break;
+        case 'ArrowLeft':
+          if (objects[idObjMyPlayer].dead) {
+            slideSpectating(-1);
+          }
+          break;
       }
       sendMove();
     };
@@ -429,10 +550,48 @@
       sendMove();
     };
 
+    var slideSpectating = function(direction) {
+      var myPlayer = objects[idObjMyPlayer];
+      if (direction == 1) {
+        var flagSwitch = true;
+        for (var i = myPlayer.spectating+1; i < objects.length; i++) {
+          if (typeof objects[i] != 'undefined' && objects[i].tag == 'player') {
+            myPlayer.spectating = i;
+            flagSwitch = false;
+            break;
+          }
+        }
+        if (flagSwitch) {
+          for (var i = 0; i < objects.length; i++) {
+            if (typeof objects[i] != 'undefined' && objects[i].tag == "player") {
+              myPlayer.spectating = i;
+              break;
+            }
+          }
+        }
+      } else if (direction == -1) {
+        var flagSwitch = true;
+        for (var i = myPlayer.spectating-1; i > 0; i--) {
+          if (typeof objects[i] != 'undefined' && objects[i].tag == 'player') {
+            myPlayer.spectating = i;
+            flagSwitch = false;
+            break;
+          }
+        }
+        if (flagSwitch) {
+          for (var i = objects.length-1; i > 0; i--) {
+            if (typeof objects[i] != 'undefined' && objects[i].tag == 'player') {
+              myPlayer.spectating = i;
+              break;
+            }
+          }
+        }
+      }
+    };
+
     var cancelContextRightClick = function(e) {
       e.preventDefault();
     };
-
 
     var aimGunDown = function(e) {
       if (e.button == 2) {
@@ -579,15 +738,40 @@
       if (obj.id != idObjMyPlayer) {
         var coordKnife = {x: obj.coord.x+2*Math.cos(obj.sceneObj.rotation.y-Math.PI/2), y:obj.coord.y+2*Math.sin(obj.sceneObj.rotation.y-Math.PI/2)};
         var range = Math.sqrt(Math.pow(coordKnife.x-objects[idObjMyPlayer].coord.x, 2)+Math.pow(coordKnife.y-objects[idObjMyPlayer].coord.y, 2));
-        if (range < 2) {
+        if (range < 3) {
           hurtMe(10, 5);
         }
+      } else if (obj.id == idObjMyPlayer) {
+        var coordKnife = {x: obj.coord.x+2*Math.cos(obj.sceneObj.rotation.y-Math.PI/2), y:obj.coord.y+2*Math.sin(obj.sceneObj.rotation.y-Math.PI/2)};
+        for (var i = 0; i < objects.length; i++) {
+          if (typeof objects[i] != 'undefined' && objects[i].tag == 'player' && i != idObjMyPlayer) {
+            var range = Math.sqrt(Math.pow(coordKnife.x-objects[i].coord.x, 2)+Math.pow(coordKnife.y-objects[i].coord.y, 2));
+            if (range < 3) {
+              addKilling(i);
+            }
+          }
+        }
+      }
+    };
+
+    var addKilling = function(id) {
+      var flagAdd = true;
+      for (var i = 0; i < objects[idObjMyPlayer].killing.length; i++) {
+        if (objects[idObjMyPlayer].killing[i] == id) {
+          flagAdd = false;
+          break;
+        }
+      }
+      if (flagAdd) {
+         objects[idObjMyPlayer].killing[objects[idObjMyPlayer].killing.length] = id;
       }
     };
 
     var shoot = function(e) {
       var myPlayer = objects[idObjMyPlayer];
       if (e.button == 0 && pressedKeys.rightMouse && myPlayer.activeWeapon == 1 && myPlayer.bullets > 0) {
+        if (typeof finishData.shoots == 'undefined') { finishData.shoots = 0; }
+        finishData.shoots++;
         var mouse = {
           x: e.pageX,
           y: e.pageY
@@ -610,8 +794,9 @@
 
         socket.emit('sendAddObjectsS', [{
           tag: 'bullet',
-          coord: {x: myPlayer.coord.x+Math.cos(angle)*myPlayer.size.w, y: myPlayer.coord.y+Math.sin(angle)*myPlayer.size.w},
-          speed: {x: Math.cos(angle), y: Math.sin(angle)}
+          coord: {x: myPlayer.coord.x+Math.cos(angle)*2*myPlayer.size.w, y: myPlayer.coord.y+Math.sin(angle)*2*myPlayer.size.w},
+          speed: {x: Math.cos(angle), y: Math.sin(angle)},
+          idOwner: idObjMyPlayer
         }, {
           tag: 'circle',
           coord: myPlayer.coord,
@@ -714,27 +899,379 @@
       render();
     };
 
+    // var switchSearchGame = function() {
+    //   var textDom = document.getElementById('textSearchingGame');
+    //   if (textDom.getAttribute('searching') == "false") {
+    //     textDom.setAttribute('searching', true);
+    //     textDom.innerHTML = 'press 1 to cancel searching';
+    //     socket.emit('switchSearchingGameS');
+    //   } else if (textDom.getAttribute('searching') == "true") {
+    //     textDom.setAttribute('searching', false);
+    //     textDom.innerHTML = 'press 1 to search game';
+    //     socket.emit('switchSearchingGameS');
+    //   }
+    // };
+
     var switchSearchGame = function() {
-      var textDom = document.getElementById('textSearchingGame');
-      if (textDom.getAttribute('searching') == "false") {
-        textDom.setAttribute('searching', true);
-        textDom.innerHTML = 'press 1 to cancel searching';
+      var buttonSearch = document.getElementById('searchGame');
+      if (buttonSearch.getAttribute('searching') == 'false') {
+        buttonSearch.setAttribute('searching', 'true');
+        buttonSearch.innerHTML = 'Searching game';
+        animateSearchButton(true);
         socket.emit('switchSearchingGameS');
-      } else if (textDom.getAttribute('searching') == "true") {
-        textDom.setAttribute('searching', false);
-        textDom.innerHTML = 'press 1 to search game';
+      } else if (buttonSearch.getAttribute('searching') == 'true') {
+        buttonSearch.setAttribute('searching', 'false');
+        buttonSearch.innerHTML = 'Search game';
+        animateSearchButton(false);
         socket.emit('switchSearchingGameS');
+      }
+    }
+
+    var intervalAnimateSearchButton = setTimeout(function() {}, 1);
+    var animateSearchButton = function(key) {
+      if (key == 1) {
+        document.getElementById('searchGame').style.opacity = '0.4';
+        intervalAnimateSearchButton = setTimeout(function() {
+          animateSearchButton(2);
+        }, 1000);
+      } else if (key == 2) {
+        document.getElementById('searchGame').style.opacity = '1';
+        intervalAnimateSearchButton = setTimeout(function() {
+          animateSearchButton(1);
+        }, 1000);
+      } else if (key == 0) {
+        document.getElementById('searchGame').style.opacity = '1';
+        clearInterval(intervalAnimateSearchButton);
+      }
+    }
+
+    var timeoutSaveName = setTimeout(function() {}, 1);
+    var saveName = function() {
+      clearInterval(timeoutSaveName);
+      timeoutSaveName = setTimeout(function() {
+        var name = document.getElementById('inputName').value;
+        setCookie('name', name, 30);
+      }, 1000);
+    };
+    function isChild(parent, child) {
+      var node = child.parentNode;
+      while (node != null) {
+         if (node == parent) {
+             return true;
+         }
+         node = node.parentNode;
+      }
+      return false;
+    }
+
+    var downPressContact = false;
+    window.addEventListener("mousedown", function(e) {
+      if (document.getElementById('contentContactForm') != e.target && !isChild(document.getElementById('contentContactForm'), e.target)) {
+        downPressContact = true;
+      } else {
+        downPressContact = false;
+      }
+    });
+    window.addEventListener("mouseup", function(e) {
+      if (document.getElementById('contentContactForm') != e.target && !isChild(document.getElementById('contentContactForm'), e.target) && downPressContact) {
+        hideContactForm();
+      } else {
+        downPressContact = false;
+      }
+    });
+    var showContactForm = function() {
+      document.getElementById('backContactForm').style.display = 'flex';
+    }
+    var hideContactForm = function() {
+      document.getElementById('backContactForm').style.display = 'none';
+    }
+
+    var refreshContactStroke = function(e) {
+      if (e.value == "other") {
+        document.getElementById('inputTypeNameContact').style.display = 'block';
+
+        document.getElementById('inputNameContact').setAttribute('placeholder', 'enter your id contact');
+      } else if (e.value != "other") {
+        document.getElementById('inputTypeNameContact').style.display = 'none';
+
+        document.getElementById('inputNameContact').setAttribute('placeholder', 'enter your '+e.value);
+      }
+    }
+
+    var widgetRecaptcha1;
+    var onloadCallback = function() {
+      widgetRecaptcha1 = grecaptcha.render('recaptcha1', { 'sitekey': '6Ld-_NEUAAAAAIcro-nuBeDeMigbdDBoxVt6jw9h' });
+    };
+
+    function submitContactForm() {
+      var recaptcha = grecaptcha.getResponse(widgetRecaptcha1);
+
+      $.ajax({
+        url: "https://gaidadei.ru/gmer.io/post",// https://gaidadei.ru/postnodejs/
+        method: "POST",
+        data: {
+          typeContact: $("#selectTypeContact").val(),
+          typeContactName: $("#inputTypeNameContact").val(),
+          idContact: $("#inputNameContact").val(),
+          theme: $("#selectTypeTheme").val(),
+          message: $("#messageContact").val(),
+          recaptcha: recaptcha
+        },
+        success: function(answer) {
+          answer = answer.split(":");
+          if (answer[0] == "ok") {
+            $("#messageAnswer").css("color", "#04a711");
+            $(".strokeForm").hide();
+          } else if (answer[0] == "err") {
+            $("#messageAnswer").css("color", "#ff5656");
+            $(".strokeForm").show();
+          }
+          $("#messageAnswer").html(answer[1]);
+          $("#messageAnswer").show();
+        }
+      });
+    }
+
+    var setGuiHome = function() {
+      //document.querySelectorAll('html').style.height = '100%';
+      document.body.style.backgroundImage = 'url("/g/stealth/resource/img/background.png")';
+      document.body.style.backgroundSize = 'cover';
+      document.body.style.backgroundPosition = 'center';
+      document.body.style.backgroundRepeat = 'no-repeat';
+      document.body.style.height = '100vh';
+      document.body.style.backgroundColor = '#000';
+
+      // var logoGame = document.createElement('div');
+      // logoGame.setAttribute('id', 'logoGame');
+      // logoGame.innerHTML = 'g/stealth';
+      // logoGame.style.position = 'fixed';
+      // logoGame.style.left = '30px';
+      // logoGame.style.top = '30px';
+      // logoGame.style.fontSize = '14px';
+      // logoGame.style.fontFamily = 'Arial';
+      // logoGame.style.textAlign = 'left';
+      // logoGame.style.color = '#fff';
+      // logoGame.style.textShadow = '2px 2px 2px #000';
+      // document.getElementById('guiHome').appendChild(logoGame);
+
+      var contactButton = document.createElement('div');
+      contactButton.setAttribute('id', 'contactButton');
+      contactButton.setAttribute('onclick', 'showContactForm()');
+      contactButton.innerHTML = 'Contact with us';
+      contactButton.style.position = 'fixed';
+      contactButton.style.right = '20px';
+      contactButton.style.bottom = '10px';
+      contactButton.style.padding = '5px';
+      contactButton.style.cursor = 'pointer';
+      contactButton.style.fontSize = '12px';
+      contactButton.style.fontFamily = '"Arial';
+      contactButton.style.color = '#fff';
+      contactButton.style.backgroundColor = '#00000077';
+      document.getElementById('guiHome').appendChild(contactButton);
+
+      //insert
+      var backContactForm = document.createElement('div');
+      backContactForm.setAttribute('id', 'backContactForm');
+      backContactForm.style.position = 'fixed';
+      backContactForm.style.left = '0px';
+      backContactForm.style.top = '0px';
+      backContactForm.style.width = '100%';
+      backContactForm.style.height = '100%';
+      backContactForm.style.display = 'none';
+      backContactForm.style.flexDirection = 'column';
+      backContactForm.style.alignItems = 'center';
+      backContactForm.style.justifyContent = 'center';
+      backContactForm.style.backgroundColor = '#00000099';
+      backContactForm.style.zIndex = '100';
+      document.getElementById('guiHome').appendChild(backContactForm);
+
+      var contentContactForm = document.createElement('div');
+      contentContactForm.setAttribute('id', 'contentContactForm');
+      contentContactForm.style.backgroundColor = '#fff';
+      contentContactForm.style.width = '100%';
+      contentContactForm.style.maxWidth = '600px';
+      backContactForm.appendChild(contentContactForm);
+
+      var messageAnswer = document.createElement('div');
+      messageAnswer.setAttribute('id', 'messageAnswer');
+      messageAnswer.style.margin = '20px';
+      messageAnswer.style.textAlign = 'center';
+      messageAnswer.style.fontSize = '14px';
+      messageAnswer.style.fontFamily = 'Arial';
+      messageAnswer.style.display = 'none';
+      contentContactForm.appendChild(messageAnswer);
+
+      var strokeIdContact = document.createElement('div');
+      strokeIdContact.setAttribute('id', 'strokeIdContact');
+      strokeIdContact.setAttribute('class', 'strokeForm');
+      contentContactForm.appendChild(strokeIdContact);
+
+      var selectTypeContact = document.createElement('select');
+      selectTypeContact.setAttribute('id', 'selectTypeContact');
+      selectTypeContact.setAttribute('class', 'inputStyle');
+      selectTypeContact.setAttribute('onchange', 'refreshContactStroke(this)');
+      var option = document.createElement('option');
+      option.setAttribute('value', 'email');
+      option.innerHTML = 'e-mail';
+      selectTypeContact.appendChild(option);
+      var option = document.createElement('option');
+      option.setAttribute('value', 'snapchat');
+      option.innerHTML = 'snapchat';
+      selectTypeContact.appendChild(option);
+      var option = document.createElement('option');
+      option.setAttribute('value', 'telegram');
+      option.innerHTML = 'telegram';
+      selectTypeContact.appendChild(option);
+      var option = document.createElement('option');
+      option.setAttribute('value', 'other');
+      option.innerHTML = 'other';
+      selectTypeContact.appendChild(option);
+      strokeIdContact.appendChild(selectTypeContact);
+
+      var inputTypeNameContact = document.createElement('input');
+      inputTypeNameContact.setAttribute('id', 'inputTypeNameContact');
+      inputTypeNameContact.setAttribute('class', 'inputStyle');
+      inputTypeNameContact.setAttribute('type', 'text');
+      inputTypeNameContact.setAttribute('placeholder', 'enter what it is');
+      inputTypeNameContact.style.display = 'none';
+      strokeIdContact.appendChild(inputTypeNameContact);
+
+      var inputNameContact = document.createElement('input');
+      inputNameContact.setAttribute('id', 'inputNameContact');
+      inputNameContact.setAttribute('class', 'inputStyle');
+      inputNameContact.setAttribute('type', 'text');
+      inputNameContact.setAttribute('placeholder', 'enter your e-mail');
+      strokeIdContact.appendChild(inputNameContact);//this place
+
+      var strokeThemeContact = document.createElement('div');
+      strokeThemeContact.setAttribute('id', 'strokeThemeContact');
+      strokeThemeContact.setAttribute('class', 'strokeForm');
+      contentContactForm.appendChild(strokeThemeContact);
+
+      var selectTypeTheme = document.createElement('select');
+      selectTypeTheme.setAttribute('id', 'selectTypeTheme');
+      selectTypeTheme.setAttribute('class', 'inputStyle');
+      var option = document.createElement('option');
+      option.setAttribute('value', 'commercial');
+      option.innerHTML = 'commercial issues';
+      selectTypeTheme.appendChild(option);
+      var option = document.createElement('option');
+      option.setAttribute('value', 'technical');
+      option.innerHTML = 'technical problems';
+      selectTypeTheme.appendChild(option);
+      var option = document.createElement('option');
+      option.setAttribute('value', 'idea');
+      option.innerHTML = 'i have the great idea';
+      selectTypeTheme.appendChild(option);
+      var option = document.createElement('option');
+      option.setAttribute('value', 'other');
+      option.innerHTML = 'other';
+      selectTypeTheme.appendChild(option);
+      strokeThemeContact.appendChild(selectTypeTheme);
+
+      var strokeTextarea = document.createElement('div');
+      strokeTextarea.setAttribute('id', 'strokeTextarea');
+      strokeTextarea.setAttribute('class', 'strokeForm');
+      contentContactForm.appendChild(strokeTextarea);
+
+      var messageContact = document.createElement('textarea');
+      messageContact.setAttribute('id', 'messageContact');
+      messageContact.setAttribute('class', 'inputStyle');
+      messageContact.setAttribute('placeholder', 'enter your message');
+      strokeTextarea.appendChild(messageContact);
+
+      var strokeSubmit = document.createElement('div');
+      strokeSubmit.setAttribute('id', 'strokeSubmit');
+      strokeSubmit.setAttribute('class', 'strokeForm');
+      strokeSubmit.style.justifyContent = 'space-around';
+      strokeSubmit.style.alignItems = 'center';
+      strokeSubmit.style.margin = '20px 0px';
+      strokeSubmit.style.display = 'flex';
+      strokeSubmit.style.flexDirection = 'eow';
+      contentContactForm.appendChild(strokeSubmit);
+
+      //recaptcha
+      var recaptcha1 = document.createElement('div');
+      recaptcha1.setAttribute('id', 'recaptcha1');
+      strokeSubmit.appendChild(recaptcha1);
+
+      var submitContactForm = document.createElement('div');
+      submitContactForm.setAttribute('id', 'submitContactForm');
+      submitContactForm.setAttribute('onclick', 'submitContactForm()');
+      submitContactForm.innerHTML = 'Submit';
+      submitContactForm.style.padding = '15px 40px';
+      submitContactForm.style.backgroundColor = '#333';
+      submitContactForm.style.fontSize = '14px';
+      submitContactForm.style.fontFamily = 'Arial';
+      submitContactForm.style.color = '#fff';
+      submitContactForm.style.cursor = 'pointer';
+      submitContactForm.style.margin = '0px 20px';
+      submitContactForm.style.display = 'flex';
+      submitContactForm.style.flexDirection = 'column';
+      submitContactForm.style.justifyContent = 'center';
+      submitContactForm.style.alignItems = 'center';
+      strokeSubmit.appendChild(submitContactForm);
+      //--insert
+
+      var buttonSearchGame = document.createElement('div');
+      buttonSearchGame.setAttribute('id', 'searchGame');
+      buttonSearchGame.setAttribute('onclick', 'switchSearchGame()');
+      buttonSearchGame.setAttribute('searching', 'false');
+      buttonSearchGame.innerHTML = 'Search game';
+      buttonSearchGame.style.position = 'fixed';
+      buttonSearchGame.style.top = '50%';
+      buttonSearchGame.style.right = '20px';
+      buttonSearchGame.style.marginTop = '-40px';
+      buttonSearchGame.style.width = '150px';
+      buttonSearchGame.style.padding = '20px';
+      buttonSearchGame.style.borderRadius = '5px';
+      buttonSearchGame.style.backgroundColor = '#005fc3';
+      buttonSearchGame.style.color = '#fff';
+      buttonSearchGame.style.fontSize = '16px';
+      buttonSearchGame.style.fontFamily = 'Arial';
+      buttonSearchGame.style.textAlign = 'center';
+      buttonSearchGame.style.cursor = 'pointer';
+      buttonSearchGame.style.transition = 'opacity 1s linear 0s';
+      document.getElementById('guiHome').appendChild(buttonSearchGame);
+
+      var inputName = document.createElement('input');
+      inputName.setAttribute('id', 'inputName');
+      inputName.setAttribute('type', 'text');
+      inputName.setAttribute('placeholder', 'Your name');
+      inputName.setAttribute('onchange', 'saveName()');
+      var name = getCookie('name');
+      if (name) {
+        inputName.value = name;
+      }
+      inputName.style.position = 'fixed';
+      inputName.style.top = '50%';
+      inputName.style.right = '20px';
+      inputName.style.width = '150px';
+      inputName.style.padding = '20px';
+      inputName.style.outline = 'none';
+      inputName.style.border = 'none';
+      inputName.style.color = '#333';
+      inputName.style.marginTop = '40px';
+      inputName.style.fontSize = '14px';
+      inputName.style.fontFamily = 'Arial';
+      inputName.style.backgroundColor = '#fff';
+      inputName.style.textAlign = 'center';
+      inputName.style.borderRadius = '5px';
+      document.getElementById('guiHome').appendChild(inputName);
+
+      if (onloadCallback) {
+        widgetRecaptcha1 = grecaptcha.render('recaptcha1', { 'sitekey': '6Ld-_NEUAAAAAIcro-nuBeDeMigbdDBoxVt6jw9h' });
       }
     };
 
     var initHome = function() {
       clearGame();
 
-      document.body.style.backgroundColor = '#ffffff';
-
       var guiHomeDom = document.createElement('div');
       guiHomeDom.setAttribute('id', 'guiHome');
       document.body.appendChild(guiHomeDom);
+
+      setGuiHome();
 
       var textDom = document.createElement('div');
       textDom.setAttribute('searching', false);
@@ -754,14 +1291,16 @@
       window.removeEventListener("keyup", keyUpHome);
     };
 
-    var scene, camera, renderer, eyesLight, targetEyesLight;
+    var scene, camera, renderer, eyesLight, targetEyesLight, finishData, timeStartGame;
     var initGame = function() {
     clearHome();
+    finishData = {};
+    timeStartGame = Date.now();
 
     scene = new THREE.Scene();
 
     camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 1, 1000);
-    camera.position.z = 80;
+    camera.position.z = 50;
     scene.add(camera);
 
     renderer = new THREE.WebGLRenderer();
@@ -775,6 +1314,7 @@
     domObjRenderer.style.marginTop = '5px';
     document.body.appendChild(domObjRenderer);
     document.body.style.backgroundColor = '#000';
+    document.body.style.backgroundImage = 'none';
     setSizeWindow();
 
     var light = new THREE.AmbientLight(0xFFFFFF, 0.3);
@@ -786,7 +1326,7 @@
     targetEyesLight = new THREE.Object3D();
     targetEyesLight.position.z = 0.5;
     scene.add(targetEyesLight);
-    eyesLight = new THREE.SpotLight(0xFF0000, 2);
+    eyesLight = new THREE.SpotLight(0xFFFFFF, 0.5);
     eyesLight.position.z = 0.5;
 		eyesLight.angle = Math.PI/4;
 		eyesLight.penumbra = 0;
@@ -812,6 +1352,7 @@
     window.addEventListener("wheel", changeWeapon);
     window.addEventListener("mousedown", stab);
     window.addEventListener("mousedown", shoot);
+    window.addEventListener("keydown", keyDownGame);
     //-Listeners game
     //+FPS
     //javascript:(function(){var script=document.createElement('script');script.onload=function(){var stats=new Stats();document.body.appendChild(stats.dom);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop)});};script.src='//mrdoob.github.io/stats.js/build/stats.min.js';document.head.appendChild(script);})()
@@ -820,6 +1361,7 @@
     var clearGame = function() {
       if (document.getElementById('gameCanvas')) {
         document.getElementById('gameCanvas').remove();
+        document.getElementById('finishDisplay').remove();
         scene.remove.apply(scene, scene.children);
 
         window.removeEventListener("resize", setSizeWindow);
@@ -832,13 +1374,20 @@
         window.removeEventListener("wheel", changeWeapon);
         window.removeEventListener("mousedown", stab);
         window.removeEventListener("mousedown", shoot);
+        window.removeEventListener("keydown", keyDownGame);
       }
     };
 
+    var exitToHome = function() {
+      initHome();
+      socket.emit('exitToMainMenuS');
+    };
+
     //+listeners io
-    socket.on('startRoomS', function() {
+    socket.on('startRoomS', function(players) {
       initGame();
       respawn();
+      finishData.place = players;
     });
     socket.on('addObjectsS', function(arrObjects) {
       for (var i = 0; i < arrObjects.length; i++) {
@@ -913,15 +1462,183 @@
       objects[idPlayer].health = 0;
       objects[idPlayer].bleeding = 0;
       objects[idPlayer].stopBullet = false;
+
+      if (!objects[idObjMyPlayer].dead) {
+        finishData.place--;
+      }
     });
     socket.on('removePlayerS', function(idObj) {
       scene.remove(objects[idObj].sceneObj);
+      delete objects[idObj];
     });
-    socket.on('exitToHomeS', function() {
-      console.log('go to home');
-      initHome();
+    socket.on('takeFinishDataS', function() {
+      finishData.name = objects[idObjMyPlayer].name;
+      if (typeof finishData.time == 'undefined') { finishData.time = Math.round((Date.now()-timeStartGame)/1000); }
+      if (typeof finishData.steps == 'undefined') { finishData.steps = 0; }
+      if (typeof finishData.shoots == 'undefined') { finishData.shoots = 0; }
+      if (typeof finishData.spotsBlood == 'undefined') { finishData.spotsBlood = 0; }
+      finishData.kills = objects[idObjMyPlayer].killing.length;
+      socket.emit('giveFinishDataS', finishData);
+    });
+    socket.on('finishGameS', function(data) {
+      var finishDisplay = document.createElement("div");
+      finishDisplay.setAttribute("id", "finishDisplay");
+      finishDisplay.style.width = "100%";
+      finishDisplay.style.height = "100%";
+      finishDisplay.style.position = "absolute";
+      finishDisplay.style.left = "0px";
+      finishDisplay.style.bottom = "0px";
+      finishDisplay.style.display = "flex";
+      finishDisplay.style.flexDirection = "column";
+      finishDisplay.style.justifyContent = "center";
+      finishDisplay.style.alignItems = "center";
+      finishDisplay.style.backgroundColor = "#00000077";
+      finishDisplay.style.zIndex = "100";
+      document.getElementById('guitag').appendChild(finishDisplay);
+
+      var blockFinish = document.createElement("div");
+      blockFinish.setAttribute("id", "blockFinish");
+      blockFinish.style.width = "100%";
+      blockFinish.style.maxWidth = "600px";
+      blockFinish.style.display = "flex";
+      blockFinish.style.flexDirection = "column";
+      blockFinish.style.alignItems = "center";
+      finishDisplay.appendChild(blockFinish);
+
+      var tableFinish = document.createElement("table");
+      tableFinish.setAttribute("id", "tableFinish");
+
+      var tr = document.createElement("tr");
+      var th = document.createElement("th");
+      th.innerHTML = 'place';
+      tr.appendChild(th);
+      var th = document.createElement("th");
+      th.innerHTML = 'name';
+      tr.appendChild(th);
+      var th = document.createElement("th");
+      th.innerHTML = 'kills';
+      tr.appendChild(th);
+      var th = document.createElement("th");
+      th.innerHTML = 'spots blood';
+      tr.appendChild(th);
+      var th = document.createElement("th");
+      th.innerHTML = 'steps';
+      tr.appendChild(th);
+      tableFinish.appendChild(tr);
+
+      for (var i = 1; i <= data.length; i++) {
+      for (var j = 0; j < data.length; j++) {
+      if (data[j].place == i) {
+        var tr = document.createElement("tr");
+        var td = document.createElement("td");
+        td.innerHTML = data[j].place;
+        tr.appendChild(td);
+        var td = document.createElement("td");
+        td.innerHTML = data[j].name;
+        tr.appendChild(td);
+        var td = document.createElement("td");
+        td.innerHTML = data[j].kills;
+        tr.appendChild(td);
+        var td = document.createElement("td");
+        td.innerHTML = data[j].spotsBlood;
+        tr.appendChild(td);
+        var td = document.createElement("td");
+        td.innerHTML = data[j].steps;
+        tr.appendChild(td);
+        tableFinish.appendChild(tr);
+        break;
+      }
+      }
+      }
+
+      tableFinish.style.backgroundColor = "#fff";
+      tableFinish.style.borderSpacing = '0px';
+      var trs = tableFinish.querySelectorAll('tr');
+      if (typeof trs[1] != 'undefined') {
+        trs[1].style.backgroundColor = '#ffd70077';
+      }
+      if (typeof trs[2] != 'undefined') {
+        trs[2].style.backgroundColor = '#c0c0c077';
+      }
+      if (typeof trs[3] != 'undefined') {
+        trs[3].style.backgroundColor = '#cd7f3277';
+      }
+      var ths = tableFinish.querySelectorAll('tr th');
+      for (i = 0; i < ths.length; i++) {
+        ths[i].style.color = "#999";
+        ths[i].style.fontSize = "10px";
+        ths[i].style.fontFamily = "Arial";
+        ths[i].style.padding = "15px";
+        ths[i].style.fontWeight = "100";
+        ths[i].style.textAlign = "center";
+      }
+      var tds = tableFinish.querySelectorAll('tr td');
+      for (i = 0; i < tds.length; i++) {
+        tds[i].style.color = "#333";
+        tds[i].style.fontSize = "16px";
+        tds[i].style.fontFamily = "Arial";
+        tds[i].style.padding = "15px";
+        tds[i].style.textAlign = "center";
+      }
+      var tds = tableFinish.querySelectorAll('tr th, tr td');
+      for (i = 0; i < tds.length; i++) {
+        tds[i].style.borderBottom = "1px solid #ddd";
+        tds[i].style.borderRight = "1px solid #ddd";
+      }
+      var tds = tableFinish.querySelectorAll('tr:last-child th, tr:last-child td');
+      for (i = 0; i < tds.length; i++) {
+        tds[i].style.borderBottom = "none";
+      }
+      var tds = tableFinish.querySelectorAll('tr th:last-child, tr td:last-child');
+      for (i = 0; i < tds.length; i++) {
+        tds[i].style.borderRight = "none";
+      }
+
+      blockFinish.appendChild(tableFinish);
+      console.log(data);
+
+      var buttonExit = document.createElement("div");
+      buttonExit.setAttribute("id", "buttonExit");
+      buttonExit.setAttribute("onclick", "exitToHome()");
+      buttonExit.innerHTML = 'Exit to menu';
+      buttonExit.style.margin = '30px 0px';
+      buttonExit.style.padding = '20px';
+      buttonExit.style.cursor = 'pointer';
+      buttonExit.style.fontSize = '14px';
+      buttonExit.style.color = '#fff';
+      buttonExit.style.fontFamily = 'Arial';
+      buttonExit.style.backgroundColor = '#ff5e5e';
+      buttonExit.style.borderRadius = '10px';
+      blockFinish.appendChild(buttonExit);
     });
     //-listeners io
+
+    //cookie
+    function setCookie(cname, cvalue, exdays) {
+      var d = new Date();
+      d.setTime(d.getTime()+(exdays*24*60*60*1000));
+      var expires = "expires="+d.toUTCString()+";";
+      if (exdays == 0) {
+        expires = "";
+      }
+      document.cookie = cname+"="+cvalue+";"+expires+"path=/";
+    }
+
+    function getCookie(name) {
+      var cookie = document.cookie;
+      cookie = cookie.split("; ");
+      for (var i = 0; i < cookie.length; i++) {
+        var oneCookie = cookie[i].split("=");
+        if (name == oneCookie[0]) {
+          return oneCookie[1];
+        }
+      }
+      return false;
+    }
+
+    function removeCookie(name) {
+      document.cookie = name+"=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    }
     </script>
 
     <style>
@@ -937,6 +1654,30 @@
         -moz-user-select: none; /* Firefox */
         -ms-user-select: none; /* Internet Explorer/Edge */
       }
+      /* insert */
+      textarea.inputStyle {
+        resize: none;
+        height: 100px;
+      }
+      .strokeForm {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-around;
+      }
+      .inputStyle {
+        margin: 10px;
+        flex: 1;
+        font-family: Arial;
+        font-size: 14px;
+        padding: 10px 15px;
+        outline: none;
+        color: #333;
+        background-color: #fff;
+        border: 2px solid #fff;
+        border-bottom: 1px solid #ddd;
+      }
+      /* insert */
     </style>
   </body>
 </html>
