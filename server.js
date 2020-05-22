@@ -20,7 +20,6 @@ const nodemailer = require('nodemailer');
 // //end http connect --------------
 
 //https connect ------------------
-
 const server = require('https');
 const express = require('express');
 const app = express();
@@ -42,7 +41,6 @@ http.createServer(function (req, res) {
 }).listen(80);
 
 var io = require('socket.io').listen(serverIO);
-
 //end https connect --------------
 
 app.get('/', function(request, respons) {
@@ -292,7 +290,7 @@ var checkFinishRoom = function(room) {
   }
 };
 
-var maxSizeRoom = 4;
+var maxSizeRoom = 2;
 function addPlayerToRoomS(idPlayer) {
 	var flag = true;
 	for (i in roomsS) {
