@@ -95,7 +95,11 @@
 
           }
 
-          setAnimationPlayer(objects[i]);
+          // if (objects[i].bot === true) {
+          //   setAnimationBot(objects[i]);
+          // } else {
+            setAnimationPlayer(objects[i]);
+          // }
 
           addSizeCirclesStep();
         } else if (i == idObjMyPlayer && objects[idObjMyPlayer].dead) {
@@ -115,6 +119,14 @@
                 hurtMe(50, 10);
               } else if (recipientBullet.tag == "player" && recipientBullet.id != idObjMyPlayer && objects[i].idOwner == idObjMyPlayer) {
                 addKilling(recipientBullet.id);
+                if (recipientBullet.bot === true) {
+                  hurtBot(recipientBullet.id, 50, 10);
+                }
+              } else if (recipientBullet.tag == "player" && recipientBullet.id != idObjMyPlayer && objects[i].idOwner != idObjMyPlayer && recipientBullet.bot === true && amicontrolerbot) {
+                hurtBot(recipientBullet.id, 50, 10);
+              }
+              if (recipientBullet.tag == "player" && objects[objects[i].idOwner].bot === true && recipientBullet.id != objects[i].idOwner && amicontrolerbot) {
+                addKillingBot(objects[i].idOwner, recipientBullet.id);
               }
               scene.remove(objects[i].sceneObj);
               delete objects[i];
@@ -199,6 +211,9 @@
           myPlayer.sceneObj.rotation.z = Math.PI/2;
           myPlayer.sceneObj.position.z = 1;
           myPlayer.mixer.stopAllAction();
+          myPlayer.mixer.clipAction(THREE.AnimationClip.findByName(myPlayer.animations, 'Standing')).play();
+          myPlayer.mixer.clipAction(THREE.AnimationClip.findByName(myPlayer.animations, 'GunStanding')).play();
+          myPlayer.mixer.clipAction(THREE.AnimationClip.findByName(myPlayer.animations, 'KnifeStanding')).play();
           myPlayer.health = 0;
           myPlayer.bleeding = 0;
           myPlayer.stopBullet = false;
@@ -208,10 +223,134 @@
           camera.position.z = 80;
 
           finishData.time = Math.round((Date.now()-timeStartGame)/1000);
+
+          shiftPlaceBots();
         }
 
         socket.emit('sendChgHpBloodS', idObjMyPlayer, hp, blood);
       }
+    };
+
+    var controlerInterval1 = setTimeout(function() {}, 1);
+    var controlerInterval2 = setTimeout(function() {}, 1);
+    var controlerInterval3 = setTimeout(function() {}, 1);
+    var startControlersIntervals = function() {
+      controlerInterval1 = setInterval(function() {
+        if (amicontrolerbot) {
+          for (i in objects) {
+            if (objects[i]) {
+            if (objects[i].tag == 'player' && objects[i].bot === true && objects[i].bleeding > 0 && objects[i].dead === false) {
+              hurtBot(i, 1, 0);
+            }
+            if (objects[i].tag == 'player' && objects[i].bot === true && objects[i].dead === false) {
+              socket.emit('sendAddObjectsS', [{
+                tag: 'circle',
+                coord: objects[i].coord,
+                maxSize: 2
+              }]);
+              finishDataBots[i].steps++;
+            }
+            }
+          }
+          socket.emit('sendCreateFinishDataBotsS', finishDataBots);
+        }
+      }, 2000);
+      controlerInterval2 = setInterval(function() {
+        if (amicontrolerbot) {
+          for (i in objects) {
+            if (objects[i]) {
+            if (objects[i].tag == 'player' && objects[i].bot === true && objects[i].dead === false) {
+              for (j in objects) {
+                if (objects[j].tag == 'player' && objects[j].dead === false && j != i) {
+                  var range = Math.sqrt(Math.pow(objects[i].coord.x-objects[j].coord.x, 2)+Math.pow(objects[i].coord.y-objects[j].coord.y, 2));
+                  if (range < 15 && !isBetweenObject(objects[i].coord, objects[j].coord)) {
+                    var angle = Math.atan(Math.abs(objects[i].coord.y-objects[j].coord.y)/Math.abs(objects[i].coord.x-objects[j].coord.x));
+                    if (objects[j].coord.x < objects[i].coord.x && objects[j].coord.y > objects[i].coord.y) {
+                      angle = Math.PI-angle;
+                    } else if (objects[j].coord.x < objects[i].coord.x && objects[j].coord.y < objects[i].coord.y) {
+                      angle = Math.PI+angle;
+                    } else if (objects[j].coord.x > objects[i].coord.x && objects[j].coord.y < objects[i].coord.y) {
+                      angle = 2*Math.PI-angle;
+                    }
+                    objects[i].sceneObj.rotation.y = angle+Math.PI/2;
+                    objects[i].aiming = true;
+                    socket.emit('rotatePlayerS', i, objects[i].sceneObj.rotation.y, objects[i].lookingDirect);
+                    shootBot(objects[i], angle);
+                  }
+                }
+              }
+            }
+            }
+          }
+        }
+      }, 3000);
+      controlerInterval3 = setInterval(function() {
+        if (amicontrolerbot) {
+          for (i in objects) {
+            if (objects[i]) {
+            if (objects[i].tag == 'player' && objects[i].bot === true && objects[i].dead === false) {
+              objects[i].lookingDirect = Math.floor(getRandom(1, 9));
+              objects[i].sceneObj.rotation.y = (objects[i].lookingDirect-1)*Math.PI/4-Math.PI/2;
+              socket.emit('rotatePlayerS', i, objects[i].sceneObj.rotation.y, objects[i].lookingDirect);
+              socket.emit('sendChgSpeedPlayerS', i, Math.floor(getRandom(0, 3))-1, Math.floor(getRandom(0, 3))-1);
+            }
+            }
+          }
+        }
+      }, 5000);
+    };
+
+    var hurtBot = function(id, hp, blood) {
+      var player = objects[id];
+      if (!player.dead) {
+
+        player.health -= hp;
+        player.bleeding += blood;
+
+        var coordBlood = {x: player.coord.x+2*Math.cos(player.sceneObj.rotation.y-Math.PI/2), y:player.coord.y+2*Math.sin(player.sceneObj.rotation.y-Math.PI/2)};
+        socket.emit('sendAddObjectsS', [{
+          tag: 'blood',
+          coord: coordBlood
+        }]);
+        finishDataBots[id].spotsBlood++;
+        socket.emit('sendCreateFinishDataBotsS', finishDataBots);
+
+        if (player.health <= 0) {
+          player.dead = true;
+          player.sceneObj.rotation.x = 0;
+          player.sceneObj.rotation.y = 0;
+          player.sceneObj.rotation.z = Math.PI/2;
+          player.sceneObj.position.z = 1;
+          player.mixer.stopAllAction();
+          player.mixer.clipAction(THREE.AnimationClip.findByName(player.animations, 'Standing')).play();
+          player.mixer.clipAction(THREE.AnimationClip.findByName(player.animations, 'GunStanding')).play();
+          player.mixer.clipAction(THREE.AnimationClip.findByName(player.animations, 'KnifeStanding')).play();
+          player.health = 0;
+          player.bleeding = 0;
+          player.stopBullet = false;
+          player.spectating = id;
+          socket.emit('sendDeadPlayerS', id);
+          if (!objects[idObjMyPlayer].dead) {
+            finishData.place--;
+          }
+          shiftPlaceBots();
+          finishDataBots[id].time = Math.round((Date.now()-finishDataBots[id].time)/1000);
+          socket.emit('sendCreateFinishDataBotsS', finishDataBots);
+        }
+
+        socket.emit('sendChgHpBloodS', id, hp, blood);
+      }
+    };
+
+    var shiftPlaceBots = function() {
+      for (i in objects) {
+        if (objects[i]) {
+        if (objects[i].tag == 'player' && objects[i].bot === true && objects[i].dead === false) {
+          finishDataBots[i].place--;
+        }
+        }
+      }
+      socket.emit('sendCreateFinishDataBotsS', finishDataBots);
     };
 
     var showAllPlayers = function() {
@@ -426,9 +565,7 @@
       document.getElementById('guitag').appendChild(loading);
 
       intervalRespawn = setInterval(function() {
-        console.log('tick');
-        console.log(objects.length);
-        console.log(lengthMap);
+        //console.log(objects.length/lengthMap);
         if (objects.length >= lengthMap) {
           var coordSpawn = {
             x: Math.round(getRandom(-100, 100)),
@@ -451,11 +588,54 @@
             }], 'me');
             setTimeout(function() {
               document.getElementById('loading').remove();
-            }, 1000);
+              if (amicontrolerbot) {
+                respawnBots();
+                setFinishDataBots();
+              }
+            }, 1500);
           }
         }
       }, 1000);
     }
+
+    var respawnBots = function() {
+      for (i in objects) {
+        if (objects[i].tag == 'player') {
+        if (objects[i].bot === true) {
+          var flagSpawn;
+          var coordSpawn;
+          do {
+            coordSpawn = {
+              x: Math.round(getRandom(-100, 100)),
+              y: Math.round(getRandom(-100, 100))
+            };
+            flagSpawn = isPlayerIntoNoneGhostObj(objects[i], coordSpawn);
+          } while (flagSpawn);
+          objects[i].coord = coordSpawn;
+          socket.emit('sendMyCoordToAllS', i, coordSpawn);
+        }
+        }
+      }
+      startControlersIntervals();
+    };
+
+    var setFinishDataBots = function() {
+      for (i in objects) {
+        if (objects[i].tag == 'player' && objects[i].bot === true) {
+          finishDataBots[i] = {
+            id: i,
+            place: finishData.place,
+            time: Date.now(),
+            name: '',
+            shoots: 0,
+            kills: [],
+            spotsBlood: 0,
+            steps: 0
+          };
+        }
+      }
+      socket.emit('sendCreateFinishDataBotsS', finishDataBots);
+    };
 
     function getRandom(min, max) {
       return Math.random() * (max - min) + min;
@@ -573,7 +753,7 @@
         }
       } else if (direction == -1) {
         var flagSwitch = true;
-        for (var i = myPlayer.spectating-1; i > 0; i--) {
+        for (var i = myPlayer.spectating-1; i >= 0; i--) {
           if (typeof objects[i] != 'undefined' && objects[i].tag == 'player') {
             myPlayer.spectating = i;
             flagSwitch = false;
@@ -581,7 +761,7 @@
           }
         }
         if (flagSwitch) {
-          for (var i = objects.length-1; i > 0; i--) {
+          for (var i = objects.length-1; i >= 0; i--) {
             if (typeof objects[i] != 'undefined' && objects[i].tag == 'player') {
               myPlayer.spectating = i;
               break;
@@ -750,6 +930,9 @@
             var range = Math.sqrt(Math.pow(coordKnife.x-objects[i].coord.x, 2)+Math.pow(coordKnife.y-objects[i].coord.y, 2));
             if (range < 3) {
               addKilling(i);
+              if (objects[i].bot === true) {
+                hurtBot(i, 10, 5);
+              }
             }
           }
         }
@@ -766,6 +949,20 @@
       }
       if (flagAdd) {
          objects[idObjMyPlayer].killing[objects[idObjMyPlayer].killing.length] = id;
+      }
+    };
+
+    var addKillingBot = function(idBot, idKills) {
+      var flagAdd = true;
+      for (var i = 0; i < finishDataBots[idBot].kills.length; i++) {
+        if (finishDataBots[idBot].kills[i] == idKills) {
+          flagAdd = false;
+          break;
+        }
+      }
+      if (flagAdd) {
+         finishDataBots[idBot].kills[finishDataBots[idBot].kills.length] = idKills;
+         socket.emit('sendCreateFinishDataBotsS', finishDataBots);
       }
     };
 
@@ -805,6 +1002,22 @@
           maxSize: 4
         }]);
       }
+    };
+
+    var shootBot = function(obj, angle) {
+      socket.emit('sendAddObjectsS', [{
+        tag: 'bullet',
+        coord: {x: obj.coord.x+Math.cos(angle)*2*obj.size.w, y: obj.coord.y+Math.sin(angle)*2*obj.size.w},
+        speed: {x: Math.cos(angle), y: Math.sin(angle)},
+        idOwner: obj.id
+      }, {
+        tag: 'circle',
+        coord: obj.coord,
+        maxSize: 4
+      }]);
+
+      finishDataBots[obj.id].shoots++;
+      socket.emit('sendCreateFinishDataBotsS', finishDataBots);
     };
 
     var rotateMe = function(e) {
@@ -927,7 +1140,7 @@
         animateSearchButton(false);
         socket.emit('switchSearchingGameS');
       }
-    }
+    };
 
     var intervalAnimateSearchButton = setTimeout(function() {}, 1);
     var animateSearchButton = function(key) {
@@ -1143,7 +1356,7 @@
       inputNameContact.setAttribute('class', 'inputStyle');
       inputNameContact.setAttribute('type', 'text');
       inputNameContact.setAttribute('placeholder', 'enter your e-mail');
-      strokeIdContact.appendChild(inputNameContact);//this place
+      strokeIdContact.appendChild(inputNameContact);
 
       var strokeThemeContact = document.createElement('div');
       strokeThemeContact.setAttribute('id', 'strokeThemeContact');
@@ -1269,6 +1482,10 @@
     var initHome = function() {
       clearGame();
 
+      clearInterval(controlerInterval1);
+      clearInterval(controlerInterval2);
+      clearInterval(controlerInterval3);
+
       var guiHomeDom = document.createElement('div');
       guiHomeDom.setAttribute('id', 'guiHome');
       document.body.appendChild(guiHomeDom);
@@ -1293,10 +1510,11 @@
       window.removeEventListener("keyup", keyUpHome);
     };
 
-    var scene, camera, renderer, eyesLight, targetEyesLight, finishData, timeStartGame;
+    var scene, camera, renderer, eyesLight, targetEyesLight, finishData, timeStartGame, finishDataBots;
     var initGame = function() {
     clearHome();
     finishData = {};
+    finishDataBots = [];
     timeStartGame = Date.now();
 
     scene = new THREE.Scene();
@@ -1461,6 +1679,9 @@
       objects[idPlayer].sceneObj.rotation.z = Math.PI/2;
       objects[idPlayer].sceneObj.position.z = 1;
       objects[idPlayer].mixer.stopAllAction();
+      objects[idPlayer].mixer.clipAction(THREE.AnimationClip.findByName(objects[idPlayer].animations, 'Standing')).play();
+      objects[idPlayer].mixer.clipAction(THREE.AnimationClip.findByName(objects[idPlayer].animations, 'GunStanding')).play();
+      objects[idPlayer].mixer.clipAction(THREE.AnimationClip.findByName(objects[idPlayer].animations, 'KnifeStanding')).play();
       objects[idPlayer].health = 0;
       objects[idPlayer].bleeding = 0;
       objects[idPlayer].stopBullet = false;
@@ -1473,16 +1694,37 @@
       scene.remove(objects[idObj].sceneObj);
       delete objects[idObj];
     });
+    socket.on('takeCreateFinishDataBotsS', function(data) {
+      finishDataBots = data;
+    });
     socket.on('takeFinishDataS', function() {
       finishData.name = objects[idObjMyPlayer].name;
       if (typeof finishData.time == 'undefined') { finishData.time = Math.round((Date.now()-timeStartGame)/1000); }
       if (typeof finishData.steps == 'undefined') { finishData.steps = 0; }
       if (typeof finishData.shoots == 'undefined') { finishData.shoots = 0; }
       if (typeof finishData.spotsBlood == 'undefined') { finishData.spotsBlood = 0; }
+      if (amicontrolerbot) {
+        for (var i = 0; i < finishDataBots.length; i++) {
+          if (finishDataBots[i].place == 1) {
+            finishDataBots[i].time = Math.round((Date.now()-finishDataBots[i].time)/1000);
+            socket.emit('sendCreateFinishDataBotsS', finishDataBots);
+          }
+        }
+      }
       finishData.kills = objects[idObjMyPlayer].killing.length;
       socket.emit('giveFinishDataS', finishData);
     });
     socket.on('finishGameS', function(data) {
+      for (i in finishDataBots) {
+        finishDataBots[i].kills = finishDataBots[i].kills.length;
+      }
+      var k = 0;
+      var l = data.length;
+      for (i in finishDataBots) {
+        data[l+k] = finishDataBots[i];
+        k++;
+      }
+
       var finishDisplay = document.createElement("div");
       finishDisplay.setAttribute("id", "finishDisplay");
       finishDisplay.style.width = "100%";
@@ -1518,6 +1760,9 @@
       th.innerHTML = 'name';
       tr.appendChild(th);
       var th = document.createElement("th");
+      th.innerHTML = 'time';
+      tr.appendChild(th);
+      var th = document.createElement("th");
       th.innerHTML = 'kills';
       tr.appendChild(th);
       var th = document.createElement("th");
@@ -1537,6 +1782,9 @@
         tr.appendChild(td);
         var td = document.createElement("td");
         td.innerHTML = data[j].name;
+        tr.appendChild(td);
+        var td = document.createElement("td");
+        td.innerHTML = data[j].time;
         tr.appendChild(td);
         var td = document.createElement("td");
         td.innerHTML = data[j].kills;
@@ -1597,7 +1845,8 @@
       }
 
       blockFinish.appendChild(tableFinish);
-      console.log(data);
+
+      //console.log(finishDataBots);
 
       var buttonExit = document.createElement("div");
       buttonExit.setAttribute("id", "buttonExit");
@@ -1612,6 +1861,11 @@
       buttonExit.style.backgroundColor = '#ff5e5e';
       buttonExit.style.borderRadius = '10px';
       blockFinish.appendChild(buttonExit);
+    });
+    var amicontrolerbot = false;
+    socket.on('makeBotControler', function(players) {
+      amicontrolerbot = true;
+      console.log('i am controler');
     });
     //-listeners io
 
