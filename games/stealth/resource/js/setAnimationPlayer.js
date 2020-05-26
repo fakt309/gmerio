@@ -1,5 +1,5 @@
 var setAnimationPlayer = function(obj) {
-  if (typeof obj.activeAnimation == "undefined") {
+  if (typeof obj.activeAnimation == "undefined" && obj.bot !== true) {
     obj.activeAnimation = 'Forward';
     showGuiWeapon(1);
     showGuiBullets();
@@ -140,3 +140,91 @@ var setAnimationPlayer = function(obj) {
 
   }
 };
+
+// var setAnimationBot = function(obj) {
+//   if (typeof obj.activeAnimation == "undefined") {
+//     obj.activeAnimation = 'Forward';
+//   }
+//   if (obj.speed.x == 0 && obj.speed.y == 0 && obj.activeAnimation != 'Standing') {
+//     obj.mixer.stopAllAction();
+//     obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'Standing')).play();
+//     obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'GunStanding')).play();
+//     obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'KnifeStanding')).play();
+//     obj.activeAnimation = 'Standing';
+//   } else if (obj.speed.x == 0 && obj.speed.y == 0 && obj.activeAnimation != 'StandAiming' && obj.aiming) {
+//     obj.mixer.stopAllAction();
+//     obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'StandAiming')).play();
+//     obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'GunAiming')).play();
+//     obj.activeAnimation = 'StandAiming';
+//   } else if (obj.speed.x != 0 || obj.speed.y != 0) {
+//
+//     var directionKey = 0;
+//     if (obj.speed.x > 0 && obj.speed.y == 0) {
+//       directionKey = 1;
+//     } else if (obj.speed.x > 0 && obj.speed.y > 0) {
+//       directionKey = 2;
+//     } else if (obj.speed.x == 0 && obj.speed.y > 0) {
+//       directionKey = 3;
+//     } else if (obj.speed.x < 0 && obj.speed.y > 0) {
+//       directionKey = 4;
+//     } else if (obj.speed.x < 0 && obj.speed.y == 0) {
+//       directionKey = 5;
+//     } else if (obj.speed.x < 0 && obj.speed.y < 0) {
+//       directionKey = 6;
+//     } else if (obj.speed.x == 0 && obj.speed.y < 0) {
+//       directionKey = 7;
+//     } else if (obj.speed.x > 0 && obj.speed.y < 0) {
+//       directionKey = 8;
+//     }
+//
+//     if (obj.activeAnimation != 'Forward' && obj.lookingDirect == directionKey) {
+//       obj.mixer.stopAllAction();
+//       obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'VerticalWalk')).play();
+//       obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'GunWalking')).play();
+//       obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'KnifeWalking')).play();
+//       obj.activeAnimation = 'Forward';
+//     } else if (obj.activeAnimation != 'ForwardRight' && (obj.lookingDirect-directionKey == 1 || obj.lookingDirect-directionKey == -7)) {
+//       obj.mixer.stopAllAction();
+//       obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'DiagonalWalk1')).play();
+//       obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'GunWalking')).play();
+//       obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'KnifeWalking')).play();
+//       obj.activeAnimation = 'ForwardRight';
+//     } else if (obj.activeAnimation != 'ForwardLeft' && (obj.lookingDirect-directionKey == -1 || obj.lookingDirect-directionKey == 7)) {
+//       obj.mixer.stopAllAction();
+//       obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'DiagonalWalk2')).play();
+//       obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'GunWalking')).play();
+//       obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'KnifeWalking')).play();
+//       obj.activeAnimation = 'ForwardLeft';
+//     } else if (obj.activeAnimation != 'Back' && Math.abs(obj.lookingDirect-directionKey) == 4) {
+//       obj.mixer.stopAllAction();
+//       obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'VerticalWalk')).play();
+//       obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'GunWalking')).play();
+//       obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'KnifeWalking')).play();
+//       obj.activeAnimation = 'Back';
+//     } else if (obj.activeAnimation != 'BackRight' && (obj.lookingDirect-directionKey == -5 || obj.lookingDirect-directionKey == 3 )) {
+//       obj.mixer.stopAllAction();
+//       obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'DiagonalWalk2')).play();
+//       obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'GunWalking')).play();
+//       obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'KnifeWalking')).play();
+//       obj.activeAnimation = 'BackRight';
+//     } else if (obj.activeAnimation != 'BackLeft' && (obj.lookingDirect-directionKey == -3 || obj.lookingDirect-directionKey == 5)) {
+//       obj.mixer.stopAllAction();
+//       obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'DiagonalWalk1')).play();
+//       obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'GunWalking')).play();
+//       obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'KnifeWalking')).play();
+//       obj.activeAnimation = 'BackLeft';
+//     } else if (obj.activeAnimation != 'Right' && (obj.lookingDirect-directionKey == 2 || obj.lookingDirect-directionKey == -6)) {
+//       obj.mixer.stopAllAction();
+//       obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'HorizontalWalk')).play();
+//       obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'GunWalking')).play();
+//       obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'KnifeWalking')).play();
+//       obj.activeAnimation = 'Right';
+//     } else if (obj.activeAnimation != 'Left' && (obj.lookingDirect-directionKey == -2 || obj.lookingDirect-directionKey == 6)) {
+//       obj.mixer.stopAllAction();
+//       obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'HorizontalWalk')).play();
+//       obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'GunWalking')).play();
+//       obj.mixer.clipAction(THREE.AnimationClip.findByName(obj.animations, 'KnifeWalking')).play();
+//       obj.activeAnimation = 'Left';
+//     }
+//   }
+// };

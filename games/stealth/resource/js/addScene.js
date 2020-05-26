@@ -157,6 +157,7 @@ function addScene(obj) {
           objects[obj.id].health = 100;
           objects[obj.id].bleeding = 0;
           objects[obj.id].bullets = 7;
+          objects[obj.id].aiming = false;
           objects[obj.id].dead = false;
           objects[obj.id].spectating = false;
           objects[obj.id].killing = [];
@@ -182,7 +183,6 @@ function addScene(obj) {
             objects[obj.id].nameObj = nameObject;
             nameGeometry.computeBoundingSphere()
             //setTimeout(function() {
-              console.log(nameObject.geometry.boundingSphere.center);
               objects[obj.id].shiftName = nameObject.geometry.boundingSphere.center.x;
             //}, 3000);
             scene.add(nameObject);
