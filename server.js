@@ -575,7 +575,7 @@ io.sockets.on('connection', function(socket) {
 
 		connection.connect(function(err) {
       //if (err) throw err;
-			var link = "https://gmer.io/request";
+			var link = "https://gmer.io/g/cannons/request";
 			var key = getID(20);
 
 			link += "?";
