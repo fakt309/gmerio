@@ -733,6 +733,13 @@
         speed.x = sign*speed.r*Math.cos(speed.angle);
         speed.y = sign*speed.r*Math.sin(speed.angle);
 
+        if (me.side == 1) {
+          from.x += 0.06*ww*Math.cos(Math.abs(speed.angle));
+        } else if (me.side == 2) {
+          from.x -= 0.06*ww*Math.cos(Math.abs(speed.angle));
+        }
+        from.y -= 0.08*hh*Math.sin(Math.abs(speed.angle));
+
         var muffler = 0.1;
         var bullet = {
             tag: "bullet",
@@ -2414,12 +2421,23 @@
             vx = -vx;
           }
 
+          var speedangle = Math.abs(Math.atan(vy/vx));
+          var coordbullett = {x: coordinateBotCannon.x, y: coordinateBotCannon.y};
+          if (enemy.side == 1) {
+            coordbullett.x += 0.06*ww*Math.cos(speedangle);
+          } else if (enemy.side == 2) {
+            coordbullett.x -= 0.06*ww*Math.cos(speedangle);
+          }
+          coordbullett.y -= 0.08*hh*Math.sin(speedangle);
+
           var muffler = 0.1;
           var bullet = {
               tag: "bullet",
               coordinate: {
-                x: coordinateBotCannon.x,
-                y: coordinateBotCannon.y
+                // x: coordinateBotCannon.x,
+                // y: coordinateBotCannon.y
+                x: coordbullett.x,
+                y: coordbullett.y
               },
               speed: {
                 x: vx*muffler,
@@ -2746,6 +2764,15 @@
       //   grecaptcha.render('recaptcha', { 'sitekey': '6Ld-_NEUAAAAAIcro-nuBeDeMigbdDBoxVt6jw9h' });
       // };
 
+      var timeoutSaveName = setTimeout(function() {}, 1);
+      var saveName = function() {
+        clearInterval(timeoutSaveName);
+        timeoutSaveName = setTimeout(function() {
+          var name = document.getElementById('inputName').value;
+          setCookie('name', name, 30);
+        }, 1000);
+      };
+
       var widgetRecaptcha1;
       var widgetRecaptcha2;
       var onloadCallback = function() {
@@ -3070,7 +3097,10 @@
 
         $("#gui").append("<input id='inputName' />");
         $("#inputName").attr("type", "text");
+        var name = getCookie('name'); if (name) { $("#inputName").val(name); }
+        $("#inputName").attr("onchange", "saveName()");
         $("#inputName").attr("placeholder", "Your name");
+        $("#inputName").attr("autocomplete", "off");
         $("#inputName").css("position", "fixed");
         $("#inputName").css("top", "50%");
         $("#inputName").css("right", "20px");
@@ -3116,6 +3146,24 @@
         $("#contactButton").css("font-family", "Arial");
         $("#contactButton").css("color", "#fff");
         $("#contactButton").css("background-color", "#00000077");
+
+        $("#gui").append("<a id='crazygamesButton'>Our partner crazygames.com <img id='crazygameassets' src='https://files.crazygames.com/assets/Logo_Purple_Transparent.png'></a>");
+        $("#crazygamesButton").attr("href", "https://www.crazygames.com");
+        $("#crazygamesButton").attr("target", "_blank");
+        $("#crazygamesButton").css("position", "fixed");
+        $("#crazygamesButton").css("right", "120px");
+        $("#crazygamesButton").css("bottom", "10px");
+        $("#crazygamesButton").css("padding", "5px");
+        $("#crazygamesButton").css("cursor", "pointer");
+        $("#crazygamesButton").css("font-size", "12px");
+        $("#crazygamesButton").css("font-family", "Arial");
+        $("#crazygamesButton").css("color", "#fff");
+        $("#crazygamesButton").css("text-decoration", "none");
+        $("#crazygamesButton").css("background-color", "#00000077");
+        $("#crazygameassets").css("width", "13px");
+        $("#crazygameassets").css("height", "13px");
+        $("#crazygameassets").css("vertical-align", "middle");
+        $("#crazygameassets").css("margin", "0px 5px");
 
         $("#gui").append("<div id='backContactForm'></div>");
         $("#backContactForm").css("position", "fixed");
@@ -3326,7 +3374,6 @@
         $(".inputStyle").css("background-color", "#fff");
         $(".inputStyle").css("border-bottom", "1px solid #ddd");
 
-        //this place
         // onloadCallback = function() {
         //   widgetRecaptcha1 = grecaptcha.render('recaptcha1', { 'sitekey': '6Ld-_NEUAAAAAIcro-nuBeDeMigbdDBoxVt6jw9h' });
         //   widgetRecaptcha2 = grecaptcha.render('recaptcha2', { 'sitekey': '6Ld-_NEUAAAAAIcro-nuBeDeMigbdDBoxVt6jw9h' });
@@ -3677,10 +3724,16 @@
               obj.splice(obj.indexOf(obj[i]), 1);
               continue;
             }
+            //this place
             //collision
             for (var j in obj) {
               if (obj[j] != obj[i]) {
-                if (obj[j].tag == "floor") {
+                if (obj[j].tag == "floor" || obj[j].tag == "cannon") {
+
+                  if (!obj[j].deg) {
+                    obj[j].deg = 0;
+                  }
+
                   //go to floor cs
                   var x = obj[i].coordinate.x-obj[j].coordinate.x;
                   var y = obj[i].coordinate.y-obj[j].coordinate.y;
@@ -3688,8 +3741,8 @@
                   var yy = -x*Math.sin(obj[j].deg)+y*Math.cos(obj[j].deg);
                   // yy = yy*(ww/hh);
                   // xx = xx*(hh/ww);
-
                   if (xx > (-obj[j].size.w/2)-obj[i].r && xx < (obj[j].size.w/2)+obj[i].r && yy > (-obj[j].size.h/2)-obj[i].r && yy < (obj[j].size.h/2)+obj[i].r && !bulletIntoHole(obj[i])) {
+                  //if ((obj[j].tag == "floor" && xx > (-obj[j].size.w/2)-obj[i].r && xx < (obj[j].size.w/2)+obj[i].r && yy > (-obj[j].size.h/2)-obj[i].r && yy < (obj[j].size.h/2)+obj[i].r && !bulletIntoHole(obj[i])) || (obj[j].tag == "cannon") ) {
                     var hole = {
                       tag: "hole",
                       coordinate: {
