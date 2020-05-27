@@ -48,7 +48,8 @@ app.get('/', function(request, respons) {
 });
 app.get('/g/*', function(request, respons) {
   urlRequest = request.originalUrl;
-  var url = request.originalUrl.split("/");
+  var url = request.originalUrl.split("?")[0];
+  url = url.split("/");
   if (url.length == 3) {
     if (fs.existsSync(__dirname+'/games/'+url[2]+'/index.html')) {
       respons.sendFile(__dirname+'/games/'+url[2]+'/index.html');
