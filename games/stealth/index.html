@@ -1247,7 +1247,131 @@
       });
     }
 
+     var closeCA = function(addCookie) {
+      document.getElementById('wrapCookieAcceptance').style.display = 'none';
+      if (addCookie) {
+        setCookie("cookieAcceptance", 1, 30);
+      }
+    }
+
+    var isphone = (/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(navigator.userAgent.toLowerCase()));
+    //isphone = true;
     var setGuiHome = function() {
+
+      if (isphone) {
+        var wrapProveControls = document.createElement('div');
+        wrapProveControls.setAttribute('id', 'wrapProveControls');
+        wrapProveControls.style.position = 'fixed';
+        wrapProveControls.style.left = '0px';
+        wrapProveControls.style.top = '0px';
+        wrapProveControls.style.width = '100vw';
+        wrapProveControls.style.height = '100vh';
+        wrapProveControls.style.backgroundColor = '#000';
+        wrapProveControls.style.zIndex = '200';
+        wrapProveControls.style.display = 'flex';
+        wrapProveControls.style.flexDirection = 'column';
+        wrapProveControls.style.justifyContent = 'center';
+        wrapProveControls.style.alignItems = 'center';
+        document.getElementById('guiHome').appendChild(wrapProveControls);
+
+        var labelProveControls = document.createElement('div');
+        labelProveControls.setAttribute('id', 'labelProveControls');
+        labelProveControls.innerHTML = 'This game requires keyboard and mouse. Prove that you have it.';
+        labelProveControls.style.margin = '20px';
+        labelProveControls.style.color = '#fff';
+        labelProveControls.style.fontFamily = 'Arial';
+        labelProveControls.style.fontSize = '14px';
+        labelProveControls.style.textAlign = 'center';
+        wrapProveControls.appendChild(labelProveControls);
+
+        var wrapImgBlocksProveControls = document.createElement('div');
+        wrapImgBlocksProveControls.setAttribute('id', 'wrapImgBlocksProveControls');
+        wrapImgBlocksProveControls.style.display = 'flex';
+        wrapImgBlocksProveControls.style.flexDirection = 'row';
+        wrapImgBlocksProveControls.style.justifyContent = 'center';
+        wrapImgBlocksProveControls.style.alignItems = 'center';
+        wrapImgBlocksProveControls.style.flexWrap = 'wrap';
+        wrapProveControls.appendChild(wrapImgBlocksProveControls);
+
+        var leftBlockProveControls = document.createElement('div');
+        leftBlockProveControls.setAttribute('id', 'leftBlockProveControls');
+        leftBlockProveControls.style.margin = '20px';
+        leftBlockProveControls.style.display = 'flex';
+        leftBlockProveControls.style.flexDirection = 'column';
+        leftBlockProveControls.style.justifyContent = 'center';
+        leftBlockProveControls.style.alignItems = 'center';
+        wrapImgBlocksProveControls.appendChild(leftBlockProveControls);
+
+        var imgKeyboardProveControls = document.createElement('img');
+        imgKeyboardProveControls.setAttribute('id', 'imgKeyboardProveControls');
+        imgKeyboardProveControls.setAttribute('src', '/g/stealth/resource/img/keyboard.png');
+        imgKeyboardProveControls.style.maxWidth = '200px';
+        imgKeyboardProveControls.style.width = '90vw';
+        imgKeyboardProveControls.style.height = '100px';
+        leftBlockProveControls.appendChild(imgKeyboardProveControls);
+
+        var labelKeyboardProveControls = document.createElement('div');
+        labelKeyboardProveControls.setAttribute('id', 'labelKeyboardProveControls');
+        labelKeyboardProveControls.innerHTML = 'Press any key.';
+        labelKeyboardProveControls.style.color = '#fff';
+        labelKeyboardProveControls.style.fontFamily = 'Arial';
+        labelKeyboardProveControls.style.fontSize = '12px';
+        labelKeyboardProveControls.style.textAlign = 'center';
+        labelKeyboardProveControls.style.fontStyle = 'italic';
+        leftBlockProveControls.appendChild(labelKeyboardProveControls);
+
+        var rightBlockProveControls = document.createElement('div');
+        rightBlockProveControls.setAttribute('id', 'rightBlockProveControls');
+        rightBlockProveControls.style.margin = '20px';
+        rightBlockProveControls.style.display = 'flex';
+        rightBlockProveControls.style.flexDirection = 'column';
+        rightBlockProveControls.style.justifyContent = 'center';
+        rightBlockProveControls.style.alignItems = 'center';
+        wrapImgBlocksProveControls.appendChild(rightBlockProveControls);
+
+        var imgMouseProveControls = document.createElement('img');
+        imgMouseProveControls.setAttribute('id', 'imgMouseProveControls');
+        imgMouseProveControls.setAttribute('src', '/g/stealth/resource/img/mouse.png');
+        imgMouseProveControls.style.maxWidth = '100px';
+        imgKeyboardProveControls.style.width = '90vw';
+        imgMouseProveControls.style.height = '100px';
+        rightBlockProveControls.appendChild(imgMouseProveControls);
+
+        var labelMouseProveControls = document.createElement('div');
+        labelMouseProveControls.setAttribute('id', 'labelMouseProveControls');
+        labelMouseProveControls.innerHTML = 'Press any key.';
+        labelMouseProveControls.style.color = '#fff';
+        labelMouseProveControls.style.fontFamily = 'Arial';
+        labelMouseProveControls.style.fontSize = '12px';
+        labelMouseProveControls.style.textAlign = 'center';
+        labelMouseProveControls.style.fontStyle = 'italic';
+        rightBlockProveControls.appendChild(labelMouseProveControls);
+
+
+        var flagsProveControl = {keyboard: false, mouse: false};
+        var proveKeyboard = function() {
+          imgKeyboardProveControls.setAttribute('src', '/g/stealth/resource/img/keyboardOk.png');
+          labelKeyboardProveControls.innerHTML = 'ok';
+          flagsProveControl.keyboard = true;
+          checkHideProveControl();
+        };
+        var proveMouse = function() {
+          imgMouseProveControls.setAttribute('src', '/g/stealth/resource/img/mouseOk.png');
+          labelMouseProveControls.innerHTML = 'ok';
+          flagsProveControl.mouse = true;
+          checkHideProveControl();
+        };
+        var checkHideProveControl = function() {
+          if (flagsProveControl.keyboard && flagsProveControl.mouse) {
+            wrapProveControls.remove();
+            window.removeEventListener("keydown", keyDownHome);
+            window.removeEventListener("mousedown", proveMouse);
+          }
+        };
+        window.addEventListener("keydown", proveKeyboard);
+        window.addEventListener("mousedown", proveMouse);
+      }
+
       //document.querySelectorAll('html').style.height = '100%';
       document.body.style.backgroundImage = 'url("/g/stealth/resource/img/background.png")';
       document.body.style.backgroundSize = 'cover';
@@ -1268,6 +1392,49 @@
       // logoGame.style.color = '#fff';
       // logoGame.style.textShadow = '2px 2px 2px #000';
       // document.getElementById('guiHome').appendChild(logoGame);
+
+      var wrapCookieAcceptance = document.createElement('div');
+      wrapCookieAcceptance.setAttribute('id', 'wrapCookieAcceptance');
+      wrapCookieAcceptance.style.position = 'fixed';
+      wrapCookieAcceptance.style.left = '0px';
+      wrapCookieAcceptance.style.bottom = '0px';
+      wrapCookieAcceptance.style.maxWidth = '30%';
+      wrapCookieAcceptance.style.backgroundColor = '#fff';
+      wrapCookieAcceptance.style.borderRradius = '5px 5px 0px 0px';
+      wrapCookieAcceptance.style.fontFamily = 'Arial';
+      wrapCookieAcceptance.style.fontSize = 'min(14px, 4vw)';
+      wrapCookieAcceptance.style.display = 'flex';
+      wrapCookieAcceptance.style.flexDirection = 'column';
+      wrapCookieAcceptance.style.alignItems = 'flex-start';
+      wrapCookieAcceptance.style.justifyContent = 'space-around';
+      document.getElementById('guiHome').appendChild(wrapCookieAcceptance);
+
+      var textCA = document.createElement('p');
+      textCA.setAttribute('id', 'textCA');
+      textCA.innerHTML = 'We are using cookie for correct work site and game.';
+      textCA.style.margin = '20px';
+      textCA.style.color = '#999';
+      wrapCookieAcceptance.appendChild(textCA);
+
+      var buttonCA = document.createElement('div');
+      buttonCA.setAttribute('id', 'buttonCA');
+      buttonCA.setAttribute('onclick', 'closeCA(true)');
+      buttonCA.innerHTML = 'Accept';
+      buttonCA.style.margin = '20px';
+      buttonCA.style.marginTop = '0px';
+      buttonCA.style.backgroundColor = '#5cbfc6';
+      buttonCA.style.color = '#fff';
+      buttonCA.style.padding = '10px';
+      buttonCA.style.borderRadius = '5px';
+      buttonCA.style.cursor = 'pointer';
+      wrapCookieAcceptance.appendChild(buttonCA);
+
+      var cookieAcceptance = getCookie("cookieAcceptance");
+      if (cookieAcceptance && cookieAcceptance == "1") {
+        setTimeout(function() {
+          closeCA(false);
+        }, 100);
+      }
 
       var contactButton = document.createElement('div');
       contactButton.setAttribute('id', 'contactButton');
@@ -1454,6 +1621,7 @@
       inputName.setAttribute('type', 'text');
       inputName.setAttribute('placeholder', 'Your name');
       inputName.setAttribute('onchange', 'saveName()');
+      inputName.setAttribute('autocomplete', 'off');
       var name = getCookie('name');
       if (name) {
         inputName.value = name;
