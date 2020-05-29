@@ -9,6 +9,17 @@
 
     <link rel="icon" type="image/png" id="icoico" href="/g/stealth/resource/img/favicon.png">
     <title>Stealth, realtime, multiplayer game io</title>
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-161435685-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-161435685-1');
+    </script>
+    <!-- end Global site tag (gtag.js) - Google Analytics -->
   </head>
   <body onload="initHome()">
 
@@ -671,63 +682,142 @@
     };
 
     var keyDownGame = function(e) {
-      switch (e.code) {
-        case 'KeyW':
-          if (!pressedKeys.w) {
-            pressedKeys.w = true;
-          }
-          break;
-        case 'KeyD':
-          if (!pressedKeys.d) {
-            pressedKeys.d = true;
-          }
-          break;
-        case 'KeyS':
-          if (!pressedKeys.s) {
-            pressedKeys.s = true;
-          }
-          break;
-        case 'KeyA':
-          if (!pressedKeys.a) {
-            pressedKeys.a = true;
-          }
-          break;
-        case 'ArrowRight':
-          if (objects[idObjMyPlayer].dead) {
-            slideSpectating(1);
-          }
-          break;
-        case 'ArrowLeft':
-          if (objects[idObjMyPlayer].dead) {
-            slideSpectating(-1);
-          }
-          break;
+      if (e.code) {
+        switch (e.code) {
+          // case 'KeyW':
+          case editControl[0].code:
+            if (!pressedKeys.w) {
+              pressedKeys.w = true;
+            }
+            break;
+          // case 'KeyD':
+          case editControl[3].code:
+            if (!pressedKeys.d) {
+              pressedKeys.d = true;
+            }
+            break;
+          // case 'KeyS':
+          case editControl[1].code:
+            if (!pressedKeys.s) {
+              pressedKeys.s = true;
+            }
+            break;
+          // case 'KeyA':
+          case editControl[2].code:
+            if (!pressedKeys.a) {
+              pressedKeys.a = true;
+            }
+            break;
+          //case 'ArrowRight':
+          case editControl[8].code:
+            if (objects[idObjMyPlayer].dead) {
+              slideSpectating(1);
+            }
+            break;
+          // 'ArrowLeft':
+          case editControl[7].code:
+            if (objects[idObjMyPlayer].dead) {
+              slideSpectating(-1);
+            }
+            break;
+        }
+      } else {
+        switch ('mouse'+e.button) {
+          // case 'KeyW':
+          case editControl[0].code:
+            if (!pressedKeys.w) {
+              pressedKeys.w = true;
+            }
+            break;
+          // case 'KeyD':
+          case editControl[3].code:
+            if (!pressedKeys.d) {
+              pressedKeys.d = true;
+            }
+            break;
+          // case 'KeyS':
+          case editControl[1].code:
+            if (!pressedKeys.s) {
+              pressedKeys.s = true;
+            }
+            break;
+          // case 'KeyA':
+          case editControl[2].code:
+            if (!pressedKeys.a) {
+              pressedKeys.a = true;
+            }
+            break;
+          //case 'ArrowRight':
+          case editControl[8].code:
+            if (objects[idObjMyPlayer].dead) {
+              slideSpectating(1);
+            }
+            break;
+          // 'ArrowLeft':
+          case editControl[7].code:
+            if (objects[idObjMyPlayer].dead) {
+              slideSpectating(-1);
+            }
+            break;
+        }
       }
       sendMove();
     };
-
     var keyUpGame = function(e) {
-      switch (e.code) {
-        case 'KeyW':
-          if (pressedKeys.w) {
-            pressedKeys.w = false;
-          }
-          break;
-        case 'KeyD':
-          if (pressedKeys.d) {
-            pressedKeys.d = false;
-          }
-          break;
-        case 'KeyS':
-          if (pressedKeys.s) {
-            pressedKeys.s = false;
-          }
-          break;
-        case 'KeyA':
-          if (pressedKeys.a) {
-            pressedKeys.a = false;
-          }
-          break;
+      if (e.code) {
+        switch (e.code) {
+          //case 'KeyW':
+          case editControl[0].code:
+            if (pressedKeys.w) {
+              pressedKeys.w = false;
+            }
+            break;
+          //case 'KeyD':
+          case editControl[3].code:
+            if (pressedKeys.d) {
+              pressedKeys.d = false;
+            }
+            break;
+          //case 'KeyS':
+          case editControl[1].code:
+            if (pressedKeys.s) {
+              pressedKeys.s = false;
+            }
+            break;
+          //case 'KeyA':
+          case editControl[2].code:
+            if (pressedKeys.a) {
+              pressedKeys.a = false;
+            }
+            break;
+        }
+      } else {
+        switch ('mouse'+e.button) {
+          //case 'KeyW':
+          case editControl[0].code:
+            if (pressedKeys.w) {
+              pressedKeys.w = false;
+            }
+            break;
+          //case 'KeyD':
+          case editControl[3].code:
+            if (pressedKeys.d) {
+              pressedKeys.d = false;
+            }
+            break;
+          //case 'KeyS':
+          case editControl[1].code:
+            if (pressedKeys.s) {
+              pressedKeys.s = false;
+            }
+            break;
+          //case 'KeyA':
+          case editControl[2].code:
+            if (pressedKeys.a) {
+              pressedKeys.a = false;
+            }
+            break;
+        }
       }
       sendMove();
     };
@@ -776,26 +866,47 @@
     };
 
     var aimGunDown = function(e) {
-      if (e.button == 2) {
-        pressedKeys.rightMouse = true;
-        objects[idObjMyPlayer].aiming = true;
-        socket.emit('sendActionS', idObjMyPlayer, "aiming", true);
-        setAnimationPlayer(objects[idObjMyPlayer]);
+      if (e.code) {
+        if (e.code == editControl[5].code) {
+          pressedKeys.rightMouse = true;
+          objects[idObjMyPlayer].aiming = true;
+          socket.emit('sendActionS', idObjMyPlayer, "aiming", true);
+          setAnimationPlayer(objects[idObjMyPlayer]);
+        }
+      } else {
+        //if (e.button == 2) {
+        if ('mouse'+e.button == editControl[5].code) {
+          pressedKeys.rightMouse = true;
+          objects[idObjMyPlayer].aiming = true;
+          socket.emit('sendActionS', idObjMyPlayer, "aiming", true);
+          setAnimationPlayer(objects[idObjMyPlayer]);
+        }
       }
+
     };
 
     var aimGunUp = function(e) {
-      if (e.button == 2) {
-        pressedKeys.rightMouse = false;
-        objects[idObjMyPlayer].aiming = false;
-        socket.emit('sendActionS', idObjMyPlayer, "aiming", false);
-        setAnimationPlayer(objects[idObjMyPlayer]);
+      if (e.code) {
+        if (e.code == editControl[5].code) {
+          pressedKeys.rightMouse = false;
+          objects[idObjMyPlayer].aiming = false;
+          socket.emit('sendActionS', idObjMyPlayer, "aiming", false);
+          setAnimationPlayer(objects[idObjMyPlayer]);
+        }
+      } else {
+        //if (e.button == 2) {
+        if ('mouse'+e.button == editControl[5].code) {
+          pressedKeys.rightMouse = false;
+          objects[idObjMyPlayer].aiming = false;
+          socket.emit('sendActionS', idObjMyPlayer, "aiming", false);
+          setAnimationPlayer(objects[idObjMyPlayer]);
+        }
       }
     };
 
     var wheelUsage = true;
     var changeWeapon = function(e) {
-      if (wheelUsage) {
+      if (wheelUsage && editControl[6].code == 'mouse3') {
         var myPlayer = objects[idObjMyPlayer];
 
         switchWeapon(myPlayer);
@@ -808,6 +919,27 @@
           wheelUsage = true;
         }, 500);
       }
+    };
+
+    var changeWeaponPush = function(e) {
+      if (e.code) {
+        if (e.code == editControl[6].code) {
+          var myPlayer = objects[idObjMyPlayer];
+          switchWeapon(myPlayer);
+          showGuiWeapon(myPlayer.activeWeapon);
+          showGuiBullets();
+          socket.emit('sendActionS', idObjMyPlayer, "changeWeapon", myPlayer.activeWeapon);
+        }
+      } else {
+        if ('mouse'+e.button == editControl[6].code) {
+          var myPlayer = objects[idObjMyPlayer];
+          switchWeapon(myPlayer);
+          showGuiWeapon(myPlayer.activeWeapon);
+          showGuiBullets();
+          socket.emit('sendActionS', idObjMyPlayer, "changeWeapon", myPlayer.activeWeapon);
+        }
+      }
+
     };
 
     var switchWeapon = function(obj) {
@@ -894,7 +1026,7 @@
     var stabUsage = true;
     var stab = function(e) {
       var myPlayer = objects[idObjMyPlayer];
-      if (e.button == 0 && myPlayer.activeWeapon == 2 && stabUsage) {
+      if ('mouse'+e.button == editControl[4].code && myPlayer.activeWeapon == 2 && stabUsage) {
         socket.emit('sendActionS', idObjMyPlayer, "stab", false);
         makeStab(myPlayer);
         stabUsage = false;
@@ -968,7 +1100,7 @@
 
     var shoot = function(e) {
       var myPlayer = objects[idObjMyPlayer];
-      if (e.button == 0 && pressedKeys.rightMouse && myPlayer.activeWeapon == 1 && myPlayer.bullets > 0) {
+      if ('mouse'+e.button == editControl[4].code && pressedKeys.rightMouse && myPlayer.activeWeapon == 1 && myPlayer.bullets > 0) {
         if (typeof finishData.shoots == 'undefined') { finishData.shoots = 0; }
         finishData.shoots++;
         var mouse = {
@@ -1105,8 +1237,9 @@
 
     var clock = new THREE.Clock();
     var deltaClock = 0;
+    var requestAnimationFrameLoop;
     var loop = function() {
-      requestAnimationFrame(loop);
+      requestAnimationFrameLoop = requestAnimationFrame(loop);
 
       deltaClock = clock.getDelta();
 
@@ -1179,6 +1312,257 @@
       return false;
     }
 
+    var editControl = [
+      {id: 0, code: 'KeyW', title: 'w', description: 'Move up'},
+      {id: 1, code: 'KeyS', title: 's', description: 'Move down'},
+      {id: 2, code: 'KeyA', title: 'a', description: 'Move left'},
+      {id: 3, code: 'KeyD', title: 'd', description: 'Move right'},
+      {id: 4, code: 'mouse0', title: 'Left mouse', description: 'Shoot/Stab'},
+      {id: 5, code: 'mouse2', title: 'Right mouse', description: 'Aim'},
+      {id: 6, code: 'mouse3', title: 'Wheel mouse spin', description: 'Change weapon'},
+      {id: 7, code: 'ArrowLeft', title: 'Arrow left', description: 'Slide spectating player to the left'},
+      {id: 8, code: 'ArrowRight', title: 'Arrow right', description: 'Slide spectating player to the right'}
+    ];
+    var downPressEditControl = false;
+    window.addEventListener("mousedown", function(e) {
+      if (document.getElementById('contentEditControl') != e.target && !isChild(document.getElementById('contentEditControl'), e.target)) {
+        downPressEditControl = true;
+      } else {
+        downPressEditControl = false;
+      }
+    });
+    window.addEventListener("mouseup", function(e) {
+      if (document.getElementById('contentEditControl') != e.target && !isChild(document.getElementById('contentEditControl'), e.target) && downPressEditControl) {
+        hideEditControl();
+      } else {
+        downPressEditControl = false;
+      }
+    });
+    var showEditControl = function() {
+      document.getElementById('backEditControl').style.display = 'flex';
+    };
+    var hideEditControl = function() {
+      document.getElementById('backEditControl').style.display = 'none';
+    };
+
+    var showTrChangeControl = function(e, tr) {
+      if (document.getElementById('overTrEditControl')) {
+        document.getElementById('overTrEditControl').remove();
+      }
+      var bounding = tr.getBoundingClientRect();
+      var overTrEditControl = document.createElement('div');
+      overTrEditControl.setAttribute('id', 'overTrEditControl');
+      overTrEditControl.setAttribute('onmouseout', 'removeOverTrEditControl(this)');
+      overTrEditControl.setAttribute('onmousedown', 'activeChangeControl('+tr.getAttribute('idcontrol')+')');
+      overTrEditControl.innerHTML = 'click to change';
+      overTrEditControl.style.position = 'absolute';
+      overTrEditControl.style.top = bounding.top+'px';
+      overTrEditControl.style.left = bounding.left+'px';
+      overTrEditControl.style.backgroundColor = '#00000077';
+      overTrEditControl.style.width = tr.offsetWidth+'px';
+      overTrEditControl.style.height = tr.offsetHeight+'px';
+      overTrEditControl.style.display = 'flex';
+      overTrEditControl.style.flexDirection = 'row';
+      overTrEditControl.style.alignItems = 'center';
+      overTrEditControl.style.justifyContent = 'center';
+      overTrEditControl.style.textAlign = 'center';
+      overTrEditControl.style.color = '#fff';
+      overTrEditControl.style.fontSize = '12px';
+      overTrEditControl.style.fontFamily = 'Arial';
+      overTrEditControl.style.cursor = 'pointer';
+      overTrEditControl.style.zIndex = '200';
+      document.getElementById('contentEditControl').appendChild(overTrEditControl);
+    };
+
+    var activeChangeControl = function(idControl) {
+      document.getElementById('overTrEditControl').remove();
+      var overTableEditControl = document.createElement('div');
+      overTableEditControl.setAttribute('id', 'overTableEditControl');
+      overTableEditControl.innerHTML = 'press button which you want to use or esc to cancel';
+      overTableEditControl.style.position = 'fixed';
+      overTableEditControl.style.top = '0px';
+      overTableEditControl.style.left = '0px';
+      overTableEditControl.style.backgroundColor = '#000000ee';
+      overTableEditControl.style.width = '100vw';
+      overTableEditControl.style.height = '100vh';
+      overTableEditControl.style.display = 'flex';
+      overTableEditControl.style.flexDirection = 'row';
+      overTableEditControl.style.alignItems = 'center';
+      overTableEditControl.style.justifyContent = 'center';
+      overTableEditControl.style.textAlign = 'center';
+      overTableEditControl.style.color = '#fff';
+      overTableEditControl.style.fontSize = '12px';
+      overTableEditControl.style.fontFamily = 'Arial';
+      overTableEditControl.style.zIndex = '200';
+      document.getElementById('contentEditControl').appendChild(overTableEditControl);
+      activeIdChangeControl = idControl;
+      setTimeout(function() {
+        window.addEventListener("keydown", changeControl);
+        window.addEventListener("mousedown", changeControlMouse);
+        window.addEventListener("mousewheel", changeControlWheel);
+      }, 200);
+    };
+
+    var removeOverTrEditControl = function(e) {
+      e.remove();
+    };
+
+    var activeIdChangeControl = 0;
+    var changeControl = function(e) {
+      if (e.code != 'Escape' && activeIdChangeControl != 4) {
+        var flagChg = true;
+        if (activeIdChangeControl == 7 || activeIdChangeControl == 8) {
+          if (editControl[7].code == e.code || editControl[8].code == e.code) {
+            flagChg = false;
+          }
+        } else {
+          for (var i = 0; i < editControl.length; i++) {
+            if (editControl[i].code == e.code) {
+              flagChg = false;
+              break;
+            }
+          }
+        }
+        if (flagChg) {
+          editControl[activeIdChangeControl].code = e.code;
+          editControl[activeIdChangeControl].title = e.key;
+          if (e.key == ' ') {
+            editControl[activeIdChangeControl].title = 'space';
+          }
+          refreshControlTable();
+        }
+      }
+      document.getElementById('overTableEditControl').remove();
+      window.removeEventListener("keydown", changeControl);
+      window.removeEventListener("mousedown", changeControlMouse);
+      window.removeEventListener("mousewheel", changeControlWheel);
+      saveControlCookie();
+    };
+    var changeControlMouse = function(e) {
+      var code = '';
+      var title = '';
+      switch (e.button) {
+        case 0:
+          code = 'mouse0';
+          title = 'Left mouse';
+          break;
+        case 1:
+          code = 'mouse1';
+          title = 'Wheel mouse push';
+          break;
+        case 2:
+          code = 'mouse2';
+          title = 'Right mouse';
+          break;
+      }
+      var flagChg = true;
+      if (activeIdChangeControl == 7 || activeIdChangeControl == 8) {
+        if (editControl[7].code == code || editControl[8].code == code) {
+          flagChg = false;
+        }
+      } else {
+        for (var i = 0; i < editControl.length; i++) {
+          if (editControl[i].code == code) {
+            flagChg = false;
+            break;
+          }
+        }
+      }
+      if (flagChg) {
+        editControl[activeIdChangeControl].code = code;
+        editControl[activeIdChangeControl].title = title;
+        refreshControlTable();
+      }
+      document.getElementById('overTableEditControl').remove();
+      window.removeEventListener("keydown", changeControl);
+      window.removeEventListener("mousedown", changeControlMouse);
+      window.removeEventListener("mousewheel", changeControlWheel);
+      saveControlCookie();
+    };
+    var changeControlWheel = function() {
+      if (editControl[activeIdChangeControl].description == 'Change weapon') {
+        editControl[activeIdChangeControl].code = 'mouse3';
+        editControl[activeIdChangeControl].title = 'Wheel mouse spin';
+        refreshControlTable();
+      }
+      document.getElementById('overTableEditControl').remove();
+      window.removeEventListener("keydown", changeControl);
+      window.removeEventListener("mousedown", changeControlMouse);
+      window.removeEventListener("mousewheel", changeControlWheel);
+      saveControlCookie();
+    };
+
+    var saveControlCookie = function() {
+      var strokeToCookie = '';
+      for (var i = 0; i < editControl.length; i++) {
+        if (i == 0) {
+          strokeToCookie += editControl[i].code+'~!'+editControl[i].title;
+          continue;
+        }
+        strokeToCookie += "|!"+editControl[i].code+'~!'+editControl[i].title;
+      }
+      setCookie('controlsStealth', strokeToCookie, 30);
+    };
+    var cookieEditControl = getCookie('controlsStealth');
+    if (cookieEditControl) {
+      var str = cookieEditControl.split('|!');
+      for (var i = 0; i < str.length; i++) {
+        var currControl = str[i].split('~!');
+        editControl[i].code = currControl[0];
+        editControl[i].title = currControl[1];
+      }
+    }
+
+    var refreshControlTable = function() {
+      var table = document.getElementById('controlTable');
+      table.innerHTML = '';
+      for (var i = 0; i < editControl.length; i++) {
+        var tr = document.createElement("tr");
+        tr.setAttribute('idcontrol', editControl[i].id);
+        tr.setAttribute('onmouseover', 'showTrChangeControl(event, this)');
+        var td = document.createElement("td");
+        td.innerHTML = editControl[i].title;
+        tr.appendChild(td);
+        var td = document.createElement("td");
+        td.innerHTML = editControl[i].description;
+        tr.appendChild(td);
+        table.appendChild(tr);
+      }
+      table.style.borderSpacing = '0px';
+      table.style.margin = '20px';
+      var tds = table.querySelectorAll('tr td');
+      for (i = 0; i < tds.length; i++) {
+        tds[i].style.fontFamily = 'Arial';
+        tds[i].style.color = '#333';
+        tds[i].style.fontSize = '14px';
+        tds[i].style.padding = '10px';
+      }
+      var tds = table.querySelectorAll('tr td:first-child');
+      for (i = 0; i < tds.length; i++) {
+        tds[i].style.textAlign = 'center';
+      }
+      var tds = table.querySelectorAll('tr td:last-child');
+      for (i = 0; i < tds.length; i++) {
+        tds[i].style.textAlign = 'left';
+      }
+    };
+
+    var setDefaultControl = function() {
+      editControl = [
+        {id: 0, code: 'KeyW', title: 'w', description: 'Move up'},
+        {id: 1, code: 'KeyS', title: 's', description: 'Move down'},
+        {id: 2, code: 'KeyA', title: 'a', description: 'Move left'},
+        {id: 3, code: 'KeyD', title: 'd', description: 'Move right'},
+        {id: 4, code: 'mouse0', title: 'Left mouse', description: 'Shoot/Stab'},
+        {id: 5, code: 'mouse2', title: 'Right mouse', description: 'Aim'},
+        {id: 6, code: 'mouse3', title: 'Wheel mouse spin', description: 'Change weapon'},
+        {id: 7, code: 'ArrowLeft', title: 'Arrow left', description: 'Slide spectating player to the left'},
+        {id: 8, code: 'ArrowRight', title: 'Arrow right', description: 'Slide spectating player to the right'}
+      ];
+      refreshControlTable();
+      saveControlCookie();
+    };
+
     var downPressContact = false;
     window.addEventListener("mousedown", function(e) {
       if (document.getElementById('contentContactForm') != e.target && !isChild(document.getElementById('contentContactForm'), e.target)) {
@@ -1196,10 +1580,10 @@
     });
     var showContactForm = function() {
       document.getElementById('backContactForm').style.display = 'flex';
-    }
+    };
     var hideContactForm = function() {
       document.getElementById('backContactForm').style.display = 'none';
-    }
+    };
 
     var refreshContactStroke = function(e) {
       if (e.value == "other") {
@@ -1211,7 +1595,7 @@
 
         document.getElementById('inputNameContact').setAttribute('placeholder', 'enter your '+e.value);
       }
-    }
+    };
 
     var widgetRecaptcha1;
     var onloadCallback = function() {
@@ -1451,7 +1835,6 @@
       contactButton.style.backgroundColor = '#00000077';
       document.getElementById('guiHome').appendChild(contactButton);
 
-      //insert
       var backContactForm = document.createElement('div');
       backContactForm.setAttribute('id', 'backContactForm');
       backContactForm.style.position = 'fixed';
@@ -1642,6 +2025,70 @@
       inputName.style.borderRadius = '5px';
       document.getElementById('guiHome').appendChild(inputName);
 
+      var labelEditControl = document.createElement('div');
+      labelEditControl.setAttribute('id', 'labelEditControl');
+      labelEditControl.setAttribute('onclick', 'showEditControl()');
+      labelEditControl.innerHTML = 'Edit controls';
+      labelEditControl.style.position = 'fixed';
+      labelEditControl.style.top = '50%';
+      labelEditControl.style.right = '20px';
+      labelEditControl.style.width = '150px';
+      labelEditControl.style.padding = '10px 20px';
+      labelEditControl.style.color = '#fff';
+      labelEditControl.style.marginTop = '100px';
+      labelEditControl.style.fontSize = '12px';
+      labelEditControl.style.fontFamily = 'Arial';
+      labelEditControl.style.textAlign = 'right';
+      labelEditControl.style.cursor = 'pointer';
+      document.getElementById('guiHome').appendChild(labelEditControl);
+
+      var backEditControl = document.createElement('div');
+      backEditControl.setAttribute('id', 'backEditControl');
+      backEditControl.style.position = 'fixed';
+      backEditControl.style.left = '0px';
+      backEditControl.style.top = '0px';
+      backEditControl.style.width = '100%';
+      backEditControl.style.height = '100%';
+      backEditControl.style.display = 'none';
+      backEditControl.style.flexDirection = 'column';
+      backEditControl.style.alignItems = 'center';
+      backEditControl.style.justifyContent = 'center';
+      backEditControl.style.backgroundColor = '#00000099';
+      backEditControl.style.zIndex = '100';
+      document.getElementById('guiHome').appendChild(backEditControl);
+
+      var contentEditControl = document.createElement('div');
+      contentEditControl.setAttribute('id', 'contentEditControl');
+      contentEditControl.style.backgroundColor = '#fff';
+      contentEditControl.style.width = '100%';
+      contentEditControl.style.maxWidth = '600px';
+      contentEditControl.style.display = 'flex';
+      contentEditControl.style.flexDirection = 'column';
+      contentEditControl.style.alignItems = 'stretch';
+      contentEditControl.style.justifyContent = 'center';
+      backEditControl.appendChild(contentEditControl);
+
+      var controlTable = document.createElement('table');
+      controlTable.setAttribute('id', 'controlTable');
+      contentEditControl.appendChild(controlTable);
+      refreshControlTable();
+
+      var setDefaultControl = document.createElement('div');
+      setDefaultControl.setAttribute('id', 'setDefaultControl');
+      setDefaultControl.setAttribute('onclick', 'setDefaultControl()');
+      setDefaultControl.innerHTML = 'Set default';
+      setDefaultControl.style.margin = '10px';
+      setDefaultControl.style.padding = '10px';
+      setDefaultControl.style.borderRadius = '5px';
+      setDefaultControl.style.backgroundColor = 'rgb(0, 95, 195)';
+      setDefaultControl.style.color = 'rgb(255, 255, 255)';
+      setDefaultControl.style.fontSize = '14px';
+      setDefaultControl.style.fontFamily = 'Arial';
+      setDefaultControl.style.textAlign = 'center';
+      setDefaultControl.style.cursor = 'pointer';
+      setDefaultControl.style.alignSelf = 'flex-end';
+      contentEditControl.appendChild(setDefaultControl);
+
       if (onloadCallback) {
         widgetRecaptcha1 = grecaptcha.render('recaptcha1', { 'sitekey': '6Ld-_NEUAAAAAIcro-nuBeDeMigbdDBoxVt6jw9h' });
       }
@@ -1660,11 +2107,11 @@
 
       setGuiHome();
 
-      var textDom = document.createElement('div');
-      textDom.setAttribute('searching', false);
-      textDom.setAttribute('id', 'textSearchingGame');
-      textDom.innerHTML = 'press 1 to search game';
-      document.getElementById('guiHome').appendChild(textDom);
+      // var textDom = document.createElement('div');
+      // textDom.setAttribute('searching', false);
+      // textDom.setAttribute('id', 'textSearchingGame');
+      // textDom.innerHTML = 'press 1 to search game';
+      // document.getElementById('guiHome').appendChild(textDom);
 
       //+Listeners home
       window.addEventListener("keydown", keyDownHome);
@@ -1732,37 +2179,66 @@
     //+Listeners game
     window.addEventListener("resize", setSizeWindow);
     window.addEventListener("keydown", keyDownGame);
+    window.addEventListener("mousedown", keyDownGame);
     window.addEventListener("keyup", keyUpGame);
+    window.addEventListener("mouseup", keyUpGame);
     window.addEventListener("mousemove", rotateMe);
     document.addEventListener("contextmenu", cancelContextRightClick);
     window.addEventListener("mousedown", aimGunDown);
     window.addEventListener("mouseup", aimGunUp);
+    window.addEventListener("keydown", aimGunDown);
+    window.addEventListener("keyup", aimGunUp);
     window.addEventListener("wheel", changeWeapon);
+    window.addEventListener("mousedown", changeWeaponPush);
+    window.addEventListener("keydown", changeWeaponPush);
     window.addEventListener("mousedown", stab);
     window.addEventListener("mousedown", shoot);
-    window.addEventListener("keydown", keyDownGame);
     //-Listeners game
     //+FPS
     //javascript:(function(){var script=document.createElement('script');script.onload=function(){var stats=new Stats();document.body.appendChild(stats.dom);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop)});};script.src='//mrdoob.github.io/stats.js/build/stats.min.js';document.head.appendChild(script);})()
     //-FPS
     };
     var clearGame = function() {
+      if (objects) {
+        objects = [];
+      }
+      if (requestAnimationFrameLoop) {
+        cancelAnimationFrame(requestAnimationFrameLoop);
+      }
       if (document.getElementById('gameCanvas')) {
         document.getElementById('gameCanvas').remove();
         document.getElementById('finishDisplay').remove();
         scene.remove.apply(scene, scene.children);
+        scene.remove();
 
         window.removeEventListener("resize", setSizeWindow);
         window.removeEventListener("keydown", keyDownGame);
+        window.removeEventListener("mousedown", keyDownGame);
         window.removeEventListener("keyup", keyUpGame);
+        window.removeEventListener("mouseup", keyUpGame);
         window.removeEventListener("mousemove", rotateMe);
         document.removeEventListener("contextmenu", cancelContextRightClick);
         window.removeEventListener("mousedown", aimGunDown);
         window.removeEventListener("mouseup", aimGunUp);
+        window.removeEventListener("keydown", aimGunDown);
+        window.removeEventListener("keyup", aimGunUp);
         window.removeEventListener("wheel", changeWeapon);
+        window.removeEventListener("mousedown", changeWeaponPush);
+        window.removeEventListener("keydown", changeWeaponPush);
         window.removeEventListener("mousedown", stab);
         window.removeEventListener("mousedown", shoot);
-        window.removeEventListener("keydown", keyDownGame);
+      }
+      if (timerBleeding) {
+        clearInterval(timerBleeding);
+      }
+      if (controlerInterval1) {
+        clearInterval(controlerInterval1);
+      }
+      if (controlerInterval2) {
+        clearInterval(controlerInterval2);
+      }
+      if (controlerInterval3) {
+        clearInterval(controlerInterval3);
       }
     };
 
