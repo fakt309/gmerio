@@ -46,6 +46,16 @@ var io = require('socket.io').listen(serverIO);
 app.get('/', function(request, respons) {
   respons.sendFile(__dirname+'/games/cannons/index.html');
 });
+app.get('/resource/*', function(request, respons) {
+  urlRequest = request.originalUrl;
+  var url = request.originalUrl.split("?")[0];
+  url = url.split("/");
+  if (fs.existsSync(__dirname+url.join('/'))) {
+    respons.sendFile(__dirname+url.join('/'));
+  } else {
+    respons.status(404).send();
+  }
+});
 app.get('/g/*', function(request, respons) {
   urlRequest = request.originalUrl;
   var url = request.originalUrl.split("?")[0];
@@ -83,6 +93,26 @@ app.get('/g/*', function(request, respons) {
     }
   }
 });
+app.get('/u*', function(request, respons) {
+  urlRequest = request.originalUrl;
+  var url = request.originalUrl.split("?")[0];
+  url = url.split("/");
+  if (url.length == 2) {
+    respons.sendFile(__dirname+'/users/index.html');
+  } else if (url.length == 3) {
+    respons.status(404).send();
+  }
+});
+// app.get('/s/*', function(request, respons) {
+//   urlRequest = request.originalUrl;
+//   var url = request.originalUrl.split("?")[0];
+//   url = url.split("/");
+//   if (url.length == 2) {
+//     respons.sendFile(__dirname+'/studious/index.html');
+//   } else if (url.length == 3) {
+//     respons.status(404).send();
+//   }
+// });
 
 // app.use('/img', express.static('img'));
 // app.use('/resource', express.static('resource'));
@@ -564,6 +594,30 @@ io.sockets.on('connection', function(socket) {
     setTimeout(function() {
         connection.end();
     }, 1500);
+  });
+
+  socket.on('mailSign', function(mail, recaptcha) {
+    var secretRecaptcha = "6Ld-_NEUAAAAALkRGwYLKttHeWZ51FkZHafMhGXS";
+    // console.log(mail);
+    // console.log(recaptcha);
+    var options = {
+      host: 'www.google.com',
+      port: 80,
+      path: '/recaptcha/api/siteverify?secret='+secretRecaptcha+'&response='+recaptcha
+    };
+    http.get(options, function(res) {
+      //console.log('STATUS: '+res.statusCode);
+      io.to(socket.id).emit('mailSign2', 'STATUS: '+res.statusCode);
+      //console.log('HEADERS: '+JSON.stringify(res.headers));
+      io.to(socket.id).emit('mailSign2', 'HEADERS: '+JSON.stringify(res.headers));
+      res.setEncoding('utf8');
+      res.on('data', function (chunk) {
+        console.log('BODY: '+chunk);
+        io.to(socket.id).emit('mailSign2', 'BODY: '+chunk);
+      });
+    }).on('error', function(e) {//this place
+      //console.log("Got error: " + e.message);
+    });
   });
 
 	socket.on('sendMail', function(type, email) {

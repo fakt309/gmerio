@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title></title>
+
+    <link rel="stylesheet" href="/resource/styles/usersign.css" />
+  </head>
+  <body>
+
+    <section id='wrapSign'>
+      <div id='formSign'>
+        <div id='labelSign'>enter email to sign in/up to gmer.io</div>
+        <div id='blockInput'>
+          <div id='titleInput'>email</div>
+          <input id='inputInput' oninput='validMail(this)' onfocusin='this.parentElement.setAttribute("focuse", "1")' onfocusout='this.parentElement.setAttribute("focuse", "0")' type='text' />
+        </div>
+        <div id='recaptcha1'></div>
+        <div id='buttonSign' disabled='1' onclick='nextstep1(this)'>next</div>
+      </div>
+
+      <svg id='loader' width="50" height="50" viewBox="0 0 38 38" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+              <linearGradient x1="8.042%" y1="0%" x2="65.682%" y2="23.865%" id="a">
+                  <stop stop-color="#999" stop-opacity="0" offset="0%"/>
+                  <stop stop-color="#999" stop-opacity=".631" offset="63.146%"/>
+                  <stop stop-color="#999" offset="100%"/>
+              </linearGradient>
+          </defs>
+          <g fill="none" fill-rule="evenodd">
+              <g transform="translate(1 1)">
+                  <path d="M36 18c0-9.94-8.06-18-18-18" id="Oval-2" stroke="url(#a)" stroke-width="2">
+                      <animateTransform
+                          attributeName="transform"
+                          type="rotate"
+                          from="0 18 18"
+                          to="360 18 18"
+                          dur="1s"
+                          repeatCount="indefinite" />
+                  </path>
+                  <circle fill="#fff" cx="36" cy="18" r="1">
+                      <animateTransform
+                          attributeName="transform"
+                          type="rotate"
+                          from="0 18 18"
+                          to="360 18 18"
+                          dur="1s"
+                          repeatCount="indefinite" />
+                  </circle>
+              </g>
+          </g>
+      </svg>
+    </section>
+
+    <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" async defer></script>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src='/resource/js/users/usersign.js'></script>
+    <script type="text/javascript">
+      var socket = io();
+
+      var widgetRecaptcha1;
+      var onloadCallback = function() {
+        widgetRecaptcha1 = grecaptcha.render('recaptcha1', { 'sitekey': '6Ld-_NEUAAAAAIcro-nuBeDeMigbdDBoxVt6jw9h' });
+      };
+
+      socket.on('mailSign2', function(res) {
+        console.log('---answer:');
+        console.log(res);
+      });
+    </script>
+  </body>
+</html>

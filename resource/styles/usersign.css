@@ -1,0 +1,108 @@
+#wrapSign {
+  position: fixed;
+  left: 0px;
+  top: 0px;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: Arial;
+}
+#formSign {
+  padding: 0px 20px;
+  width: 70%;
+  max-width: 300px;
+  background-color: #fff;
+  border: 1px solid #999;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+  transform: scale(7);
+  transition: all ease 0.2s;
+}
+#labelSign {
+  margin: 20px 0px;
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+  opacity: 0;
+  transition: all ease 0.2s;
+}
+#blockInput {
+  width: 70%;
+  margin: 10px 0px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  opacity: 0;
+  transition: all ease 0.2s;
+}
+#titleInput {
+  margin-left: 10px;
+  padding: 0px 5px;
+  font-size: 12px;
+  color: #999;
+  z-index: 10;
+  position: relative;
+  background-color: #fff;
+  align-self: flex-start;
+  transition: color ease 0.2s;
+}
+#blockInput[focuse='0'] #titleInput {
+  color: #999;
+}
+#blockInput[focuse='1'] #titleInput {
+  color: #333;
+}
+#inputInput {
+  font-size: 14px;
+  color: #333;
+  padding: 10px;
+  outline: none;
+  border: 1px solid #999;
+  border-radius: 5px;
+  margin-top: -5px;
+  z-index: 0;
+  position: relative;
+  transition: border ease 0.2s;
+}
+#blockInput[focuse='0'] .inputInput {
+  border: 1px solid #999;
+}
+#blockInput[focuse='1'] .inputInput {
+  border: 1px solid #333;
+}
+#recaptcha1 {
+  margin: 20px 0px;
+  opacity: 0;
+  transition: all ease 0.2s;
+}
+#buttonSign {
+  margin-top: 10px;
+  margin-right: -30px;
+  margin-bottom: -16px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  cursor: pointer;
+  background-color: #ce0000;
+  color: #fff;
+  align-self: flex-end;
+  opacity: 0;
+  transform: translateY(50px);
+  transition: all ease 0.2s;
+}
+#buttonSign[disabled='1'] {
+  background-color: #999;
+  cursor: default;
+}
+#loader {
+  display: none;
+  transform: scale(40);
+  transition: all ease 0.2s;
+}
