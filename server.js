@@ -626,7 +626,7 @@ io.sockets.on('connection', function(socket) {
 
       res.on('data', (d) => {
         //process.stdout.write(d);
-        io.to(socket.id).emit('mailSign2', d);
+        io.to(socket.id).emit('mailSign2', ''+d);
       });
 
     }).on('error', (e) => {
