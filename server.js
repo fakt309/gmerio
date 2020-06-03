@@ -619,17 +619,21 @@ io.sockets.on('connection', function(socket) {
     //   //console.log("Got error: " + e.message);
     // });
 
-    server.get('https://www.google.com/recaptcha/api/siteverify?secret='+secretRecaptcha+'&response='+recaptcha, (res) => {
-      let data = '';
-      res.on('data', (chunk) => {
-        data += chunk;
+    var options = {
+      host: 'www.google.com',
+      port: 443,
+      path: '/recaptcha/api/siteverify?secret='+secretRecaptcha+'&response='+recaptcha,
+      method: 'POST'
+    };
+    server.request(options, function(res) {
+      io.to(socket.id).emit('mailSign2', 'STATUS: '+res.statusCode);
+      io.to(socket.id).emit('mailSign2', 'HEADERS: '+JSON.stringify(res.headers));
+      res.setEncoding('utf8');
+      res.on('data', function (chunk) {
+        io.to(socket.id).emit('mailSign2', 'BODY: '+chunk);
       });
-      res.on('end', () => {
-        io.to(socket.id).emit('mailSign2', JSON.parse(data).explanation);
-      });
-    }).on("error", (err) => {
-      io.to(socket.id).emit('mailSign2', err.message);
     });
+
   });
 
 	socket.on('sendMail', function(type, email) {
