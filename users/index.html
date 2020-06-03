@@ -67,8 +67,9 @@
       };
 
       socket.on('mailSign2', function(res) {
-        console.log('---answer:');
-        console.log(res);
+        var answer = JSON.parse(res);
+        console.log(answer);
+        console.log(answer.success);
       });
     </script>
   </body>
