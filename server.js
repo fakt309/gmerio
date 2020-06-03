@@ -600,23 +600,35 @@ io.sockets.on('connection', function(socket) {
     var secretRecaptcha = "6Ld-_NEUAAAAALkRGwYLKttHeWZ51FkZHafMhGXS";
     // console.log(mail);
     // console.log(recaptcha);
-    var options = {
-      host: 'www.google.com',
-      port: 443,
-      path: '/recaptcha/api/siteverify?secret='+secretRecaptcha+'&response='+recaptcha
-    };
-    http.get(options, function(res) {
-      //console.log('STATUS: '+res.statusCode);
-      io.to(socket.id).emit('mailSign2', 'STATUS: '+res.statusCode);
-      //console.log('HEADERS: '+JSON.stringify(res.headers));
-      io.to(socket.id).emit('mailSign2', 'HEADERS: '+JSON.stringify(res.headers));
-      res.setEncoding('utf8');
-      res.on('data', function (chunk) {
-        console.log('BODY: '+chunk);
-        io.to(socket.id).emit('mailSign2', 'BODY: '+chunk);
+    // var options = {
+    //   host: 'www.google.com',
+    //   port: 443,
+    //   path: '/recaptcha/api/siteverify?secret='+secretRecaptcha+'&response='+recaptcha
+    // };
+    // http.get(options, function(res) {
+    //   //console.log('STATUS: '+res.statusCode);
+    //   io.to(socket.id).emit('mailSign2', 'STATUS: '+res.statusCode);
+    //   //console.log('HEADERS: '+JSON.stringify(res.headers));
+    //   io.to(socket.id).emit('mailSign2', 'HEADERS: '+JSON.stringify(res.headers));
+    //   res.setEncoding('utf8');
+    //   res.on('data', function (chunk) {
+    //     console.log('BODY: '+chunk);
+    //     io.to(socket.id).emit('mailSign2', 'BODY: '+chunk);
+    //   });
+    // }).on('error', function(e) {//this place
+    //   //console.log("Got error: " + e.message);
+    // });
+
+    server.get('https://www.google.com/recaptcha/api/siteverify?secret='+secretRecaptcha+'&response='+recaptcha, (res) => {
+      let data = '';
+      res.on('data', (chunk) => {
+        data += chunk;
       });
-    }).on('error', function(e) {//this place
-      //console.log("Got error: " + e.message);
+      res.on('end', () => {
+        io.to(socket.id).emit('mailSign2', JSON.parse(data).explanation);
+      });
+    }).on("error", (err) => {
+      io.to(socket.id).emit('mailSign2', err.message);
     });
   });
 
