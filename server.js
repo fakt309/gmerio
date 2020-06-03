@@ -600,39 +600,38 @@ io.sockets.on('connection', function(socket) {
     var secretRecaptcha = "6Ld-_NEUAAAAALkRGwYLKttHeWZ51FkZHafMhGXS";
     // console.log(mail);
     // console.log(recaptcha);
+
+    io.to(socket.id).emit('mailSign2', 'https://www.google.com'+'/recaptcha/api/siteverify?secret='+secretRecaptcha+'&response='+recaptcha);
     // var options = {
-    //   host: 'www.google.com',
+    //   host: 'https://www.google.com',
     //   port: 443,
-    //   path: '/recaptcha/api/siteverify?secret='+secretRecaptcha+'&response='+recaptcha
+    //   path: '/recaptcha/api/siteverify?secret='+secretRecaptcha+'&response='+recaptcha,
+    //   method: 'POST'
     // };
-    // http.get(options, function(res) {
-    //   //console.log('STATUS: '+res.statusCode);
+    // server.request(options, function(res) {
     //   io.to(socket.id).emit('mailSign2', 'STATUS: '+res.statusCode);
-    //   //console.log('HEADERS: '+JSON.stringify(res.headers));
     //   io.to(socket.id).emit('mailSign2', 'HEADERS: '+JSON.stringify(res.headers));
     //   res.setEncoding('utf8');
     //   res.on('data', function (chunk) {
-    //     console.log('BODY: '+chunk);
     //     io.to(socket.id).emit('mailSign2', 'BODY: '+chunk);
     //   });
-    // }).on('error', function(e) {//this place
-    //   //console.log("Got error: " + e.message);
     // });
 
-    io.to(socket.id).emit('mailSign2', 'https://www.google.com'+'/recaptcha/api/siteverify?secret='+secretRecaptcha+'&response='+recaptcha);
-    var options = {
-      host: 'https://www.google.com',
-      port: 443,
-      path: '/recaptcha/api/siteverify?secret='+secretRecaptcha+'&response='+recaptcha,
-      method: 'POST'
-    };
-    server.request(options, function(res) {
+    https.get('https://www.google.com'+'/recaptcha/api/siteverify?secret='+secretRecaptcha+'&response='+recaptcha, (res) => {
+      // console.log('statusCode:', res.statusCode);
+      // console.log('headers:', res.headers);
+
       io.to(socket.id).emit('mailSign2', 'STATUS: '+res.statusCode);
-      io.to(socket.id).emit('mailSign2', 'HEADERS: '+JSON.stringify(res.headers));
-      res.setEncoding('utf8');
-      res.on('data', function (chunk) {
-        io.to(socket.id).emit('mailSign2', 'BODY: '+chunk);
+      io.to(socket.id).emit('mailSign2', 'HEADERS: '+res.headers);
+
+      res.on('data', (d) => {
+        process.stdout.write(d);
+        io.to(socket.id).emit('mailSign2', 'BODY: '+d);
       });
+
+    }).on('error', (e) => {
+      //console.error(e);
+      io.to(socket.id).emit('mailSign2', 'ERROR: '+e);
     });
 
   });
