@@ -602,7 +602,7 @@ io.sockets.on('connection', function(socket) {
     // console.log(recaptcha);
     var options = {
       host: 'www.google.com',
-      port: 80,
+      port: 443,
       path: '/recaptcha/api/siteverify?secret='+secretRecaptcha+'&response='+recaptcha
     };
     http.get(options, function(res) {
