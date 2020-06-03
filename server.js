@@ -625,7 +625,7 @@ io.sockets.on('connection', function(socket) {
       // io.to(socket.id).emit('mailSign2', 'HEADERS: '+res.headers);
 
       res.on('data', (d) => {
-        process.stdout.write(d);
+        //process.stdout.write(d);
         io.to(socket.id).emit('mailSign2', d);
       });
 
