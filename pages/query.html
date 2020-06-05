@@ -51,13 +51,7 @@
           return os;
       };
 
-      // if (getOS() != 'Search Bot') {
-      //   socket.emit('queryLink', window.location.href);
-      // }
-      //
-      // socket.on('sendtextttt', function(text) {
-      //   console.log(text);
-      // });
+      socket.emit('queryLink', window.location.href);
 
       socket.on('responsQueryLink', function(action, p1, p2) {
         switch (action) {
