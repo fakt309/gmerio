@@ -7,6 +7,12 @@ const mysql = require('mysql');
 //mail
 const nodemailer = require('nodemailer');
 //mail---
+//ip
+var ip = require('ip');
+//ip---
+//cryptoJS---
+var cryptoJS = require("crypto-js");
+//cryptoJS---
 
 // //http connect ------------------
 // const express = require('express');
@@ -53,6 +59,16 @@ app.get('/resource/*', function(request, respons) {
   if (fs.existsSync(__dirname+url.join('/'))) {
     respons.sendFile(__dirname+url.join('/'));
   } else {
+    respons.status(404).send();
+  }
+});
+app.get('/query*', function(request, respons) {
+  urlRequest = request.originalUrl;
+  var url = request.originalUrl.split("?")[0];
+  url = url.split("/");
+  if (url.length == 2) {
+    respons.sendFile(__dirname+'/pages/query.html');
+  } else if (url.length > 2) {
     respons.status(404).send();
   }
 });
@@ -166,6 +182,18 @@ function getID(length) {
   }
   return answer;
 }
+
+var encryptHolder = function(data) {
+  var keyHolder = getID(10);
+  var cryptHolder = keyHolder+'!|'+cryptoJS.AES.encrypt(JSON.stringify(data), keyHolder).toString();
+  return cryptHolder;
+};
+
+var decryptHolder = function(data) {
+  var bytesCryptHolder  = cryptoJS.AES.decrypt(data.split("!|")[1], data.split("!|")[0]);
+  var decryptedHolder = JSON.parse(bytesCryptHolder.toString(cryptoJS.enc.Utf8));
+  return decryptedHolder;
+};
 
 function createRoom(idPlayer) {
   var id = getID(10);
@@ -597,17 +625,138 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('mailSign', function(mail, recaptcha) {
+    //var flagRecaptcha = true;
+    var flagRecaptcha = false;
     var secretRecaptcha = "6Ld-_NEUAAAAALkRGwYLKttHeWZ51FkZHafMhGXS";
     //io.to(socket.id).emit('mailSign2', 'https://www.google.com'+'/recaptcha/api/siteverify?secret='+secretRecaptcha+'&response='+recaptcha);
-
     server.get('https://www.google.com'+'/recaptcha/api/siteverify?secret='+secretRecaptcha+'&response='+recaptcha, (res) => {
       res.on('data', (d) => {
         //process.stdout.write(d);
         var answer = JSON.parse(''+d);
-        io.to(socket.id).emit('mailSign2', answer.success);
+        //io.to(socket.id).emit('mailSign2', answer.success);
+        flagRecaptcha = answer.success;
       });
     }).on('error', (e) => {});
 
+    if (flagRecaptcha) {
+      var connection = mysql.createConnection({
+        host: "vh50.timeweb.ru",
+        user: "totarget_gmerio",
+        password: "Jc3FiReQ",
+        database: "totarget_gmerio"
+      });
+  		connection.connect(function(err) {
+  			connection.query("SELECT id FROM users WHERE email='"+mail+"'", function (err, result, fields) {
+          if (result[0]) {
+            io.to(socket.id).emit('mailSign2', 'ok:signin');
+          } else {
+            io.to(socket.id).emit('mailSign2', 'ok:signup');
+          }
+        });
+  			setTimeout(function() {
+  					connection.end();
+  			}, 1500);
+  		});
+    } else if (!flagRecaptcha) {
+      io.to(socket.id).emit('mailSign2', 'err:recaptcha invalid');
+    }
+  });
+
+  socket.on('mailSign3', function(mail, condition, holder) {
+    var pstTime = new Date(Date.now()+new Date().getTimezoneOffset()*60*1000+(-7*60*60*1000));
+    var mounths = pstTime.getMonth()+1;
+    if (mounths < 10) { mounths = '0'+mounths; }
+    var days = pstTime.getDate();
+    if (days < 10) { days = '0'+days; }
+    var hours = pstTime.getHours();
+    if (hours < 10) { hours = '0'+hours; }
+    var minutes = pstTime.getMinutes();
+    if (minutes < 10) { minutes = '0'+minutes; }
+    var seconds = pstTime.getSeconds();
+    if (seconds < 10) { seconds = '0'+seconds; }
+    pstTime = pstTime.getFullYear()+'-'+mounths+'-'+days+' '+hours+':'+minutes+':'+seconds;
+    holder.ip = ip.address();
+    holder.pst = pstTime;
+
+    var hash = encryptHolder(holder);
+
+    var linkHost = 'https://gmer.io'
+    var key = getID(5);
+    var link = "/query";
+    link += "?";
+    link += "action="+condition;
+    link += "&";
+    link += "mail="+mail;
+    link += "&";
+    link += "holder="+hash;
+    link += "&";
+    link += "key="+key;
+
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+    connection.connect(function(err) {
+      connection.query("INSERT INTO queries (link, dateAdd) VALUES ('"+link+"', '"+pstTime+"')", function (err) {
+        if (err) {
+          io.to(socket.id).emit('mailSign4', 'err:something goes wrong in the database');
+        } else {
+          var transporter = nodemailer.createTransport({
+            host: "smtp.timeweb.ru",
+            port: 2525,
+            secure: false,
+            auth: {
+              user: 'admin@gmer.io',
+              pass: 'XPgfR7A8'
+            }
+          });
+          if (condition == "signup") {
+  					themeMail = "gmer.io sign up";
+  					fs.readFile('code/mail/register.html', {encoding: 'utf-8'}, function(err, data) {
+  						textMail = data;
+  						textMail = textMail.replace('~~LINK~~', linkHost+link).replace('~~LINK~~', linkHost+link);
+  						var mailOptions = {
+  						  from: 'admin@gmer.io',
+  						  to: mail,
+  						  subject: themeMail,
+  						  html: textMail
+  						};
+  						transporter.sendMail(mailOptions, function(error, info) {
+  						  if (error) {
+                  io.to(socket.id).emit('mailSign4', 'err:something goes wrong in the sending mail, please check, is your email exist?');
+  						  } else {
+                  io.to(socket.id).emit('mailSign4', 'ok:mail has been sent to <b>'+mail+'</b> , check your email to continue sing up');
+  							}
+  						});
+  					});
+  				} else if (condition == "signin") {
+  					themeMail = "gmer.io sign in";
+  					fs.readFile('code/mail/enter.html', {encoding: 'utf-8'}, function(err, data) {
+  						textMail = data;
+  						textMail = textMail.replace('~~LINK~~', linkHost+link).replace('~~LINK~~', linkHost+link);
+  						var mailOptions = {
+  						  from: 'admin@gmer.io',
+  						  to: mail,
+  						  subject: themeMail,
+  						  html: textMail
+  						};
+  						transporter.sendMail(mailOptions, function(error, info) {
+  							if (error) {
+  								io.to(socket.id).emit('mailSign4', 'err:something goes wrong in the sending mail, please check, is your email exist?');
+  						  } else {
+  								io.to(socket.id).emit('mailSign4', 'ok:mail has been sent to <b>'+mail+'</b> , check your email to continue sing in');
+  							}
+  						});
+  					});
+  				}
+        }
+      });
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
+    });
   });
 
 	socket.on('sendMail', function(type, email) {
@@ -701,6 +850,92 @@ io.sockets.on('connection', function(socket) {
 			}, 1500);
 		});
 	});
+
+  var getValueFromGet = function(query, val) {
+    var arrQuery = query.split('&');
+    for (var i = 0; i < arrQuery.length; i++) {
+      var currQuery = arrQuery[i].split('=');
+      if (currQuery[0] == val) {
+        return currQuery[1];
+      }
+    }
+  };
+
+  socket.on('queryLink', function(url) {
+    var get = url.split('?')[1];
+    if (typeof get == 'undefined' || get == '') {
+      io.to(socket.id).emit('responsQueryLink', 'redirect', '/');
+    } else {
+      var action = getValueFromGet(get, 'action');
+      if (action == 'signup' || action == 'signin') {
+        var connection = mysql.createConnection({
+          host: "vh50.timeweb.ru",
+          user: "totarget_gmerio",
+          password: "Jc3FiReQ",
+          database: "totarget_gmerio"
+        });
+        connection.connect(function(err) {
+          connection.query("SELECT * FROM queries WHERE link='/query?"+get+"'", function (err, result, fields) {
+            if (result[0]) {
+              var hash = getValueFromGet(get, 'holder');
+              var holder = decryptHolder(hash);
+              var mail = getValueFromGet(get, 'mail')
+              if (action == 'signup') {
+                connection.query("SELECT * FROM users WHERE email='"+mail+"'", function (err, result, fields) {
+                  if (result[0]) {
+                    io.to(socket.id).emit('responsQueryLink', 'errorMessage', 'this email is already signed up');
+                  } else {
+                    connection.query("INSERT INTO users (email, holders, dateSignup) VALUES ('"+mail+"', '"+hash+"', '"+holder.pst+"')", function (err, result, fields) {
+                      if (err) {
+                        io.to(socket.id).emit('responsQueryLink', 'errorMessage', 'something goes wrong in the database, please, try later.');
+                      } else {
+                        connection.query("DELETE FROM queries WHERE link='/query?"+get+"'", function (err) {});
+                        io.to(socket.id).emit('responsQueryLink', 'signin', mail);
+                      }
+                    });
+                  }
+                });
+              } else if (action == 'signin') {
+                connection.query("SELECT * FROM users WHERE email='"+mail+"'", function (err, result, fields) {
+                  if (result[0]) {
+                    if (result[0].dateSignup == null) {
+                      connection.query("UPDATE users SET `dateSignup`='"+holder.pst+"' WHERE id='"+result[0].id+"'", function (err) {});
+                    }
+                    if (result[0].holders == null) {
+                      connection.query("UPDATE users SET `holders`='"+hash+"' WHERE id='"+result[0].id+"'", function (err) {});
+                    } else {
+                      var flagAddHolder = true;
+                      var strokeHolders = result[0].holders.split('~|');
+                      for (var i = 0; i < strokeHolders.length; i++) {
+                        var currStrHolder = decryptHolder(strokeHolders[i]);
+                        if (currStrHolder.browser == holder.browser && currStrHolder.mobile == holder.mobile && currStrHolder.os == holder.os && currStrHolder.osVersion == holder.osVersion && currStrHolder.ip == holder.ip) {
+                          flagAddHolder = false;
+                        }
+                      }
+                      if (flagAddHolder) {
+                        connection.query("UPDATE users SET `holders`='"+result[0].holders+'~|'+hash+"' WHERE id='"+result[0].id+"'", function (err) {});
+                      }
+                    }
+                    connection.query("DELETE FROM queries WHERE link='/query?"+get+"'", function (err) {});
+                    io.to(socket.id).emit('responsQueryLink', 'signin', mail);
+                  } else {
+                    io.to(socket.id).emit('responsQueryLink', 'errorMessage', 'this account doesn\'t exist');
+                  }
+                });
+              }
+    				} else {
+              io.to(socket.id).emit('responsQueryLink', 'errorMessage', 'incorrect query');
+    				}
+          });
+    			setTimeout(function() {
+    					connection.end();
+    			}, 2500);
+        });
+      } else {
+        io.to(socket.id).emit('responsQueryLink', 'errorMessage', 'incorrect query');
+      }
+    }
+  });
 
 	socket.on('requestLink', function(link) {
 		var connection = mysql.createConnection({

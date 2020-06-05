@@ -18,7 +18,9 @@
   "homepage": "https://github.com/fakt309/fortress#readme",
   "dependencies": {
     "crypto": "^1.0.1",
+    "crypto-js": "^4.0.0",
     "express": "^4.17.1",
+    "ip": "^1.1.5",
     "mysql": "^2.18.1",
     "nodemailer": "^6.4.2",
     "socket.io": "^2.3.0"

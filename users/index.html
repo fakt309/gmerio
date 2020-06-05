@@ -11,6 +11,10 @@
   <body>
 
     <section id='wrapSign'>
+      <div id='wrapLinkHome'>
+        <a id='linkHome' href='/'>gmer.io</a>
+      </div>
+
       <div id='formSign'>
         <div id='labelSign'>enter email to sign in/up to gmer.io</div>
         <div id='blockInput'>
@@ -23,7 +27,7 @@
 
       <svg id='loader' width="50" height="50" viewBox="0 0 38 38" xmlns="http://www.w3.org/2000/svg">
           <defs>
-              <linearGradient x1="8.042%" y1="0%" x2="65.682%" y2="23.865%" id="a">
+              <linearGradient x1="8.042%" y1="0%" x2="65.682%" y2="23.865%" id="a1">
                   <stop stop-color="#999" stop-opacity="0" offset="0%"/>
                   <stop stop-color="#999" stop-opacity=".631" offset="63.146%"/>
                   <stop stop-color="#999" offset="100%"/>
@@ -31,7 +35,7 @@
           </defs>
           <g fill="none" fill-rule="evenodd">
               <g transform="translate(1 1)">
-                  <path d="M36 18c0-9.94-8.06-18-18-18" id="Oval-2" stroke="url(#a)" stroke-width="2">
+                  <path d="M36 18c0-9.94-8.06-18-18-18" id="Oval-21" stroke="url(#a1)" stroke-width="2">
                       <animateTransform
                           attributeName="transform"
                           type="rotate"
@@ -52,6 +56,55 @@
               </g>
           </g>
       </svg>
+
+      <div id='formAnswer1'>
+        <div id='labelAnswer'></div>
+        <div id='agreementStroke'>
+          <label class="container">
+            <input id="agreementCheckbox" type="checkbox" onchange='switchAgreement(this)' />
+            <span class="checkmark"></span>
+          </label>
+          <!-- <input id="agreementCheckbox" type="checkbox" onchange='switchAgreement(this)' /> -->
+          <span id="agreementText">I accept <a target='_blank' href='/'>privacy policy</a> and <a target='_blank' href='/'>terms / conditions of use</a></span>
+        </div>
+        <div id='buttonAnswer' disabled='' condition='' onclick='nextstep2(this)'></div>
+      </div>
+
+      <svg id='loader2' width="50" height="50" viewBox="0 0 38 38" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+              <linearGradient x1="8.042%" y1="0%" x2="65.682%" y2="23.865%" id="a2">
+                  <stop stop-color="#999" stop-opacity="0" offset="0%"/>
+                  <stop stop-color="#999" stop-opacity=".631" offset="63.146%"/>
+                  <stop stop-color="#999" offset="100%"/>
+              </linearGradient>
+          </defs>
+          <g fill="none" fill-rule="evenodd">
+              <g transform="translate(1 1)">
+                  <path d="M36 18c0-9.94-8.06-18-18-18" id="Oval-22" stroke="url(#a2)" stroke-width="2">
+                      <animateTransform
+                          attributeName="transform"
+                          type="rotate"
+                          from="0 18 18"
+                          to="360 18 18"
+                          dur="1s"
+                          repeatCount="indefinite" />
+                  </path>
+                  <circle fill="#fff" cx="36" cy="18" r="1">
+                      <animateTransform
+                          attributeName="transform"
+                          type="rotate"
+                          from="0 18 18"
+                          to="360 18 18"
+                          dur="1s"
+                          repeatCount="indefinite" />
+                  </circle>
+              </g>
+          </g>
+      </svg>
+
+      <div id='formAnswer2'>
+        <div id='labelAnswer2'></div>
+      </div>
     </section>
 
     <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" async defer></script>
@@ -66,8 +119,27 @@
         widgetRecaptcha1 = grecaptcha.render('recaptcha1', { 'sitekey': '6Ld-_NEUAAAAAIcro-nuBeDeMigbdDBoxVt6jw9h' });
       };
 
+      var stageForm = 1;
       socket.on('mailSign2', function(res) {
-        console.log(res);
+        var answer = res.split(":");
+        if (answer[0] == 'err') {
+          goBackSendForm(answer[1]);
+          stageForm = 1;
+          widgetRecaptcha1 = grecaptcha.render('recaptcha1', { 'sitekey': '6Ld-_NEUAAAAAIcro-nuBeDeMigbdDBoxVt6jw9h' });
+        } else if (answer[0] == 'ok') {
+          goForwardAnswerForm1(answer[1]);
+          stageForm = 2;
+        }
+      });
+      socket.on('mailSign4', function(res) {
+        var answer = res.split(":");
+        if (answer[0] == 'err') {
+          goBackAnswerForm1(answer[1]);
+          stageForm = 2;
+        } else if (answer[0] == 'ok') {
+          goForwardAnswerForm2(answer[1]);
+          stageForm = 3;
+        }
       });
     </script>
   </body>
