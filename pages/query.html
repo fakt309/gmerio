@@ -8,7 +8,8 @@
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">
       var socket = io();
-      socket.emit('queryLink', window.location.href);
+      console.log(window.location.href);
+      // socket.emit('queryLink', window.location.href);
 
       socket.on('responsQueryLink', function(action, p1, p2) {
         switch (action) {
