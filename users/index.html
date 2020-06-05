@@ -122,8 +122,13 @@
         startAnimationFormSign();
       }
 
-      socket.on('authorization2', function(confirm) {
-        console.log(confirm);
+      socket.on('authorization2', function(user) {
+        if (user) {
+          window.location.href = "/u/"+user.id;
+        } else {
+          document.getElementById('wrapSign').style.display = 'flex';
+          startAnimationFormSign();
+        }
       });
 
       var widgetRecaptcha1;

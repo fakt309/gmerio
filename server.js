@@ -118,6 +118,8 @@ app.get('/u*', function(request, respons) {
   if (url.length == 2) {
     respons.sendFile(__dirname+'/users/index.html');
   } else if (url.length == 3) {
+    respons.sendFile(__dirname+'/users/user.html');
+  } else if (url.length > 3) {
     respons.status(404).send();
   }
 });
@@ -952,20 +954,34 @@ io.sockets.on('connection', function(socket) {
     connection.connect(function(err) {
       connection.query("SELECT * FROM users WHERE email='"+mail+"'", function (err, result, fields) {
         if (result[0]) {
-          var flagNotFound = true;
-          var hashs = result[0].holders.split('!!!!!2');
-          for (var i = 0; i < hashs.length; i++) {
-            var currHolder = decryptHolder(hashs[i]);
-            if (device.browser == currHolder.browser && device.mobile == currHolder.mobile && device.os == currHolder.os && device.osVersion == currHolder.osVersion && device.ip == currHolder.ip) {
-              io.to(socket.id).emit('authorization2', true);
-              flagNotFound = false;
-              break;
+          var flagFound = false;
+          if (result[0].holders != null && result[0].holders != '' && result[0].holders) {
+            var hashs = result[0].holders.split('!!!!!2');
+            var holdres = [];
+            for (var i = 0; i < hashs.length; i++) {
+              var currHolder = decryptHolder(hashs[i]);
+              if (device.browser == currHolder.browser && device.mobile == currHolder.mobile && device.os == currHolder.os && device.osVersion == currHolder.osVersion && device.ip == currHolder.ip) {
+                flagFound = true;
+                break;
+              }
+              holdres[i] = currHolder;
             }
-          }
-          if (flagNotFound) {
+            if (flagFound) {
+              var user = {
+                id: result[0].id,
+                email: result[0].email,
+                holdres: holdres,
+                dateSignup: result[0].dateSignup
+              };
+              io.to(socket.id).emit('authorization2', user);
+            } else if (!flagFound) {
+              io.to(socket.id).emit('authorization2', false);
+            }
+          } else {
             io.to(socket.id).emit('authorization2', false);
           }
         } else {
+          io.to(socket.id).emit('authorization2', false);
         }
       });
       setTimeout(function() {

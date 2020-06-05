@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+  </head>
+  <body>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src='/resource/js/users/usersign.js'></script>
+    <script type="text/javascript">
+      var socket = io();
+
+      var signinMail = getCookie('signinMail');
+      if (typeof signinMail != 'undefined' || signinMail != '') {
+        socket.emit('authorization', signinMail, getDeviceData());
+      } else {
+        document.getElementById('wrapSign').style.display = 'flex';
+        startAnimationFormSign();
+      }
+
+      socket.on('authorization2', function(user) {
+        if (user) {
+          console.log(user);
+        } else {
+          var id = window.location.pathname.split('/')[2];
+          console.log(id);
+        }
+      });
+
+      function getCookie(cname) {
+        var name = cname + "=";
+        var decodedCookie = decodeURIComponent(document.cookie);
+        var ca = decodedCookie.split(';');
+        for(var i = 0; i <ca.length; i++) {
+          var c = ca[i];
+          while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+          }
+          if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+          }
+        }
+        return "";
+      }
+    </script>
+  </body>
+</html>
