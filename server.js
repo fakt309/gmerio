@@ -48,7 +48,6 @@ http.createServer(function (req, res) {
 
 var io = require('socket.io').listen(serverIO);
 //end https connect --------------
-
 app.get('/', function(request, respons) {
   respons.sendFile(__dirname+'/games/cannons/index.html');
 });
@@ -109,7 +108,9 @@ app.get('/g/*', function(request, respons) {
     }
   }
 });
+var ipp = 'n/a';
 app.get('/u*', function(request, respons) {
+  ipp = request.headers['x-forwarded-for'] || request.connection.remoteAddress || request.socket.remoteAddress || (request.connection.socket ? request.connection.socket.remoteAddress : null);
   urlRequest = request.originalUrl;
   var url = request.originalUrl.split("?")[0];
   url = url.split("/");
@@ -937,6 +938,33 @@ io.sockets.on('connection', function(socket) {
       }
     }
     }
+  });
+
+  socket.on('authorization', function(mail, device) {
+    io.to(socket.id).emit('sendtextttt', ipp);
+    device.ip = ip.address();
+    console.log(mail);
+    console.log(device);
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM users WHERE email='"+mail+"'", function (err, result, fields) {
+        if (result[0]) {
+          var hashs = result[0].holders.split('!!!!!2');
+          for (var i = 0; i < hashs.length; i++) {
+            console.log(decryptHolder(hashs[i]));
+          }
+        } else {
+        }
+      });
+      setTimeout(function() {
+          connection.end();
+      }, 2500);
+    });
   });
 
 	socket.on('requestLink', function(link) {

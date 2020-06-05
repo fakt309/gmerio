@@ -1,4 +1,8 @@
-window.addEventListener('load', function() {
+// window.addEventListener('load', function() {
+//
+// });
+
+var startAnimationFormSign = function() {
   document.getElementById('formSign').style.transform = 'scale(1)';
   setTimeout(function() {
     document.getElementById('labelSign').style.opacity = '1';
@@ -13,7 +17,7 @@ window.addEventListener('load', function() {
     document.getElementById('buttonSign').style.transform = 'translateY(0px)';
     document.getElementById('buttonSign').style.opacity = '1';
   }, 700);
-});
+};
 
 var validMail = function(e) {
   var valid = true;

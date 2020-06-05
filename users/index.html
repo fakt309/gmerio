@@ -114,6 +114,14 @@
     <script type="text/javascript">
       var socket = io();
 
+      var signinMail = getCookie('signinMail');
+      if (typeof signinMail != 'undefined' || signinMail != '') {
+        socket.emit('authorization', signinMail, getDeviceData());
+      } else {
+        document.getElementById('wrapSign').style.display = 'flex';
+        startAnimationFormSign();
+      }
+
       var widgetRecaptcha1;
       var onloadCallback = function() {
         widgetRecaptcha1 = grecaptcha.render('recaptcha1', { 'sitekey': '6Ld-_NEUAAAAAIcro-nuBeDeMigbdDBoxVt6jw9h' });
@@ -145,6 +153,22 @@
       socket.on('sendtextttt', function(text) {
         console.log(text);
       });
+
+      function getCookie(cname) {
+        var name = cname + "=";
+        var decodedCookie = decodeURIComponent(document.cookie);
+        var ca = decodedCookie.split(';');
+        for(var i = 0; i <ca.length; i++) {
+          var c = ca[i];
+          while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+          }
+          if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+          }
+        }
+        return "";
+      }
     </script>
   </body>
 </html>
