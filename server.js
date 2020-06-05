@@ -635,8 +635,6 @@ io.sockets.on('connection', function(socket) {
         var answer = JSON.parse(''+d);
         //io.to(socket.id).emit('mailSign2', answer.success);
         flagRecaptcha = answer.success;
-        // io.to(socket.id).emit('sendtextttt', answer);
-        // io.to(socket.id).emit('sendtextttt', answer.success);
 
         if (flagRecaptcha) {
           var connection = mysql.createConnection({
@@ -869,7 +867,9 @@ io.sockets.on('connection', function(socket) {
     if (typeof get == 'undefined' || get == '') {
       io.to(socket.id).emit('responsQueryLink', 'redirect', '/');
     } else {
+      io.to(socket.id).emit('sendtextttt', get);
       var action = getValueFromGet(get, 'action');
+      io.to(socket.id).emit('sendtextttt', action);
       if (action == 'signup' || action == 'signin') {
         var connection = mysql.createConnection({
           host: "vh50.timeweb.ru",
@@ -892,6 +892,7 @@ io.sockets.on('connection', function(socket) {
                       if (err) {
                         io.to(socket.id).emit('responsQueryLink', 'errorMessage', 'something goes wrong in the database, please, try later.');
                       } else {
+                        io.to(socket.id).emit('sendtextttt', 'try');
                         connection.query("DELETE FROM queries WHERE link='/query?"+get+"'", function (err) {});
                         io.to(socket.id).emit('responsQueryLink', 'signin', mail);
                       }
@@ -927,8 +928,8 @@ io.sockets.on('connection', function(socket) {
                 });
               }
     				} else {
-              //io.to(socket.id).emit('responsQueryLink', 'errorMessage', 'incorrect query');
-              io.to(socket.id).emit('responsQueryLink', 'redirect', '/u');
+              io.to(socket.id).emit('responsQueryLink', 'errorMessage', 'incorrect query');
+              //io.to(socket.id).emit('responsQueryLink', 'redirect', '/u');
     				}
           });
     			setTimeout(function() {
@@ -936,8 +937,8 @@ io.sockets.on('connection', function(socket) {
     			}, 2500);
         });
       } else {
-        //io.to(socket.id).emit('responsQueryLink', 'errorMessage', 'incorrect query');
-        io.to(socket.id).emit('responsQueryLink', 'redirect', '/u');
+        io.to(socket.id).emit('responsQueryLink', 'errorMessage', 'incorrect query');
+        //io.to(socket.id).emit('responsQueryLink', 'redirect', '/u');
       }
     }
   });
