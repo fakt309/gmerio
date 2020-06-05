@@ -635,6 +635,8 @@ io.sockets.on('connection', function(socket) {
         var answer = JSON.parse(''+d);
         //io.to(socket.id).emit('mailSign2', answer.success);
         flagRecaptcha = answer.success;
+        io.to(socket.id).emit('sendtextttt', answer);
+        io.to(socket.id).emit('sendtextttt', answer.success);
       });
     }).on('error', (e) => {});
 
