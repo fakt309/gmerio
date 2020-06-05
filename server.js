@@ -635,33 +635,33 @@ io.sockets.on('connection', function(socket) {
         var answer = JSON.parse(''+d);
         //io.to(socket.id).emit('mailSign2', answer.success);
         flagRecaptcha = answer.success;
-        io.to(socket.id).emit('sendtextttt', answer);
-        io.to(socket.id).emit('sendtextttt', answer.success);
-      });
-
-      if (flagRecaptcha) {
-        var connection = mysql.createConnection({
-          host: "vh50.timeweb.ru",
-          user: "totarget_gmerio",
-          password: "Jc3FiReQ",
-          database: "totarget_gmerio"
-        });
-    		connection.connect(function(err) {
-    			connection.query("SELECT id FROM users WHERE email='"+mail+"'", function (err, result, fields) {
-            if (result[0]) {
-              io.to(socket.id).emit('mailSign2', 'ok:signin');
-            } else {
-              io.to(socket.id).emit('mailSign2', 'ok:signup');
-            }
+        // io.to(socket.id).emit('sendtextttt', answer);
+        // io.to(socket.id).emit('sendtextttt', answer.success);
+        
+        if (flagRecaptcha) {
+          var connection = mysql.createConnection({
+            host: "vh50.timeweb.ru",
+            user: "totarget_gmerio",
+            password: "Jc3FiReQ",
+            database: "totarget_gmerio"
           });
-    			setTimeout(function() {
-    					connection.end();
-    			}, 1500);
-    		});
-      } else if (!flagRecaptcha) {
-        io.to(socket.id).emit('mailSign2', 'err:recaptcha invalid');
-      }
-      
+      		connection.connect(function(err) {
+      			connection.query("SELECT id FROM users WHERE email='"+mail+"'", function (err, result, fields) {
+              if (result[0]) {
+                io.to(socket.id).emit('mailSign2', 'ok:signin');
+              } else {
+                io.to(socket.id).emit('mailSign2', 'ok:signup');
+              }
+            });
+      			setTimeout(function() {
+      					connection.end();
+      			}, 1500);
+      		});
+        } else if (!flagRecaptcha) {
+          io.to(socket.id).emit('mailSign2', 'err:recaptcha invalid');
+        }
+
+      });
     }).on('error', (e) => {});
   });
 
