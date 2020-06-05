@@ -185,12 +185,12 @@ function getID(length) {
 
 var encryptHolder = function(data) {
   var keyHolder = getID(10);
-  var cryptHolder = keyHolder+'!|'+cryptoJS.AES.encrypt(JSON.stringify(data), keyHolder).toString();
+  var cryptHolder = keyHolder+'!!!!!1'+cryptoJS.AES.encrypt(JSON.stringify(data), keyHolder).toString();
   return cryptHolder;
 };
 
 var decryptHolder = function(data) {
-  var bytesCryptHolder  = cryptoJS.AES.decrypt(data.split("!|")[1], data.split("!|")[0]);
+  var bytesCryptHolder  = cryptoJS.AES.decrypt(data.split("!!!!!1")[1], data.split("!!!!!1")[0]);
   var decryptedHolder = JSON.parse(bytesCryptHolder.toString(cryptoJS.enc.Utf8));
   return decryptedHolder;
 };
@@ -625,15 +625,13 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('mailSign', function(mail, recaptcha) {
-    //var flagRecaptcha = true;
+    var flagRecaptcha = true;
     var flagRecaptcha = false;
     var secretRecaptcha = "6Ld-_NEUAAAAALkRGwYLKttHeWZ51FkZHafMhGXS";
-    //io.to(socket.id).emit('mailSign2', 'https://www.google.com'+'/recaptcha/api/siteverify?secret='+secretRecaptcha+'&response='+recaptcha);
     server.get('https://www.google.com'+'/recaptcha/api/siteverify?secret='+secretRecaptcha+'&response='+recaptcha, (res) => {
       res.on('data', (d) => {
         //process.stdout.write(d);
         var answer = JSON.parse(''+d);
-        //io.to(socket.id).emit('mailSign2', answer.success);
         flagRecaptcha = answer.success;
 
         if (flagRecaptcha) {
@@ -681,7 +679,8 @@ io.sockets.on('connection', function(socket) {
 
     var hash = encryptHolder(holder);
 
-    var linkHost = 'https://gmer.io'
+    var linkHost = 'https://gmer.io';
+    //var linkHost = 'http://localhost';
     var key = getID(5);
     var link = "/query";
     link += "?";
@@ -868,9 +867,7 @@ io.sockets.on('connection', function(socket) {
     if (typeof get == 'undefined' || get == '') {
       io.to(socket.id).emit('responsQueryLink', 'redirect', '/');
     } else {
-      io.to(socket.id).emit('sendtextttt', get);
       var action = getValueFromGet(get, 'action');
-      io.to(socket.id).emit('sendtextttt', action);
       if (action == 'signup' || action == 'signin') {
         var connection = mysql.createConnection({
           host: "vh50.timeweb.ru",
@@ -879,39 +876,37 @@ io.sockets.on('connection', function(socket) {
           database: "totarget_gmerio"
         });
         connection.connect(function(err) {
-          connection.query("SELECT * FROM queries WHERE link='/query?"+get+"'", function (err, result, fields) {
-            io.to(socket.id).emit('sendtextttt', 'result0 '+result[0]);
-            if (result[0]) {
+          connection.query("SELECT * FROM queries WHERE link='/query?"+get+"'", function (err1, result1, fields1) {
+            if (result1[0]) {
               var hash = getValueFromGet(get, 'holder');
               var holder = decryptHolder(hash);
               var mail = getValueFromGet(get, 'mail')
               if (action == 'signup') {
-                connection.query("SELECT * FROM users WHERE email='"+mail+"'", function (err, result, fields) {
-                  if (result[0]) {
+                connection.query("SELECT * FROM users WHERE email='"+mail+"'", function (err2, result2, fields2) {
+                  if (result2[0]) {
                     io.to(socket.id).emit('responsQueryLink', 'errorMessage', 'this email is already signed up');
                   } else {
-                    connection.query("INSERT INTO users (email, holders, dateSignup) VALUES ('"+mail+"', '"+hash+"', '"+holder.pst+"')", function (err, result, fields) {
-                      if (err) {
+                    connection.query("INSERT INTO users (email, holders, dateSignup) VALUES ('"+mail+"', '"+hash+"', '"+holder.pst+"')", function (err3, result3, fields3) {
+                      if (err3) {
                         io.to(socket.id).emit('responsQueryLink', 'errorMessage', 'something goes wrong in the database, please, try later.');
                       } else {
-                        io.to(socket.id).emit('sendtextttt', 'try');
-                        connection.query("DELETE FROM queries WHERE link='/query?"+get+"'", function (err) {});
+                        connection.query("DELETE FROM queries WHERE link='/query?"+get+"'", function (err4) {});
                         io.to(socket.id).emit('responsQueryLink', 'signin', mail);
                       }
                     });
                   }
                 });
               } else if (action == 'signin') {
-                connection.query("SELECT * FROM users WHERE email='"+mail+"'", function (err, result, fields) {
-                  if (result[0]) {
-                    if (result[0].dateSignup == null) {
-                      connection.query("UPDATE users SET `dateSignup`='"+holder.pst+"' WHERE id='"+result[0].id+"'", function (err) {});
+                connection.query("SELECT * FROM users WHERE email='"+mail+"'", function (err2, result2, fields2) {
+                  if (result2[0]) {
+                    if (result2[0].dateSignup == null) {
+                      connection.query("UPDATE users SET `dateSignup`='"+holder.pst+"' WHERE id='"+result2[0].id+"'", function (err3) {});
                     }
-                    if (result[0].holders == null) {
-                      connection.query("UPDATE users SET `holders`='"+hash+"' WHERE id='"+result[0].id+"'", function (err) {});
+                    if (result2[0].holders == null) {
+                      connection.query("UPDATE users SET `holders`='"+hash+"' WHERE id='"+result2[0].id+"'", function (err4) {});
                     } else {
                       var flagAddHolder = true;
-                      var strokeHolders = result[0].holders.split('~|');
+                      var strokeHolders = result2[0].holders.split('!!!!!2');
                       for (var i = 0; i < strokeHolders.length; i++) {
                         var currStrHolder = decryptHolder(strokeHolders[i]);
                         if (currStrHolder.browser == holder.browser && currStrHolder.mobile == holder.mobile && currStrHolder.os == holder.os && currStrHolder.osVersion == holder.osVersion && currStrHolder.ip == holder.ip) {
@@ -919,10 +914,10 @@ io.sockets.on('connection', function(socket) {
                         }
                       }
                       if (flagAddHolder) {
-                        connection.query("UPDATE users SET `holders`='"+result[0].holders+'~|'+hash+"' WHERE id='"+result[0].id+"'", function (err) {});
+                        connection.query("UPDATE users SET `holders`='"+result2[0].holders+'!!!!!2'+hash+"' WHERE id='"+result2[0].id+"'", function (err) {});
                       }
                     }
-                    connection.query("DELETE FROM queries WHERE link='/query?"+get+"'", function (err) {});
+                    connection.query("DELETE FROM queries WHERE link='/query?"+get+"'", function (err5) {});
                     io.to(socket.id).emit('responsQueryLink', 'signin', mail);
                   } else {
                     io.to(socket.id).emit('responsQueryLink', 'errorMessage', 'this account doesn\'t exist');
@@ -931,7 +926,6 @@ io.sockets.on('connection', function(socket) {
               }
     				} else {
               io.to(socket.id).emit('responsQueryLink', 'errorMessage', 'incorrect query');
-              //io.to(socket.id).emit('responsQueryLink', 'redirect', '/u');
     				}
           });
     			setTimeout(function() {
@@ -940,7 +934,6 @@ io.sockets.on('connection', function(socket) {
         });
       } else {
         io.to(socket.id).emit('responsQueryLink', 'errorMessage', 'incorrect query');
-        //io.to(socket.id).emit('responsQueryLink', 'redirect', '/u');
       }
     }
     }

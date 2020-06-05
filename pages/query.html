@@ -51,27 +51,26 @@
           return os;
       };
 
-      if (getOS() != 'Search Bot') {
-        socket.emit('queryLink', window.location.href);
-      }
-
-      socket.on('sendtextttt', function(text) {
-        console.log(text);
-      });
+      // if (getOS() != 'Search Bot') {
+      //   socket.emit('queryLink', window.location.href);
+      // }
+      //
+      // socket.on('sendtextttt', function(text) {
+      //   console.log(text);
+      // });
 
       socket.on('responsQueryLink', function(action, p1, p2) {
-        console.log('client: '+action+' '+p1);
         switch (action) {
           case 'redirect':
             window.location.replace(p1);
             break;
           case 'errorMessage':
             setCookie('error', p1, 1, '/');
-            //window.location.replace('/');
+            window.location.replace('/');
             break;
           case 'signin':
             setCookie('signinMail', p1, 30, '/');
-            //window.location.replace('/u');
+            window.location.replace('/u');
             break;
         }
       });
