@@ -863,6 +863,7 @@ io.sockets.on('connection', function(socket) {
   };
 
   socket.on('queryLink', function(url) {
+    if (socket.id) {
     var get = url.split('?')[1];
     if (typeof get == 'undefined' || get == '') {
       io.to(socket.id).emit('responsQueryLink', 'redirect', '/');
@@ -941,6 +942,7 @@ io.sockets.on('connection', function(socket) {
         io.to(socket.id).emit('responsQueryLink', 'errorMessage', 'incorrect query');
         //io.to(socket.id).emit('responsQueryLink', 'redirect', '/u');
       }
+    }
     }
   });
 
