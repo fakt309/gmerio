@@ -122,6 +122,10 @@
         startAnimationFormSign();
       }
 
+      socket.on('authorization2', function(confirm) {
+        console.log(confirm);
+      });
+
       var widgetRecaptcha1;
       var onloadCallback = function() {
         widgetRecaptcha1 = grecaptcha.render('recaptcha1', { 'sitekey': '6Ld-_NEUAAAAAIcro-nuBeDeMigbdDBoxVt6jw9h' });

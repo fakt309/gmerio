@@ -45,9 +45,11 @@ http.createServer(function (req, res) {
 
 var io = require('socket.io').listen(serverIO);
 //end https connect --------------
+
 var myip = 'n/a';
-app.get('*', function(request, respons) {
+app.get('*', function(request, respons, next) {
   myip = request.headers['x-forwarded-for'] || request.connection.remoteAddress || request.socket.remoteAddress || (request.connection.socket ? request.connection.socket.remoteAddress : null);
+  next();
 });
 app.get('/', function(request, respons) {
   respons.sendFile(__dirname+'/games/cannons/index.html');
@@ -941,8 +943,6 @@ io.sockets.on('connection', function(socket) {
 
   socket.on('authorization', function(mail, device) {
     device.ip = myip;
-    console.log(mail);
-    console.log(device);
     var connection = mysql.createConnection({
       host: "vh50.timeweb.ru",
       user: "totarget_gmerio",
@@ -952,9 +952,18 @@ io.sockets.on('connection', function(socket) {
     connection.connect(function(err) {
       connection.query("SELECT * FROM users WHERE email='"+mail+"'", function (err, result, fields) {
         if (result[0]) {
+          var flagNotFound = true;
           var hashs = result[0].holders.split('!!!!!2');
           for (var i = 0; i < hashs.length; i++) {
-            console.log(decryptHolder(hashs[i]));
+            var currHolder = decryptHolder(hashs[i]);
+            if (device.browser == currHolder.browser && device.mobile == currHolder.mobile && device.os == currHolder.os && device.osVersion == currHolder.osVersion && device.ip == currHolder.ip) {
+              io.to(socket.id).emit('authorization2', true);
+              flagNotFound = false;
+              break;
+            }
+          }
+          if (flagNotFound) {
+            io.to(socket.id).emit('authorization2', false);
           }
         } else {
         }
