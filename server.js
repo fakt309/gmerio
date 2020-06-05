@@ -638,30 +638,31 @@ io.sockets.on('connection', function(socket) {
         io.to(socket.id).emit('sendtextttt', answer);
         io.to(socket.id).emit('sendtextttt', answer.success);
       });
-    }).on('error', (e) => {});
 
-    if (flagRecaptcha) {
-      var connection = mysql.createConnection({
-        host: "vh50.timeweb.ru",
-        user: "totarget_gmerio",
-        password: "Jc3FiReQ",
-        database: "totarget_gmerio"
-      });
-  		connection.connect(function(err) {
-  			connection.query("SELECT id FROM users WHERE email='"+mail+"'", function (err, result, fields) {
-          if (result[0]) {
-            io.to(socket.id).emit('mailSign2', 'ok:signin');
-          } else {
-            io.to(socket.id).emit('mailSign2', 'ok:signup');
-          }
+      if (flagRecaptcha) {
+        var connection = mysql.createConnection({
+          host: "vh50.timeweb.ru",
+          user: "totarget_gmerio",
+          password: "Jc3FiReQ",
+          database: "totarget_gmerio"
         });
-  			setTimeout(function() {
-  					connection.end();
-  			}, 1500);
-  		});
-    } else if (!flagRecaptcha) {
-      io.to(socket.id).emit('mailSign2', 'err:recaptcha invalid');
-    }
+    		connection.connect(function(err) {
+    			connection.query("SELECT id FROM users WHERE email='"+mail+"'", function (err, result, fields) {
+            if (result[0]) {
+              io.to(socket.id).emit('mailSign2', 'ok:signin');
+            } else {
+              io.to(socket.id).emit('mailSign2', 'ok:signup');
+            }
+          });
+    			setTimeout(function() {
+    					connection.end();
+    			}, 1500);
+    		});
+      } else if (!flagRecaptcha) {
+        io.to(socket.id).emit('mailSign2', 'err:recaptcha invalid');
+      }
+      
+    }).on('error', (e) => {});
   });
 
   socket.on('mailSign3', function(mail, condition, holder) {
