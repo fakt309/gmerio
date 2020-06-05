@@ -125,7 +125,8 @@
         if (answer[0] == 'err') {
           goBackSendForm(answer[1]);
           stageForm = 1;
-          widgetRecaptcha1 = grecaptcha.render('recaptcha1', { 'sitekey': '6Ld-_NEUAAAAAIcro-nuBeDeMigbdDBoxVt6jw9h' });
+          //widgetRecaptcha1 = grecaptcha.render('recaptcha1', { 'sitekey': '6Ld-_NEUAAAAAIcro-nuBeDeMigbdDBoxVt6jw9h' });
+          grecaptcha.reset(widgetRecaptcha1);
         } else if (answer[0] == 'ok') {
           goForwardAnswerForm1(answer[1]);
           stageForm = 2;
