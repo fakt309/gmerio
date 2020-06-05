@@ -962,7 +962,6 @@ io.sockets.on('connection', function(socket) {
               var currHolder = decryptHolder(hashs[i]);
               if (device.browser == currHolder.browser && device.mobile == currHolder.mobile && device.os == currHolder.os && device.osVersion == currHolder.osVersion && device.ip == currHolder.ip) {
                 flagFound = true;
-                break;
               }
               holdres[i] = currHolder;
             }
