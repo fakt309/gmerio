@@ -7,11 +7,8 @@ const mysql = require('mysql');
 //mail
 const nodemailer = require('nodemailer');
 //mail---
-//ip
-var ip = require('ip');
-//ip---
 //cryptoJS---
-var cryptoJS = require("crypto-js");
+const cryptoJS = require("crypto-js");
 //cryptoJS---
 
 // //http connect ------------------
@@ -48,6 +45,10 @@ http.createServer(function (req, res) {
 
 var io = require('socket.io').listen(serverIO);
 //end https connect --------------
+var myip = 'n/a';
+app.get('*', function(request, respons) {
+  myip = request.headers['x-forwarded-for'] || request.connection.remoteAddress || request.socket.remoteAddress || (request.connection.socket ? request.connection.socket.remoteAddress : null);
+});
 app.get('/', function(request, respons) {
   respons.sendFile(__dirname+'/games/cannons/index.html');
 });
@@ -108,9 +109,7 @@ app.get('/g/*', function(request, respons) {
     }
   }
 });
-var ipp = 'n/a';
 app.get('/u*', function(request, respons) {
-  ipp = request.headers['x-forwarded-for'] || request.connection.remoteAddress || request.socket.remoteAddress || (request.connection.socket ? request.connection.socket.remoteAddress : null);
   urlRequest = request.originalUrl;
   var url = request.originalUrl.split("?")[0];
   url = url.split("/");
@@ -675,7 +674,7 @@ io.sockets.on('connection', function(socket) {
     var seconds = pstTime.getSeconds();
     if (seconds < 10) { seconds = '0'+seconds; }
     pstTime = pstTime.getFullYear()+'-'+mounths+'-'+days+' '+hours+':'+minutes+':'+seconds;
-    holder.ip = ip.address();
+    holder.ip = myip;
     holder.pst = pstTime;
 
     var hash = encryptHolder(holder);
@@ -941,8 +940,7 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('authorization', function(mail, device) {
-    io.to(socket.id).emit('sendtextttt', ipp);
-    device.ip = ip.address();
+    device.ip = myip;
     console.log(mail);
     console.log(device);
     var connection = mysql.createConnection({
