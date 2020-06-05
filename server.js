@@ -879,6 +879,7 @@ io.sockets.on('connection', function(socket) {
         });
         connection.connect(function(err) {
           connection.query("SELECT * FROM queries WHERE link='/query?"+get+"'", function (err, result, fields) {
+            io.to(socket.id).emit('sendtextttt', 'result0 '+result[0]);
             if (result[0]) {
               var hash = getValueFromGet(get, 'holder');
               var holder = decryptHolder(hash);

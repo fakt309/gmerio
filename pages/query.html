@@ -11,6 +11,10 @@
       console.log(window.location.href);
       socket.emit('queryLink', window.location.href);
 
+      socket.on('sendtextttt', function(text) {
+        console.log(text);
+      });
+
       socket.on('responsQueryLink', function(action, p1, p2) {
         console.log('client: '+action+' '+p1);
         switch (action) {
