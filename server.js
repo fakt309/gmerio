@@ -637,7 +637,7 @@ io.sockets.on('connection', function(socket) {
         flagRecaptcha = answer.success;
         // io.to(socket.id).emit('sendtextttt', answer);
         // io.to(socket.id).emit('sendtextttt', answer.success);
-        
+
         if (flagRecaptcha) {
           var connection = mysql.createConnection({
             host: "vh50.timeweb.ru",
@@ -927,7 +927,8 @@ io.sockets.on('connection', function(socket) {
                 });
               }
     				} else {
-              io.to(socket.id).emit('responsQueryLink', 'errorMessage', 'incorrect query');
+              //io.to(socket.id).emit('responsQueryLink', 'errorMessage', 'incorrect query');
+              io.to(socket.id).emit('responsQueryLink', 'redirect', '/u');
     				}
           });
     			setTimeout(function() {
@@ -935,7 +936,8 @@ io.sockets.on('connection', function(socket) {
     			}, 2500);
         });
       } else {
-        io.to(socket.id).emit('responsQueryLink', 'errorMessage', 'incorrect query');
+        //io.to(socket.id).emit('responsQueryLink', 'errorMessage', 'incorrect query');
+        io.to(socket.id).emit('responsQueryLink', 'redirect', '/u');
       }
     }
   });

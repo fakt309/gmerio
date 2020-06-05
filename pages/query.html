@@ -11,7 +11,6 @@
       socket.emit('queryLink', window.location.href);
 
       socket.on('responsQueryLink', function(action, p1, p2) {
-        console.log('action', p1);
         switch (action) {
           case 'redirect':
             window.location.replace(p1);
