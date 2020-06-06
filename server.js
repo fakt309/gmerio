@@ -990,6 +990,7 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('deleteDevice', function(idUser, indexDevice) {
+    io.to(socket.id).emit('sendtextttt', idUser+'|'+indexDevice);
     var connection = mysql.createConnection({
       host: "vh50.timeweb.ru",
       user: "totarget_gmerio",
@@ -999,7 +1000,11 @@ io.sockets.on('connection', function(socket) {
     connection.connect(function(err) {
       connection.query("SELECT * FROM users WHERE id='"+idUser+"'", function (err, result, fields) {
         if (result[0]) {
+          io.to(socket.id).emit('sendtextttt', result[0]);
+          io.to(socket.id).emit('sendtextttt', err);
+          io.to(socket.id).emit('sendtextttt', result[0].holders);
           var hashs = result[0].holders.split("!!!!!2");
+          io.to(socket.id).emit('sendtextttt', hashs);
           hashs.splice(Number(indexDevice), 1);
           hashs = hashs.join('!!!!!2');
           if (hashs == null || hashs == '' || !hashs) {
@@ -1013,6 +1018,9 @@ io.sockets.on('connection', function(socket) {
           }
         }
       });
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
     });
   });
 
@@ -1027,6 +1035,9 @@ io.sockets.on('connection', function(socket) {
       connection.query("DELETE FROM users WHERE id='"+idUser+"'", function (err, result, fields) {
         io.to(socket.id).emit('refreshPage');
       });
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
     });
   });
 
