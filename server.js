@@ -1000,10 +1000,7 @@ io.sockets.on('connection', function(socket) {
       connection.query("SELECT * FROM users WHERE id='"+idUser+"'", function (err, result, fields) {
         if (result[0]) {
           var hashs = result[0].holders.split("!!!!!2");
-          for (var i = indexDevice; i < hashs.length-1; i++) {
-            hashs[i] = hashs[i+1];
-          }
-          delete hashs[hashs.length-1];
+          hashs.splice(Number(indexDevice), 1);
           hashs = hashs.join('!!!!!2');
           if (hashs == null || hashs == '' || !hashs) {
             connection.query("UPDATE users SET `holders`=NULL WHERE id='"+idUser+"'", function (err2, result2, fields2) {});
