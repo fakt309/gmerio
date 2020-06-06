@@ -1003,9 +1003,13 @@ io.sockets.on('connection', function(socket) {
           hashs.splice(Number(indexDevice), 1);
           hashs = hashs.join('!!!!!2');
           if (hashs == null || hashs == '' || !hashs) {
-            connection.query("UPDATE users SET `holders`=NULL WHERE id='"+idUser+"'", function (err2, result2, fields2) {});
+            connection.query("UPDATE users SET `holders`=NULL WHERE id='"+idUser+"'", function (err2, result2, fields2) {
+              io.to(socket.id).emit('refreshPage');
+            });
           } else {
-            connection.query("UPDATE users SET `holders`='"+hashs.join('!!!!!2')+"' WHERE id='"+idUser+"'", function (err2, result2, fields2) {});
+            connection.query("UPDATE users SET `holders`='"+hashs.join('!!!!!2')+"' WHERE id='"+idUser+"'", function (err2, result2, fields2) {
+              io.to(socket.id).emit('refreshPage');
+            });
           }
         }
       });
@@ -1020,7 +1024,9 @@ io.sockets.on('connection', function(socket) {
       database: "totarget_gmerio"
     });
     connection.connect(function(err) {
-      connection.query("DELETE FROM users WHERE id='"+idUser+"'", function (err, result, fields) {});
+      connection.query("DELETE FROM users WHERE id='"+idUser+"'", function (err, result, fields) {
+        io.to(socket.id).emit('refreshPage');
+      });
     });
   });
 

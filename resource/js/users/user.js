@@ -41,12 +41,10 @@ window.addEventListener("mouseup", function(e) {
 });
 function deleteDevice(idUser, indexDevice) {
   socket.emit('deleteDevice', idUser, indexDevice);
-  location.reload();
 }
 function deleteAccount(idUser) {
   if (document.getElementById('buttonConfirmDelete').getAttribute('confirmEmail') == document.getElementById('inputConfirmDelete').value) {
     socket.emit('deleteAccount', idUser);
-    location.reload();
   }
 }
 function showConfirmSignout() {

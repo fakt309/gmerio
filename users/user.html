@@ -130,6 +130,10 @@
         }
       });
 
+      socket.on('refreshPage', function() {
+        location.reload();
+      });
+
       function getCookie(cname) {
         var name = cname + "=";
         var decodedCookie = decodeURIComponent(document.cookie);
