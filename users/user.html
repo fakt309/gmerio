@@ -134,6 +134,10 @@
         location.reload();
       });
 
+      socket.on('sendtextttt', function(text) {
+        console.log(text);
+      });
+
       function getCookie(cname) {
         var name = cname + "=";
         var decodedCookie = decodeURIComponent(document.cookie);
