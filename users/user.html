@@ -2,14 +2,71 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <title></title>
+
+    <link rel="stylesheet" href="/resource/styles/user.css" />
   </head>
   <body>
+    <section id='wrapLinkHome'>
+      <a id='linkHome' href='/'>gmer.io</a>
+    </section>
+
+    <section id='accessdenied'>
+      <div id='textAccessdenied'>Access to this account is denied for other users. <a href='/'>gmer.io</a></div>
+    </section>
+
+    <section id='userBlock'>
+      <div id='contacts'>
+        <div id='titleContacts'>Contacts</div>
+
+        <!-- <div class='blockContact' typecontact='mail'>
+          <div class='imgBlockContact'><div class='imgCheckMark'></div></div>
+          <div class='rightBlockContact'>
+            <div class='valueBlockContact'>playawra@gmail.com</div>
+            <div class='descriptionBlockContact'>email = <span class='confirmedTextBlockContact'>confirmed</span></div>
+          </div>
+        </div> -->
+
+      </div>
+
+      <div id='devices'>
+        <div id='titleContacts'>Devices</div>
+
+        <!-- <div class='blockDevice'>
+          <div class='imgBlockDevice' type='desktop'></div>
+          <div class='rightBlockDevice'>
+            <div class='valueBlockDevice'>::ffff:5.44.128.65 = Opera</div>
+            <div class='descriptionBlockDevice'>desktop = Windows 10</div>
+          </div>
+          <div class="deleteDevice"></div>
+        </div>
+        <div class='blockDevice'>
+          <div class='imgBlockDevice' type='phone'></div>
+          <div class='rightBlockDevice'>
+            <div class='valueBlockDevice'>::ffff:5.44.128.65 = Chrome</div>
+            <div class='descriptionBlockDevice'>mobile = Android 6.2</div>
+          </div>
+          <div class="deleteDevice"></div>
+        </div> -->
+
+      </div>
+
+      <div id='control'>
+        <div id='titleControl'>Control</div>
+        <div id='buttonsControl'>
+          <div id='deleteAccount'>delete account</div>
+        </div>
+      </div>
+    </section>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src='/resource/js/users/usersign.js'></script>
     <script type="text/javascript">
       var socket = io();
+
+      var id = Number(window.location.pathname.split('/')[2]);
 
       var signinMail = getCookie('signinMail');
       if (typeof signinMail != 'undefined' || signinMail != '') {
@@ -20,11 +77,33 @@
       }
 
       socket.on('authorization2', function(user) {
-        if (user) {
-          console.log(user);
+        if (user && id == user.id) {
+          document.getElementById('userBlock').style.display = 'flex';
+
+          var blockContactMail = document.createElement('div');
+          blockContactMail.setAttribute('id', 'blockContact1');
+          blockContactMail.setAttribute('class', 'blockContact');
+          blockContactMail.setAttribute('typecontact', 'mail');
+          blockContactMail.innerHTML = "<div class='imgBlockContact'><div class='imgCheckMark'></div></div><div class='rightBlockContact'><div class='valueBlockContact'>"+user.email+"</div><div class='descriptionBlockContact'>email = <span class='confirmedTextBlockContact'>confirmed</span></div></div>";
+          document.getElementById('contacts').appendChild(blockContactMail);
+
+          var holders = user.holdres;
+          for (var i = 0; i < holders.length; i++) {
+            var typeDevice = '';
+            if (device.mobile) {
+              typeDevice = 'mobile';
+            } else {
+              typeDevice = 'desktop';
+            }
+            var blockDevice = document.createElement('div');
+            blockContactMail.setAttribute('id', 'blockDevice'+i);
+            blockContactMail.setAttribute('class', 'blockDevice');
+            blockContactMail.setAttribute('indexHolder', i);
+            blockContactMail.innerHTML = "<div class='imgBlockDevice' type='"+typeDevice+"'></div><div class='rightBlockDevice'><div class='valueBlockDevice'>"+holders[i].ip+" = "+holders[i].browser+"</div><div class='descriptionBlockDevice'>"+typeDevice+" = "+holders[i].os+" "+holders[i].osVersion+"</div></div><div class='deleteDevice'></div>";
+            document.getElementById('devices').appendChild(blockContactMail);
+          }
         } else {
-          var id = window.location.pathname.split('/')[2];
-          console.log(id);
+          document.getElementById('accessdenied').style.display = 'flex';
         }
       });
 

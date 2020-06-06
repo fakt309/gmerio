@@ -1,0 +1,165 @@
+#wrapLinkHome {
+  width: 90%;
+  max-width: 1000px;
+  margin: 0px auto;
+  margin-top: 50px;
+  margin-bottom: 10px;
+  font-family: Arial;
+}
+#accessdenied, #userBlock {
+  margin: 0px auto;
+  width: 90%;
+  max-width: 1000px;
+  border: 1px solid #999;
+  border-radius: 20px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-around;
+  font-family: Arial;
+  background-color: #fff;
+  display: none;
+}
+/* #accessdenied {
+  display: none;
+}
+#userBlock {
+  display: none;
+} */
+#textAccessdenied {
+  margin: 20px;
+  font-size: 14px;
+  color: #333;
+}
+#textAccessdenied a, #linkHome {
+  color: #005fc3;
+  text-decoration: none;
+  transition: all ease 0.2s;
+}
+#textAccessdenied a:hover, #linkHome:hover {
+  color: #5aaaff;
+}
+#linkHome {
+  margin-left: 10px;
+}
+#contacts, #devices {
+  width: 100%;
+  border-bottom: 1px solid #999;
+}
+#control {
+  width: 100%;
+}
+#titleContacts, #titleContacts, #titleControl {
+  margin: 20px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #999;
+}
+.blockContact, .blockDevice {
+  margin: 20px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+}
+.imgBlockContact, .imgBlockDevice {
+  width: 100px;
+  height: 100px;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: flex-end;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.imgCheckMark {
+  width: 30px;
+  height: 30px;
+  margin-bottom: 5px;
+  margin-right: -5px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.rightBlockContact, .rightBlockDevice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-around;
+}
+.valueBlockContact, .valueBlockDevice {
+  margin: 5px 20px;
+  font-size: 18px;
+  color: #333;
+}
+.descriptionBlockContact, .descriptionBlockDevice {
+  margin: 5px 20px;
+  font-size: 14px;
+  color: #333;
+}
+.confirmedTextBlockContact {
+  color: #1aca00;
+}
+.blockContact[typecontact='mail'] .imgBlockContact {
+  background-image: url('/resource/img/mail.png');
+}
+.imgCheckMark {
+  background-image: url('/resource/img/checkMark.png');
+}
+.imgBlockDevice[type='desktop'] {
+  background-image: url('/resource/img/desktop.png');
+}
+.imgBlockDevice[type='phone'] {
+  background-image: url('/resource/img/phone.png');
+}
+.deleteDevice {
+  margin: 20px;
+  margin-left: auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 5px;
+  cursor: pointer;
+  opacity: 0.7;
+  background-image: url('/resource/img/trash.png');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  transition: all ease 0.2s;
+}
+.deleteDevice:hover {
+  opacity: 1;
+}
+#buttonsControl {
+  margin: 20px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+}
+#deleteAccount {
+  margin: 0px 20px;
+  padding: 10px 15px;
+  background-color: #f77171;
+  border-radius: 5px;
+  cursor: pointer;
+  color: #fff;
+  font-size: 14px;
+  opacity: 0.7;
+  transition: all ease 0.2s;
+}
+#deleteAccount:hover {
+  opacity: 1;
+}
+
+@media screen and (max-width: 800px) {
+  .blockContact, .blockDevice {
+    flex-direction: column;
+    align-items: center;
+  }
+  .rightBlockDevice{
+    align-items: center;
+  }
+  .deleteDevice {
+    margin: 10px;
+  }
+}
