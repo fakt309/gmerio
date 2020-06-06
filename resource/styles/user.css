@@ -150,6 +150,60 @@
 #deleteAccount:hover {
   opacity: 1;
 }
+#backConfirmDelete {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  width: 100vw;
+  height: 100vh;
+  background-color: #00000077;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: Arial;
+  opacity: 0;
+  transition: all ease 0.2s;
+}
+#blockConfirmDelete {
+  background-color: #fff;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateY(-40px);
+  justify-content: center;
+  transition: all ease 0.2s;
+}
+#labelConfirmDelete {
+  margin: 20px;
+  color: #666;
+  font-size: 14px;
+}
+#inputConfirmDelete {
+  margin: 20px;
+  margin-top: 0px;
+  padding: 10px;
+  font-size: 14px;
+  color: #333;
+  border: 1px solid #999;
+  outline: none;
+  border-radius: 5px;
+}
+#buttonConfirmDelete {
+  margin-top: 0px;
+  margin-right: -30px;
+  margin-bottom: -16px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  cursor: pointer;
+  background-color: #ce0000;
+  color: #fff;
+  align-self: flex-end;
+  transform: translateY(80px);
+  transition: all ease 0.2s;
+}
 
 @media screen and (max-width: 800px) {
   .blockContact, .blockDevice {

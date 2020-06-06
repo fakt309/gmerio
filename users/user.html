@@ -9,6 +9,14 @@
     <link rel="stylesheet" href="/resource/styles/user.css" />
   </head>
   <body>
+    <section id='backConfirmDelete'>
+      <div id='blockConfirmDelete'>
+        <div id='labelConfirmDelete'>enter your email to confirm it</div>
+        <input id='inputConfirmDelete' type='text' />
+        <div id='buttonConfirmDelete'>delete my all data permanently</div>
+      </div>
+    </section>
+
     <section id='wrapLinkHome'>
       <a id='linkHome' href='/'>gmer.io</a>
     </section>
@@ -56,13 +64,14 @@
       <div id='control'>
         <div id='titleControl'>Control</div>
         <div id='buttonsControl'>
-          <div id='deleteAccount'>delete account</div>
+          <div id='deleteAccount' onclick='showConfirm()'>delete account</div>
         </div>
       </div>
     </section>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src='/resource/js/users/usersign.js'></script>
+    <script src='/resource/js/users/user.js'></script>
     <script type="text/javascript">
       var socket = io();
 
@@ -99,9 +108,13 @@
             blockContactMail.setAttribute('id', 'blockDevice'+i);
             blockContactMail.setAttribute('class', 'blockDevice');
             blockContactMail.setAttribute('indexHolder', i);
-            blockContactMail.innerHTML = "<div class='imgBlockDevice' type='"+typeDevice+"'></div><div class='rightBlockDevice'><div class='valueBlockDevice'>"+holders[i].ip+" = "+holders[i].browser+"</div><div class='descriptionBlockDevice'>"+typeDevice+" = "+holders[i].os+" "+holders[i].osVersion+"</div></div><div class='deleteDevice'></div>";
+            blockContactMail.innerHTML = "<div class='imgBlockDevice' type='"+typeDevice+"'></div><div class='rightBlockDevice'><div class='valueBlockDevice'>"+holders[i].ip+" = "+holders[i].browser+"</div><div class='descriptionBlockDevice'>"+typeDevice+" = "+holders[i].os+" "+holders[i].osVersion+"</div></div><div onclick='deleteDevice("+user.id+", "+i+")' class='deleteDevice'></div>";
             document.getElementById('devices').appendChild(blockContactMail);
           }
+
+          document.getElementById('labelConfirmDelete').innerHTML = 'enter your email <b>'+user.email+'</b> to confirm deleting';
+          document.getElementById('buttonConfirmDelete').setAttribute('confirmEmail', user.email);
+          document.getElementById('buttonConfirmDelete').setAttribute('onclick', 'deleteAccount('+user.id+')');
         } else {
           document.getElementById('accessdenied').style.display = 'flex';
         }

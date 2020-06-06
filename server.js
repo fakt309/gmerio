@@ -11,40 +11,40 @@ const nodemailer = require('nodemailer');
 const cryptoJS = require("crypto-js");
 //cryptoJS---
 
-// //http connect ------------------
-// const express = require('express');
-// var app = express();
-// const http = require('http');
-// var server = http.createServer(app);
-// const io = require('socket.io').listen(server);
-//
-// var port = 80;
-// server.listen(port);
-// //end http connect --------------
-
-//https connect ------------------
-const server = require('https');
+//http connect ------------------
 const express = require('express');
-const app = express();
+var app = express();
+const http = require('http');
+var server = http.createServer(app);
+const io = require('socket.io').listen(server);
 
-const options = {
-    cert: fs.readFileSync('/etc/letsencrypt/live/gmer.io/fullchain.pem'),
-    key: fs.readFileSync('/etc/letsencrypt/live/gmer.io/privkey.pem')
-};
-//express.listen(80);
-var port = 443;
-var serverIO = server.createServer(options, app);
-serverIO.listen(port);
+var port = 80;
+server.listen(port);
+//end http connect --------------
 
-//redirect to https
-var http = require('http');
-http.createServer(function (req, res) {
-    res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
-    res.end();
-}).listen(80);
-
-var io = require('socket.io').listen(serverIO);
-//end https connect --------------
+// //https connect ------------------
+// const server = require('https');
+// const express = require('express');
+// const app = express();
+//
+// const options = {
+//     cert: fs.readFileSync('/etc/letsencrypt/live/gmer.io/fullchain.pem'),
+//     key: fs.readFileSync('/etc/letsencrypt/live/gmer.io/privkey.pem')
+// };
+// //express.listen(80);
+// var port = 443;
+// var serverIO = server.createServer(options, app);
+// serverIO.listen(port);
+//
+// //redirect to https
+// var http = require('http');
+// http.createServer(function (req, res) {
+//     res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
+//     res.end();
+// }).listen(80);
+//
+// var io = require('socket.io').listen(serverIO);
+// //end https connect --------------
 
 var myip = 'n/a';
 app.get('*', function(request, respons, next) {
@@ -986,6 +986,44 @@ io.sockets.on('connection', function(socket) {
       setTimeout(function() {
           connection.end();
       }, 2500);
+    });
+  });
+
+  socket.on('deleteDevice', function(idUser, indexDevice) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM users WHERE id='"+idUser+"'", function (err, result, fields) {
+        if (result[0]) {
+          var hashs = result[0].holders.split("!!!!!2");
+          for (var i = indexDevice; i < hashs.length-1; i++) {
+            hashs[i] = hashs[i+1];
+          }
+          delete hashs[hashs.length-1];
+          hashs = hashs.join('!!!!!2');
+          if (hashs == null || hashs == '' || !hashs) {
+            connection.query("UPDATE users SET `holders`='NULL' WHERE id='"+idUser+"'", function (err2, result2, fields2) {});
+          } else {
+            connection.query("UPDATE users SET `holders`='"+hashs.join('!!!!!2')+"' WHERE id='"+idUser+"'", function (err2, result2, fields2) {});
+          }
+        }
+      });
+    });
+  });
+
+  socket.on('deleteAccount', function(idUser) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+    connection.connect(function(err) {
+      connection.query("DELETE FROM users WHERE id='"+idUser+"'", function (err, result, fields) {});
     });
   });
 
