@@ -163,9 +163,12 @@
   justify-content: center;
   font-family: Arial;
   opacity: 0;
+  z-index: 100;
   transition: all ease 0.2s;
 }
 #blockConfirmDelete {
+  width: 70%;
+  max-width: 300px;
   background-color: #fff;
   border-radius: 15px;
   display: flex;
@@ -179,6 +182,7 @@
   margin: 20px;
   color: #666;
   font-size: 14px;
+  text-align: center;
 }
 #inputConfirmDelete {
   margin: 20px;

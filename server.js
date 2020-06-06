@@ -1006,7 +1006,7 @@ io.sockets.on('connection', function(socket) {
           delete hashs[hashs.length-1];
           hashs = hashs.join('!!!!!2');
           if (hashs == null || hashs == '' || !hashs) {
-            connection.query("UPDATE users SET `holders`='NULL' WHERE id='"+idUser+"'", function (err2, result2, fields2) {});
+            connection.query("UPDATE users SET `holders`=NULL WHERE id='"+idUser+"'", function (err2, result2, fields2) {});
           } else {
             connection.query("UPDATE users SET `holders`='"+hashs.join('!!!!!2')+"' WHERE id='"+idUser+"'", function (err2, result2, fields2) {});
           }

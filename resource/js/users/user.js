@@ -26,7 +26,7 @@ function hideConfirm() {
 }
 var downPressConfirmDelete = false;
 window.addEventListener("mousedown", function(e) {
-  if (document.getElementById('blockConfirmDelete') != e.target && !isChild(document.getElementById('blockConfirmDelete'), e.target)) {
+  if (document.getElementById('blockConfirmDelete') != e.target && !isChild(document.getElementById('blockConfirmDelete'), e.target) && document.getElementById('backConfirmDelete').style.display == 'flex') {
     downPressConfirmDelete = true;
   } else {
     downPressConfirmDelete = false;
