@@ -1000,9 +1000,9 @@ io.sockets.on('connection', function(socket) {
     connection.connect(function(err) {
       connection.query("SELECT * FROM users WHERE id='"+idUser+"'", function (err, result, fields) {
         if (result[0]) {
+          io.to(socket.id).emit('sendtextttt', result[0].holders);
           io.to(socket.id).emit('sendtextttt', result[0]);
           io.to(socket.id).emit('sendtextttt', err);
-          io.to(socket.id).emit('sendtextttt', result[0].holders);
           var hashs = result[0].holders.split("!!!!!2");
           io.to(socket.id).emit('sendtextttt', hashs);
           hashs.splice(Number(indexDevice), 1);
@@ -1010,17 +1010,20 @@ io.sockets.on('connection', function(socket) {
           if (hashs == null || hashs == '' || !hashs) {
             connection.query("UPDATE users SET `holders`=NULL WHERE id='"+idUser+"'", function (err2, result2, fields2) {
               io.to(socket.id).emit('refreshPage');
+              connection.end();
             });
           } else {
-            connection.query("UPDATE users SET `holders`='"+hashs.join('!!!!!2')+"' WHERE id='"+idUser+"'", function (err2, result2, fields2) {
+            //connection.query("UPDATE itemsFortress SET `received` = '"+received+"' WHERE id = '"+getIdItemRecieved+"'", function () {});
+            connection.query("UPDATE users SET `holders` = '"+hashs+"' WHERE id='"+idUser+"'", function (err2, result2, fields2) {
               io.to(socket.id).emit('refreshPage');
+              connection.end();//this place
             });
           }
         }
       });
-      setTimeout(function() {
-          connection.end();
-      }, 1500);
+      // setTimeout(function() {
+      //     connection.end();
+      // }, 1500);
     });
   });
 
