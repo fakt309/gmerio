@@ -96,7 +96,6 @@
       }
 
       socket.on('authorization2', function(user) {
-        console.log(user);
         if (user && id == user.id) {
           document.getElementById('userBlock').style.display = 'flex';
 
@@ -116,11 +115,11 @@
               typeDevice = 'desktop';
             }
             var blockDevice = document.createElement('div');
-            blockContactMail.setAttribute('id', 'blockDevice'+i);
-            blockContactMail.setAttribute('class', 'blockDevice');
-            blockContactMail.setAttribute('indexHolder', i);
-            blockContactMail.innerHTML = "<div class='imgBlockDevice' type='"+typeDevice+"'></div><div class='rightBlockDevice'><div class='valueBlockDevice'>"+holders[i].ip+" = "+holders[i].browser+"</div><div class='descriptionBlockDevice'>"+typeDevice+" = "+holders[i].os+" "+holders[i].osVersion+"</div></div><div onclick='deleteDevice("+user.id+", "+i+")' class='deleteDevice'></div>";
-            document.getElementById('devices').appendChild(blockContactMail);
+            blockDevice.setAttribute('id', 'blockDevice'+i);
+            blockDevice.setAttribute('class', 'blockDevice');
+            blockDevice.setAttribute('indexHolder', i);
+            blockDevice.innerHTML = "<div class='imgBlockDevice' type='"+typeDevice+"'></div><div class='rightBlockDevice'><div class='valueBlockDevice'>"+holders[i].ip+" = "+holders[i].browser+"</div><div class='descriptionBlockDevice'>"+typeDevice+" = "+holders[i].os+" "+holders[i].osVersion+"</div></div><div onclick='deleteDevice("+user.id+", "+i+")' class='deleteDevice'></div>";
+            document.getElementById('devices').appendChild(blockDevice);
           }
 
           document.getElementById('labelConfirmDelete').innerHTML = 'enter your email <b>'+user.email+'</b> to confirm deleting';
