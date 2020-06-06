@@ -49,3 +49,41 @@ function deleteAccount(idUser) {
     location.reload();
   }
 }
+function showConfirmSignout() {
+  document.getElementById('backConfirmSignout').style.display = 'flex';
+  setTimeout(function() {
+    document.getElementById('backConfirmSignout').style.opacity = '1';
+    document.getElementById('blockConfirmSignout').style.transform = 'translateY(0px)';
+    document.getElementById('strokeButtonsConfirmSignout').style.transform = 'translateY(0px)';
+  }, 10);
+}
+function hideConfirmSignout() {
+  document.getElementById('backConfirmSignout').style.opacity = '0';
+  document.getElementById('blockConfirmSignout').style.transform = 'translateY(-40px)';
+  document.getElementById('strokeButtonsConfirmSignout').style.transform = 'translateY(80px)';
+  setTimeout(function() {
+    document.getElementById('backConfirmSignout').style.display = 'none';
+  }, 200);
+}
+var downPressConfirmSignout = false;
+window.addEventListener("mousedown", function(e) {
+  if (document.getElementById('blockConfirmSignout') != e.target && !isChild(document.getElementById('blockConfirmSignout'), e.target) && document.getElementById('backConfirmSignout').style.display == 'flex') {
+    downPressConfirmSignout = true;
+  } else {
+    downPressConfirmSignout = false;
+  }
+});
+window.addEventListener("mouseup", function(e) {
+  if (document.getElementById('blockConfirmSignout') != e.target && !isChild(document.getElementById('blockConfirmSignout'), e.target) && downPressConfirmSignout) {
+    hideConfirmSignout();
+  } else {
+    downPressConfirmSignout = false;
+  }
+});
+function signout() {
+  removeCookie('signinMail');
+  location.reload();
+}
+function removeCookie(name) {
+  document.cookie = name+"=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+}

@@ -17,6 +17,16 @@
       </div>
     </section>
 
+    <section id='backConfirmSignout'>
+      <div id='blockConfirmSignout'>
+        <div id='labelConfirmSignout'>do you really wanna sign out?</div>
+        <div id='strokeButtonsConfirmSignout'>
+          <div id='noConfirmSignout' onclick='hideConfirmSignout()'>no</div>
+          <div id='yesConfirmSignout' onclick='signout()'>yes</div>
+        </div>
+      </div>
+    </section>
+
     <section id='wrapLinkHome'>
       <a id='linkHome' href='/'>gmer.io</a>
     </section>
@@ -40,7 +50,7 @@
       </div>
 
       <div id='devices'>
-        <div id='titleContacts'>Devices</div>
+        <div id='titleDevices'>Devices</div>
 
         <!-- <div class='blockDevice'>
           <div class='imgBlockDevice' type='desktop'></div>
@@ -64,6 +74,7 @@
       <div id='control'>
         <div id='titleControl'>Control</div>
         <div id='buttonsControl'>
+          <div id='signoutAccount' onclick='showConfirmSignout()'>sign out</div>
           <div id='deleteAccount' onclick='showConfirm()'>delete account</div>
         </div>
       </div>
@@ -81,11 +92,11 @@
       if (typeof signinMail != 'undefined' || signinMail != '') {
         socket.emit('authorization', signinMail, getDeviceData());
       } else {
-        document.getElementById('wrapSign').style.display = 'flex';
-        startAnimationFormSign();
+        document.getElementById('accessdenied').style.display = 'flex';
       }
 
       socket.on('authorization2', function(user) {
+        console.log(user);
         if (user && id == user.id) {
           document.getElementById('userBlock').style.display = 'flex';
 
