@@ -42,15 +42,15 @@
       </div>
       <div id='nouserBlock'>
         <div id='labelNouserBlock'>Sign in and become developer web games right now.</div>
-        <div id='buttonNouserBlock'>Sign in/up</div>
+        <a id='buttonNouserBlock' href='/u'>Sign in/up</a>
       </div>
       <div id='nostudioBlock'>
         <div id='labelNostudioBlock'>Create your own studio free and become developer web games right now.</div>
-        <div id='buttonNostudioBlock'>Create studio</div>
+        <div id='buttonNostudioBlock' href='/s'>Create studio</div>
       </div>
       <div id='yesstudioBlock'>
         <div id='labelYesstudioBlock'>You are a respected developer. We have some cool tips for you.</div>
-        <div id='buttonYesstudioBlock'>Get tips</div>
+        <div id='buttonYesstudioBlock' href='/documentation/tips'>Get tips</div>
       </div>
 
       <h1 id='mainTitle'>Multiplayer/single, 3d/2d, real time/step by step ... create any web game with gmer.io it's easy.</h1>
@@ -126,6 +126,7 @@
 
       socket.on('haveIStudio2', function(result) {
         if (result) {
+          document.getElementById('buttonNostudioBlock').setAttribute('href', '/s/'+result);
           showAnimationYesstudio();
         } else if (!result) {
           showAnimationNostudio();

@@ -1070,7 +1070,8 @@ io.sockets.on('connection', function(socket) {
     connection.connect(function(err) {
       connection.query("SELECT * FROM users WHERE id='"+idUser+"'", function (err, result, fields) {
         if (result[0].studios != null && result[0].studios != '' && typeof result[0].studios != 'undefined' && !result[0].studios) {
-          io.to(socket.id).emit('haveIStudio2', true);
+          var idstudio = result[0].studios.split(',')[0];
+          io.to(socket.id).emit('haveIStudio2', idstudio);
         } else {
           io.to(socket.id).emit('haveIStudio2', false);
         }
