@@ -1069,8 +1069,7 @@ io.sockets.on('connection', function(socket) {
     });
     connection.connect(function(err) {
       connection.query("SELECT * FROM users WHERE id='"+idUser+"'", function (err, result, fields) {
-        io.to(socket.id).emit('sendtextttt', result[0]);
-        if (result[0].studios != null || result[0].studios != '' || typeof result[0].studios != 'undefined' || !result[0].studios) {
+        if (result[0].studios != null && result[0].studios != '' && typeof result[0].studios != 'undefined' && !result[0].studios) {
           io.to(socket.id).emit('haveIStudio2', true);
         } else {
           io.to(socket.id).emit('haveIStudio2', false);
