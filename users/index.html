@@ -65,7 +65,7 @@
             <span class="checkmark"></span>
           </label>
           <!-- <input id="agreementCheckbox" type="checkbox" onchange='switchAgreement(this)' /> -->
-          <span id="agreementText">I accept <a target='_blank' href='/'>privacy policy</a> and <a target='_blank' href='/'>terms / conditions of use</a></span>
+          <span id="agreementText">I accept <a target='_blank' href='/u/document/privacy'>privacy policy</a> and <a target='_blank' href='/u/document/terms'>terms / conditions of use</a></span>
         </div>
         <div id='buttonAnswer' disabled='' condition='' onclick='nextstep2(this)'></div>
       </div>
@@ -118,7 +118,6 @@
       if (typeof signinMail != 'undefined' || signinMail != '') {
         socket.emit('authorization', signinMail, getDeviceData());
       } else {
-        document.getElementById('wrapSign').style.display = 'flex';
         startAnimationFormSign();
       }
 
@@ -126,7 +125,6 @@
         if (user) {
           window.location.href = "/u/"+user.id;
         } else {
-          document.getElementById('wrapSign').style.display = 'flex';
           startAnimationFormSign();
         }
       });
