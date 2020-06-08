@@ -68,9 +68,13 @@ app.get('/query*', function(request, respons) {
   urlRequest = request.originalUrl;
   var url = request.originalUrl.split("?")[0];
   url = url.split("/");
-  if (url.length == 2) {
-    respons.sendFile(__dirname+'/pages/query.html');
-  } else if (url.length > 2) {
+  if (url[2] == 'query') {
+    if (url.length == 2) {
+      respons.sendFile(__dirname+'/pages/query.html');
+    } else if (url.length > 2) {
+      respons.status(404).send();
+    }
+  } else {
     respons.status(404).send();
   }
 });
@@ -115,24 +119,38 @@ app.get('/u*', function(request, respons) {
   urlRequest = request.originalUrl;
   var url = request.originalUrl.split("?")[0];
   url = url.split("/");
-  if (url.length == 2) {
-    respons.sendFile(__dirname+'/users/index.html');
-  } else if (url.length == 3) {
-    respons.sendFile(__dirname+'/users/user.html');
-  } else if (url.length > 3) {
+  if (url[1] == 'u') {
+    if (url.length == 2) {
+      respons.sendFile(__dirname+'/users/index.html');
+    } else if (url.length == 3) {
+      respons.sendFile(__dirname+'/users/user.html');
+    } else if (url.length > 3) {
+      if (url[2] == 'document' && url[3] == 'terms') {
+        respons.sendFile(__dirname+'/users/documents/terms.html');
+      } else if (url[2] == 'document' && url[3] == 'privacy') {
+        respons.sendFile(__dirname+'/users/documents/privacy.html');
+      } else {
+        respons.status(404).send();
+      }
+    }
+  } else {
     respons.status(404).send();
   }
 });
-// app.get('/s/*', function(request, respons) {
-//   urlRequest = request.originalUrl;
-//   var url = request.originalUrl.split("?")[0];
-//   url = url.split("/");
-//   if (url.length == 2) {
-//     respons.sendFile(__dirname+'/studious/index.html');
-//   } else if (url.length == 3) {
-//     respons.status(404).send();
-//   }
-// });
+app.get('/s*', function(request, respons) {
+  urlRequest = request.originalUrl;
+  var url = request.originalUrl.split("?")[0];
+  url = url.split("/");
+  if (url[1] == 's') {
+    if (url.length == 2) {
+      respons.sendFile(__dirname+'/studios/index.html');
+    } else if (url.length > 2) {
+      respons.status(404).send();
+    }
+  } else {
+    respons.status(404).send();
+  }
+});
 
 // app.use('/img', express.static('img'));
 // app.use('/resource', express.static('resource'));
@@ -1036,7 +1054,26 @@ io.sockets.on('connection', function(socket) {
     });
     connection.connect(function(err) {
       connection.query("DELETE FROM users WHERE id='"+idUser+"'", function (err, result, fields) {
-        io.to(socket.id).emit('refreshPage');
+        // io.to(socket.id).emit('refreshPage');
+        // connection.end();
+      });
+    });
+  });
+
+  socket.on('haveIStudio1', function(idUser) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM users WHERE id='"+idUser+"'", function (err, result, fields) {
+        if (result[0].studios != null || result[0].studios != '' || typeof result[0].studios != 'undefined') {
+          io.to(socket.id).emit('haveIStudio2', true);
+        } else {
+          io.to(socket.id).emit('haveIStudio2', false);
+        }
       });
       setTimeout(function() {
           connection.end();
@@ -1709,7 +1746,6 @@ io.sockets.on('connection', function(socket) {
   	playersS[socket.id].idObj = '';
   });
 
-
   //end code stealth into socket ----------------
 
   socket.on('disconnect', function() {
@@ -1729,7 +1765,6 @@ io.sockets.on('connection', function(socket) {
 	    }
 		}
     delete players[socket.id];
-
 
     removePlayerFromRoomS(socket.id);
 		delete playersS[socket.id];
