@@ -3,20 +3,23 @@
 // });
 
 var startAnimationFormSign = function() {
-  document.getElementById('formSign').style.transform = 'scale(1)';
+  document.getElementById('wrapSign').style.display = 'flex';
   setTimeout(function() {
-    document.getElementById('labelSign').style.opacity = '1';
-  }, 400);
-  setTimeout(function() {
-    document.getElementById('blockInput').style.opacity = '1';
-  }, 500);
-  setTimeout(function() {
-    document.getElementById('recaptcha1').style.opacity = '1';
-  }, 600);
-  setTimeout(function() {
-    document.getElementById('buttonSign').style.transform = 'translateY(0px)';
-    document.getElementById('buttonSign').style.opacity = '1';
-  }, 700);
+    document.getElementById('formSign').style.transform = 'scale(1)';
+    setTimeout(function() {
+      document.getElementById('labelSign').style.opacity = '1';
+    }, 400);
+    setTimeout(function() {
+      document.getElementById('blockInput').style.opacity = '1';
+    }, 500);
+    setTimeout(function() {
+      document.getElementById('recaptcha1').style.opacity = '1';
+    }, 600);
+    setTimeout(function() {
+      document.getElementById('buttonSign').style.transform = 'translateY(0px)';
+      document.getElementById('buttonSign').style.opacity = '1';
+    }, 700);
+  }, 10);
 };
 
 var validMail = function(e) {
