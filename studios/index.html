@@ -7,8 +7,9 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <link rel="icon" type="image/png" id="icoico" href="/g/stealth/resource/img/favicon.png">
     <title>Create your own web-game free with gmer.io. Multiplayer or single, real-time or step by step, it's all simple.</title>
+
+    <link rel="stylesheet" href="/resource/styles/studioswelcome.css" />
 
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-161435685-1"></script>
@@ -22,6 +23,132 @@
     <!-- end Global site tag (gtag.js) - Google Analytics -->
   </head>
   <body>
-    something
+
+    <section id='backgroundImgs'>
+      <div id='backgroundImg1'></div>
+      <div id='backgroundImg2'></div>
+      <div id='backgroundImg3'></div>
+      <div id='backgroundImg4'></div>
+      <div id='backgroundImg5'></div>
+      <div id='backgroundImg6'></div>
+      <div id='backgroundImg7'></div>
+      <div id='backgroundImg8'></div>
+      <div id='backgroundImg9'></div>
+    </section>
+
+    <section id='registrationSection'>
+      <div id='wrapLinkHome'>
+        <a id='linkHome' href='/'>gmer.io</a>
+      </div>
+      <div id='nouserBlock'>
+        <div id='labelNouserBlock'>Sign in and become developer web games right now.</div>
+        <div id='buttonNouserBlock'>Sign in/up</div>
+      </div>
+      <div id='nostudioBlock'>
+        <div id='labelNostudioBlock'>Create your own studio free and become developer web games right now.</div>
+        <div id='buttonNostudioBlock'>Create studio</div>
+      </div>
+      <div id='yesstudioBlock'>
+        <div id='labelYesstudioBlock'>You are a respected developer. We have some cool tips for you.</div>
+        <div id='buttonYesstudioBlock'>Get tips</div>
+      </div>
+
+      <h1 id='mainTitle'>Multiplayer/single, 3d/2d, real time/step by step ... create any web game with gmer.io it's easy.</h1>
+    </section>
+
+    <section id='sectionArrowDown'>
+      <div id='arrowDown' onclick='scroll100vh()'></div>
+      <div id='arrowUp' onclick='scroll0vh()'></div>
+    </section>
+
+    <section id='sectionAppealToDeveloper'>
+      <h2 id='textAppealToDeveloper'>Developer, let's work together. You give to us good web game. We give to you promote and good working conditions to create game. All is honesty. Down below you can read our benefits.</h2>
+    </section>
+
+    <section id='listBenefits'>
+      <div class='wrapBlockBenefits' id='wrapBlockBenefits1'>
+        <div class='blockBenefits'>
+          <h2 class='titleBenefits'>Totally free</h2>
+          <h3 class='textBenefits'>Using our system and our servers not require any pay at all. You can be sure, we won't demand or ask money. Just add game at gmer.io you make us the happiest.</h3>
+        </div>
+      </div>
+      <div class='wrapBlockBenefits' id='wrapBlockBenefits2'>
+        <div class='blockBenefits'>
+          <h2 class='titleBenefits'>All rights belongs you</h2>
+          <h3 class='textBenefits'>This is completely your game. Adding product, you save all rightsю. Public, modify, commerce. Whatever you want to do with your game, you can do this at any other portal, our including. None of our agreements contain this. </h3>
+        </div>
+      </div>
+      <div class='wrapBlockBenefits' id='wrapBlockBenefits3'>
+        <div class='blockBenefits'>
+          <h2 class='titleBenefits'>You can monetize game as you want</h2>
+          <h3 class='textBenefits'>gmer.io give you opportunity earn money on your own game without commission at all. Wherever you want you can advertise in the game. We would be glad, if your game will be so cool, thats you can earn enough money. Later we will have own system advertisement, where you should pay commision, but using this system is completely voluntary and you can also insert ads as you do now on your own.</h3>
+        </div>
+      </div>
+      <div class='wrapBlockBenefits' id='wrapBlockBenefits4'>
+        <div class='blockBenefits'>
+          <h2 class='titleBenefits'>Node js or iframe</h2>
+          <h3 class='textBenefits'>You can create multiplayer web game real time or not, using our node js websocket server. We developed system special for you (documentation: how create multiplayer games on the gmer.io). You can free using our web socket without your own server. But, if you want, you can use your server, adding game by iframe (requred link your web site).</h3>
+        </div>
+      </div>
+      <div class='wrapBlockBenefits' id='wrapBlockBenefits5'>
+        <div class='blockBenefits'>
+          <h2 class='titleBenefits'>Your game can be promoted by gmerio</h2>
+          <h3 class='textBenefits'>When you made really awesome game. A game that many people will play. We will proud you. And we would can promote your game by advertising on others places and on the our's resources for our money, if you will agree.</h3>
+        </div>
+      </div>
+      <div class='wrapBlockBenefits' id='wrapBlockBenefits6'>
+        <div class='blockBenefits'>
+          <h2 class='titleBenefits'>You can sell the game</h2>
+          <h3 class='textBenefits'>You can sell the game to us. But we rarely buy games, and only those in which we see good potential. We don't advice you count on we buy your game. But, if you want, you can ask us any time, we open for it. We will estimate the game and may be the deal will be success.</h3>
+        </div>
+      </div>
+    </section>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src='/resource/js/users/getDeviceData.js'></script>
+    <script src='/resource/js/studios/studiowelcome.js'></script>
+    <script type="text/javascript">
+      var socket = io();
+      var signinMail = getCookie('signinMail');
+      if (typeof signinMail != 'undefined' || signinMail != '') {
+        socket.emit('authorization', signinMail, getDeviceData());
+      } else {
+        showAnimationNouser();
+      }
+
+      socket.on('authorization2', function(user) {
+        if (user) {
+          socket.emit('haveIStudio1', user.id);
+        } else {
+          showAnimationNouser();
+        }
+      });
+
+      socket.on('haveIStudio2', function(result) {
+        if (result) {
+          showAnimationYesstudio();
+        } else if (!result) {
+          showAnimationNostudio();
+        }
+      });
+
+      function getCookie(cname) {
+        var name = cname + "=";
+        var decodedCookie = decodeURIComponent(document.cookie);
+        var ca = decodedCookie.split(';');
+        for(var i = 0; i <ca.length; i++) {
+          var c = ca[i];
+          while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+          }
+          if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+          }
+        }
+        return "";
+      }
+      setPositionFooter();
+      // translateBenefits();
+    </script>
   </body>
 </html>
