@@ -158,12 +158,12 @@ function validStudioName(e) {
     document.getElementById('titleInput').innerHTML = 'name studio = valid';
     document.getElementById('titleInput').style.color = '#1aca00';
     document.getElementById('inputInput').style.border = '1px solid #1aca00';
-    document.getElementById('buttonSign').setAttribute('disabled', '0');
+    document.getElementById('buttonNostudioBlock').setAttribute('disabled', '0');
   } else if (!valid) {
     document.getElementById('titleInput').innerHTML = 'name studio = invalid';
     document.getElementById('titleInput').style.color = '#f77171';
     document.getElementById('inputInput').style.border = '1px solid #f77171';
-    document.getElementById('buttonSign').setAttribute('disabled', '1');
+    document.getElementById('buttonNostudioBlock').setAttribute('disabled', '1');
   }
 }
 
@@ -171,6 +171,8 @@ function createStudio() {
   var value = document.getElementById('inputInput').value;
 
   if (/^\w+$/.test(value)) {
+    console.log(userData);
+    console.log(value);
     socket.emit('createStudio', userData, value);
   }
 }
