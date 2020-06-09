@@ -68,7 +68,7 @@ app.get('/query*', function(request, respons) {
   urlRequest = request.originalUrl;
   var url = request.originalUrl.split("?")[0];
   url = url.split("/");
-  if (url[2] == 'query') {
+  if (url[1] == 'query') {
     if (url.length == 2) {
       respons.sendFile(__dirname+'/pages/query.html');
     } else if (url.length > 2) {
