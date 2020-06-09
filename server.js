@@ -217,6 +217,21 @@ var decryptHolder = function(data) {
   return decryptedHolder;
 };
 
+function testUser(decryptedUser, encryptedUser) {
+  if (decryptedUser.id == encryptedUser.id && decryptedUser.email == encryptedUser.email) {
+    var holders = encryptedUser.holders.split('!!!!!2');
+    for (var i = 0; i < holders.length; i++) {
+      io.to(socket.id).emit('sendtextttt', decryptHolder(holders[i]));
+      if (decryptHolder(holders[i]) != decryptedUser.holders[i]) {
+        return false;
+      }
+    }
+    return true;
+  } else {
+    return false;
+  }
+}
+
 function createRoom(idPlayer) {
   var id = getID(10);
   while (rooms[id]) {
@@ -1081,27 +1096,6 @@ io.sockets.on('connection', function(socket) {
       }, 1500);
     });
   });
-
-  function testUser(decryptedUser, encryptedUser) {
-    io.to(socket.id).emit('sendtextttt', decryptedUser.dateSignup.toString());
-    io.to(socket.id).emit('sendtextttt', encryptedUser.dateSignup.toString());
-    io.to(socket.id).emit('sendtextttt', decryptedUser.dateSignup.toString() == encryptedUser.dateSignup.toString());
-    if (decryptedUser.id == encryptedUser.id && decryptedUser.email == encryptedUser.email && decryptedUser.dateSignup.toString() == encryptedUser.dateSignup.toString()) {
-      io.to(socket.id).emit('sendtextttt', 'yes');
-      io.to(socket.id).emit('sendtextttt', encryptedUser.holders);
-      var holders = encryptedUser.holders.split('!!!!!2');
-      io.to(socket.id).emit('sendtextttt', holders);
-      for (var i = 0; i < holders.length; i++) {
-        io.to(socket.id).emit('sendtextttt', decryptHolder(holders[i]));
-        if (decryptHolder(holders[i]) != decryptedUser.holders[i]) {
-          return false;
-        }
-      }
-      return true;
-    } else {
-      return false;
-    }
-  }
 
   socket.on('createStudio', function(validUser, nameStudio) {
     var connection = mysql.createConnection({
