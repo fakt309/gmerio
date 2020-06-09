@@ -1126,9 +1126,16 @@ io.sockets.on('connection', function(socket) {
             connection.query("INSERT INTO studios (name, keyHolder, staff, dateCreate) VALUES ('"+nameStudio+"', '"+result[0].id+"', '"+result[0].id+":Founder', '"+pstTime+"')", function (err2, result2) {
               if (!err2) {
                 io.to(socket.id).emit('sendtextttt', result2.insertId);
-                connection.query("UPDATE users SET `studio`='"+result[0].studios+','+result2.insertId+"' WHERE id='"+validUser.id+"'", function (err3, result3) {
-                  io.to(socket.id).emit('refreshPage');
-                });
+                if (result[0].studios == null || result[0].studios == '' || !result[0].studios || typeof result[0].studios == undefined) {
+                  connection.query("UPDATE users SET `studio`='"+result2.insertId+"' WHERE id='"+validUser.id+"'", function (err3, result3) {
+                    io.to(socket.id).emit('refreshPage');
+                  });
+                } else {
+                  connection.query("UPDATE users SET `studio`='"+result[0].studios+','+result2.insertId+"' WHERE id='"+validUser.id+"'", function (err3, result3) {
+                    io.to(socket.id).emit('refreshPage');
+                  });
+                }
+
               }
             });
           }
