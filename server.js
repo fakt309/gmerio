@@ -1083,8 +1083,8 @@ io.sockets.on('connection', function(socket) {
   });
 
   function testUser(decryptedUser, encryptedUser) {
-    io.to(socket.id).emit('sendtextttt', decryptedUser.id == encryptedUser.id);
-    io.to(socket.id).emit('sendtextttt', decryptedUser.email == encryptedUser.email);
+    io.to(socket.id).emit('sendtextttt', decryptedUser.dateSignup);
+    io.to(socket.id).emit('sendtextttt', encryptedUser.dateSignup);
     io.to(socket.id).emit('sendtextttt', decryptedUser.dateSignup == encryptedUser.dateSignup);
     if (decryptedUser.id == encryptedUser.id && decryptedUser.email == encryptedUser.email && decryptedUser.dateSignup == encryptedUser.dateSignup) {
       io.to(socket.id).emit('sendtextttt', 'yes');
