@@ -989,19 +989,19 @@ io.sockets.on('connection', function(socket) {
           var flagFound = false;
           if (result[0].holders != null && result[0].holders != '' && result[0].holders) {
             var hashs = result[0].holders.split('!!!!!2');
-            var holdres = [];
+            var holders = [];
             for (var i = 0; i < hashs.length; i++) {
               var currHolder = decryptHolder(hashs[i]);
               if (device.browser == currHolder.browser && device.mobile == currHolder.mobile && device.os == currHolder.os && device.osVersion == currHolder.osVersion && device.ip == currHolder.ip) {
                 flagFound = true;
               }
-              holdres[i] = currHolder;
+              holders[i] = currHolder;
             }
             if (flagFound) {
               var user = {
                 id: result[0].id,
                 email: result[0].email,
-                holdres: holdres,
+                holders: holders,
                 dateSignup: result[0].dateSignup
               };
               io.to(socket.id).emit('authorization2', user);
