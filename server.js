@@ -1075,7 +1075,6 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('haveIStudio1', function(idUser) {
-    io.to(socket.id).emit('sendtextttt', idUser);
     var connection = mysql.createConnection({
       host: "vh50.timeweb.ru",
       user: "totarget_gmerio",
@@ -1084,17 +1083,11 @@ io.sockets.on('connection', function(socket) {
     });
     connection.connect(function(err) {
       connection.query("SELECT * FROM users WHERE id='"+idUser+"'", function (err, result, fields) {
-        io.to(socket.id).emit('sendtextttt', result[0]);
         if (result[0].studios != null && result[0].studios != '' && typeof result[0].studios != 'undefined' && result[0].studios) {
-          // var idstudio = result[0].studios.split(',')[0];
-          // io.to(socket.id).emit('haveIStudio2', idstudio);
-          io.to(socket.id).emit('sendtextttt', result[0]);
           var studios = result[0].studios.split(',');
           studios = studios.join('|');
-          io.to(socket.id).emit('sendtextttt', studios);
           connection.query("SELECT * FROM studios WHERE id REGEXP '("+studios+")'", function (err2, result2, fields2) {
             if (result2[0]) {
-              io.to(socket.id).emit('sendtextttt', result2);
               io.to(socket.id).emit('haveIStudio2', result2);
             }
           });
@@ -1109,6 +1102,8 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('createStudio', function(validUser, nameStudio) {
+    io.to(socket.id).emit('sendtextttt', validUser);
+    io.to(socket.id).emit('sendtextttt', nameStudio);
     var connection = mysql.createConnection({
       host: "vh50.timeweb.ru",
       user: "totarget_gmerio",
@@ -1117,7 +1112,9 @@ io.sockets.on('connection', function(socket) {
     });
     connection.connect(function(err) {
       connection.query("SELECT * FROM users WHERE id='"+validUser.id+"'", function (err, result, fields) {
+        io.to(socket.id).emit('sendtextttt', testUser(validUser, result[0]));
         if (result[0] && testUser(validUser, result[0])) {
+          io.to(socket.id).emit('sendtextttt', result[0]);
           var pstTime = new Date(Date.now()+new Date().getTimezoneOffset()*60*1000+(-7*60*60*1000));
           var mounths = pstTime.getMonth()+1;
           if (mounths < 10) { mounths = '0'+mounths; }
@@ -1130,8 +1127,11 @@ io.sockets.on('connection', function(socket) {
           var seconds = pstTime.getSeconds();
           if (seconds < 10) { seconds = '0'+seconds; }
           pstTime = pstTime.getFullYear()+'-'+mounths+'-'+days+' '+hours+':'+minutes+':'+seconds;
-          connection.query("INSERT INTO studios (name, keyHolder, staff, dateCreate) VALUES ('"+nameStudio+"', '"+result[0].id+"', '"+result[0].id+":Founder', '"+pstTime+"')", function (err, result, fields) {});
-          io.to(socket.id).emit('refreshPage');
+          connection.query("INSERT INTO studios (name, keyHolder, staff, dateCreate) VALUES ('"+nameStudio+"', '"+result[0].id+"', '"+result[0].id+":Founder', '"+pstTime+"')", function (err, result, fields) {
+            if (!err) {
+              io.to(socket.id).emit('refreshPage');
+            }
+          });
         }
       });
       setTimeout(function() {
