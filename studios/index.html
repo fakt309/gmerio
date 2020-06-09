@@ -134,6 +134,8 @@
       });
 
       socket.on('haveIStudio2', function(result) {
+        console.log(userData);
+        console.log(result);
         if (result) {
           for (var i = 0; i < result.length; i++) {
             var linkStudio = document.createElement('a');

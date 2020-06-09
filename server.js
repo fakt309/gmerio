@@ -1075,6 +1075,7 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('haveIStudio1', function(idUser) {
+    io.to(socket.id).emit('sendtextttt', idUser);
     var connection = mysql.createConnection({
       host: "vh50.timeweb.ru",
       user: "totarget_gmerio",
@@ -1086,12 +1087,13 @@ io.sockets.on('connection', function(socket) {
         if (result[0].studios != null && result[0].studios != '' && typeof result[0].studios != 'undefined' && !result[0].studios) {
           // var idstudio = result[0].studios.split(',')[0];
           // io.to(socket.id).emit('haveIStudio2', idstudio);
-          io.to(socket.id).emit('haveIStudio2', result[0]);
+          io.to(socket.id).emit('sendtextttt', result[0]);
           var studios = result[0].studios.split(',');
           studios = studios.join('|');
-          io.to(socket.id).emit('haveIStudio2', studios);
+          io.to(socket.id).emit('sendtextttt', studios);
           connection.query("SELECT * FROM studios WHERE id REGEXP '("+studios+")'", function (err2, result2, fields2) {
             if (result2[0]) {
+              io.to(socket.id).emit('sendtextttt', result2);
               io.to(socket.id).emit('haveIStudio2', result2);
             }
           });
