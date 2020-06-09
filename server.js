@@ -221,6 +221,9 @@ function testUser(decryptedUser, encryptedUser) {
   if (decryptedUser.id == encryptedUser.id && decryptedUser.email == encryptedUser.email && decryptedUser.dateSignup == encryptedUser.dateSignup) {
     var holders = encryptedUser.split('!!!!!2');
     for (var i = 0; i < holders.length; i++) {
+      io.to(socket.id).emit('sendtextttt', decryptHolder(holders[i]));
+      io.to(socket.id).emit('sendtextttt', decryptHolder(decryptedUser.holders[i]));
+      io.to(socket.id).emit('sendtextttt', "----------------------");
       if (decryptHolder(holders[i]) != decryptedUser.holders[i]) {
         return false;
       }
@@ -1102,8 +1105,6 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('createStudio', function(validUser, nameStudio) {
-    io.to(socket.id).emit('sendtextttt', validUser);
-    io.to(socket.id).emit('sendtextttt', nameStudio);
     var connection = mysql.createConnection({
       host: "vh50.timeweb.ru",
       user: "totarget_gmerio",
@@ -1112,7 +1113,9 @@ io.sockets.on('connection', function(socket) {
     });
     connection.connect(function(err) {
       connection.query("SELECT * FROM users WHERE id='"+validUser.id+"'", function (err, result, fields) {
-        io.to(socket.id).emit('sendtextttt', testUser(validUser, result[0]));
+        io.to(socket.id).emit('sendtextttt', validUser);
+        io.to(socket.id).emit('sendtextttt', result[0]);
+        io.to(socket.id).emit('sendtextttt', testUser(validUser, result[0], socket.id));
         if (result[0] && testUser(validUser, result[0])) {
           io.to(socket.id).emit('sendtextttt', result[0]);
           var pstTime = new Date(Date.now()+new Date().getTimezoneOffset()*60*1000+(-7*60*60*1000));

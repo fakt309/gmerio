@@ -171,8 +171,6 @@ function createStudio() {
   var value = document.getElementById('inputInput').value;
 
   if (/^\w+$/.test(value)) {
-    console.log(userData);
-    console.log(value);
     socket.emit('createStudio', userData, value);
   }
 }
