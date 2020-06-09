@@ -149,6 +149,13 @@
         }
       });
 
+      socket.on('createStudio2', function(answer) {
+        if (answer.split(":")[0] == 'err') {
+          document.getElementById('labelNostudioBlock').style.color = "#f77171";
+          document.getElementById('labelNostudioBlock').innerHTML = answer.split(":")[1];
+        }
+      });
+
       socket.on('refreshPage', function() {
         location.reload();
       });

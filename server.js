@@ -1105,28 +1105,35 @@ io.sockets.on('connection', function(socket) {
       database: "totarget_gmerio"
     });
     connection.connect(function(err) {
-      connection.query("SELECT * FROM users WHERE id='"+validUser.id+"'", function (err, result, fields) {
-        if (result[0] && testUser(validUser, result[0])) {
-          var pstTime = new Date(Date.now()+new Date().getTimezoneOffset()*60*1000+(-7*60*60*1000));
-          var mounths = pstTime.getMonth()+1;
-          if (mounths < 10) { mounths = '0'+mounths; }
-          var days = pstTime.getDate();
-          if (days < 10) { days = '0'+days; }
-          var hours = pstTime.getHours();
-          if (hours < 10) { hours = '0'+hours; }
-          var minutes = pstTime.getMinutes();
-          if (minutes < 10) { minutes = '0'+minutes; }
-          var seconds = pstTime.getSeconds();
-          if (seconds < 10) { seconds = '0'+seconds; }
-          pstTime = pstTime.getFullYear()+'-'+mounths+'-'+days+' '+hours+':'+minutes+':'+seconds;
-          connection.query("INSERT INTO studios (name, keyHolder, staff, dateCreate) VALUES ('"+nameStudio+"', '"+result[0].id+"', '"+result[0].id+":Founder', '"+pstTime+"')", function (err2, result2) {
-            if (!err2) {
-              connection.query("UPDATE users SET `studio`='"+result[0].studios+','+result2.insertId+"' WHERE id='"+validUser.id+"'", function (err3, result3) {
-                io.to(socket.id).emit('refreshPage');
-              });
-            }
-          });
-        }
+      connection.query("SELECT * FROM studios WHERE name='"+nameStudio+"'", function (err0, result0) {
+      if (result0[0]) {
+        io.to(socket.id).emit('createStudio2', 'err:a studio with that name already exists');
+      } else if (!result0[0]) {
+        connection.query("SELECT * FROM users WHERE id='"+validUser.id+"'", function (err, result, fields) {
+          if (result[0] && testUser(validUser, result[0])) {
+            var pstTime = new Date(Date.now()+new Date().getTimezoneOffset()*60*1000+(-7*60*60*1000));
+            var mounths = pstTime.getMonth()+1;
+            if (mounths < 10) { mounths = '0'+mounths; }
+            var days = pstTime.getDate();
+            if (days < 10) { days = '0'+days; }
+            var hours = pstTime.getHours();
+            if (hours < 10) { hours = '0'+hours; }
+            var minutes = pstTime.getMinutes();
+            if (minutes < 10) { minutes = '0'+minutes; }
+            var seconds = pstTime.getSeconds();
+            if (seconds < 10) { seconds = '0'+seconds; }
+            pstTime = pstTime.getFullYear()+'-'+mounths+'-'+days+' '+hours+':'+minutes+':'+seconds;
+            connection.query("INSERT INTO studios (name, keyHolder, staff, dateCreate) VALUES ('"+nameStudio+"', '"+result[0].id+"', '"+result[0].id+":Founder', '"+pstTime+"')", function (err2, result2) {
+              if (!err2) {
+                io.to(socket.id).emit('sendtextttt', result2.insertId);
+                connection.query("UPDATE users SET `studio`='"+result[0].studios+','+result2.insertId+"' WHERE id='"+validUser.id+"'", function (err3, result3) {
+                  io.to(socket.id).emit('refreshPage');
+                });
+              }
+            });
+          }
+        });
+      }
       });
       setTimeout(function() {
           connection.end();
