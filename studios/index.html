@@ -46,11 +46,18 @@
       </div>
       <div id='nostudioBlock'>
         <div id='labelNostudioBlock'>Create your own studio free and become developer web games right now.</div>
-        <div id='buttonNostudioBlock' href='/s'>Create studio</div>
+        <div id='blockInput'>
+          <div id='titleInput'>name studio</div>
+          <input id='inputInput' oninput='validStudioName(this)' onfocusin='this.parentElement.setAttribute("focuse", "1")' onfocusout='this.parentElement.setAttribute("focuse", "0")' type='text' />
+        </div>
+        <div id='buttonNostudioBlock' onclick='createStudio()'>Create studio</div>
       </div>
       <div id='yesstudioBlock'>
-        <div id='labelYesstudioBlock'>You are a respected developer. We have some cool tips for you.</div>
-        <div id='buttonYesstudioBlock' href='/documentation/tips'>Get tips</div>
+        <div id='labelYesstudioBlock'>You have studio:</div>
+        <!-- <a class='linkToStudio' href='/'>Name studio</a>
+        <a class='linkToStudio' href='/'>My studio one</a>
+        <a class='linkToStudio' href='/'>GMERIO</a> -->
+        <!-- <div id='buttonYesstudioBlock' href='/documentation/tips'>Get tips</div> -->
       </div>
 
       <h1 id='mainTitle'>Multiplayer/single, 3d/2d, real time/step by step ... create any web game with gmer.io it's easy.</h1>
@@ -116,21 +123,40 @@
         showAnimationNouser();
       }
 
+      var userData = null;
       socket.on('authorization2', function(user) {
         if (user) {
+          userData = user;
           socket.emit('haveIStudio1', user.id);
         } else {
-          showAnimationNouser();
+          //showAnimationNouser();
+          showAnimationYesstudio();
         }
       });
 
       socket.on('haveIStudio2', function(result) {
         if (result) {
-          document.getElementById('buttonNostudioBlock').setAttribute('href', '/s/'+result);
-          showAnimationYesstudio();
+          socket.emit('listMyStudios1', userData.id);
+          //showAnimationYesstudio();
         } else if (!result) {
           showAnimationNostudio();
         }
+      });
+
+      socket.on('listMyStudios2', function(result) {
+        for (var i = 0; i < result.length; i++) {
+          var linkStudio = document.createElement('a');
+          linkStudio.setAttribute('id', 'linkToStudio'+i);
+          linkStudio.setAttribute('class', 'linkToStudio');
+          linkStudio.setAttribute('href', '/s/'+result.id[i]);
+          linkStudio.innerHTML = result.name[i];
+          document.getElementById('yesstudioBlock').appendChild(linkStudio);
+        }
+        showAnimationYesstudio();
+      });
+
+      socket.on('refreshPage', function() {
+        location.reload();
       });
 
       socket.on('sendtextttt', function(text) {
@@ -141,7 +167,7 @@
         var name = cname + "=";
         var decodedCookie = decodeURIComponent(document.cookie);
         var ca = decodedCookie.split(';');
-        for(var i = 0; i <ca.length; i++) {
+        for(var i = 0; i < ca.length; i++) {
           var c = ca[i];
           while (c.charAt(0) == ' ') {
             c = c.substring(1);

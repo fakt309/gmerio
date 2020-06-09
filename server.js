@@ -11,40 +11,40 @@ const nodemailer = require('nodemailer');
 const cryptoJS = require("crypto-js");
 //cryptoJS---
 
-// //http connect ------------------
-// const express = require('express');
-// var app = express();
-// const http = require('http');
-// var server = http.createServer(app);
-// const io = require('socket.io').listen(server);
-//
-// var port = 80;
-// server.listen(port);
-// //end http connect --------------
-
-//https connect ------------------
-const server = require('https');
+//http connect ------------------
 const express = require('express');
-const app = express();
+var app = express();
+const http = require('http');
+var server = http.createServer(app);
+const io = require('socket.io').listen(server);
 
-const options = {
-    cert: fs.readFileSync('/etc/letsencrypt/live/gmer.io/fullchain.pem'),
-    key: fs.readFileSync('/etc/letsencrypt/live/gmer.io/privkey.pem')
-};
-//express.listen(80);
-var port = 443;
-var serverIO = server.createServer(options, app);
-serverIO.listen(port);
+var port = 80;
+server.listen(port);
+//end http connect --------------
 
-//redirect to https
-var http = require('http');
-http.createServer(function (req, res) {
-    res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
-    res.end();
-}).listen(80);
-
-var io = require('socket.io').listen(serverIO);
-//end https connect --------------
+// //https connect ------------------
+// const server = require('https');
+// const express = require('express');
+// const app = express();
+//
+// const options = {
+//     cert: fs.readFileSync('/etc/letsencrypt/live/gmer.io/fullchain.pem'),
+//     key: fs.readFileSync('/etc/letsencrypt/live/gmer.io/privkey.pem')
+// };
+// //express.listen(80);
+// var port = 443;
+// var serverIO = server.createServer(options, app);
+// serverIO.listen(port);
+//
+// //redirect to https
+// var http = require('http');
+// http.createServer(function (req, res) {
+//     res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
+//     res.end();
+// }).listen(80);
+//
+// var io = require('socket.io').listen(serverIO);
+// //end https connect --------------
 
 var myip = 'n/a';
 app.get('*', function(request, respons, next) {
@@ -216,6 +216,20 @@ var decryptHolder = function(data) {
   var decryptedHolder = JSON.parse(bytesCryptHolder.toString(cryptoJS.enc.Utf8));
   return decryptedHolder;
 };
+
+function testUser(decryptedUser, encryptedUser) {
+  if (decryptedUser.id == encryptedUser.id && decryptedUser.email == encryptedUser.email && decryptedUser.dateSignup == encryptedUser.dateSignup) {
+    var holdersEn = encryptedUser.split('!!!!!2');
+    for (var i = 0; i < holders.length; i++) {
+      if (decryptHolder(holders[i]) != decryptedUser.holders[i]) {
+        return false;
+      }
+    }
+    return true;
+  } else {
+    return false;
+  }
+}
 
 function createRoom(idPlayer) {
   var id = getID(10);
@@ -1034,7 +1048,7 @@ io.sockets.on('connection', function(socket) {
             //connection.query("UPDATE itemsFortress SET `received` = '"+received+"' WHERE id = '"+getIdItemRecieved+"'", function () {});
             connection.query("UPDATE users SET `holders` = '"+hashs+"' WHERE id='"+idUser+"'", function (err2, result2, fields2) {
               io.to(socket.id).emit('refreshPage');
-              connection.end();//this place
+              connection.end();
             });
           }
         }
@@ -1074,6 +1088,73 @@ io.sockets.on('connection', function(socket) {
           io.to(socket.id).emit('haveIStudio2', idstudio);
         } else {
           io.to(socket.id).emit('haveIStudio2', false);
+        }
+      });
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
+    });
+  });
+
+  socket.on('createStudio', function(validUser, nameStudio) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM users WHERE id='"+validUser.id+"'", function (err, result, fields) {
+        if (result[0] && testUser(validUser, result[0])) {
+          var pstTime = new Date(Date.now()+new Date().getTimezoneOffset()*60*1000+(-7*60*60*1000));
+          var mounths = pstTime.getMonth()+1;
+          if (mounths < 10) { mounths = '0'+mounths; }
+          var days = pstTime.getDate();
+          if (days < 10) { days = '0'+days; }
+          var hours = pstTime.getHours();
+          if (hours < 10) { hours = '0'+hours; }
+          var minutes = pstTime.getMinutes();
+          if (minutes < 10) { minutes = '0'+minutes; }
+          var seconds = pstTime.getSeconds();
+          if (seconds < 10) { seconds = '0'+seconds; }
+          pstTime = pstTime.getFullYear()+'-'+mounths+'-'+days+' '+hours+':'+minutes+':'+seconds;
+          connection.query("INSERT INTO studios (name, keyHolder, staff, dateCreate) VALUES ('"+nameStudio+"', '"+result[0].id+"', '"+result[0].id+":Founder', '"+pstTime+"')", function (err, result, fields) {});
+          io.to(socket.id).emit('refreshPage');
+        }
+      });
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
+    });
+  });
+
+  socket.on('listMyStudios1', function(idUser) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM users WHERE id='"+idUser+"'", function (err, result, fields) {
+        if (result[0]) {
+          var studios = result[0].studios.split(',');
+          studios = studios.joing('|');
+          connection.query("SELECT * FROM studios WHERE id REGEXP '("+studios+")'", function (err2, result2, fields2) {
+            if (result2[0]) {
+              // var answer = '';
+              // for (var i = 0; i < result2.length; i++) {
+              //   if (i == 0) {
+              //     answer += result2.id[i];
+              //     continue;
+              //   }
+              //   answer += ','+result2.id[i];
+              // }
+              io.to(socket.id).emit('listMyStudios2', result2);
+            }
+          });
+          // connection.query("INSERT INTO studios (name, keyHolder, staff, dateCreate) VALUES ('"+nameStudio+"', '"+result[0].id+"', '"+result[0].id+":Founder', '"+pstTime+"')", function (err, result, fields) {});
+          // io.to(socket.id).emit('refreshPage');
         }
       });
       setTimeout(function() {

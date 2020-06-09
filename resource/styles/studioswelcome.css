@@ -60,6 +60,7 @@ body {
   background-color: #ce0000;
   color: #fff;
   align-self: flex-end;
+  text-decoration: none;
   opacity: 0;
   transform: translateY(50px);
   transition: all ease 0.2s;
@@ -269,4 +270,64 @@ body {
 }
 #wrapBlockBenefits6 .titleBenefits{
   color: #fd5151;
+}
+#blockInput {
+  width: 70%;
+  margin: 10px 0px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  opacity: 0;
+  transition: all ease 0.2s;
+}
+#titleInput {
+  margin-left: 10px;
+  padding: 0px 5px;
+  font-size: 12px;
+  color: #999;
+  z-index: 10;
+  position: relative;
+  background-color: #fff;
+  align-self: flex-start;
+  transition: color ease 0.2s;
+}
+#blockInput[focuse='0'] #titleInput {
+  color: #999;
+}
+#blockInput[focuse='1'] #titleInput {
+  color: #333;
+}
+#inputInput {
+  font-size: 14px;
+  color: #333;
+  padding: 10px;
+  outline: none;
+  border: 1px solid #999;
+  border-radius: 5px;
+  margin-top: -5px;
+  z-index: 0;
+  position: relative;
+  transition: border ease 0.2s;
+}
+#blockInput[focuse='0'] .inputInput {
+  border: 1px solid #999;
+}
+#blockInput[focuse='1'] .inputInput {
+  border: 1px solid #333;
+}
+.linkToStudio {
+  align-self: stretch;
+  margin: 10px;
+  padding: 20px;
+  border: 1px solid #999;
+  color: #666;
+  font-size: 14px;
+  border-radius: 15px;
+  text-decoration: none;
+  opacity: 0;
+  transition: all ease 0.2s;
+}
+.linkToStudio:hover {
+  background-color: #99999922;
 }

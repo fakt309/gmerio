@@ -29,9 +29,12 @@ function showAnimationNostudio() {
       document.getElementById('buttonNostudioBlock').style.transform = 'translateY(0px)';
     }, 400);
     setTimeout(function() {
+      document.getElementById('blockInput').style.opacity = '1';
+    }, 600);
+    setTimeout(function() {
       document.getElementById('mainTitle').style.opacity = '1';
       showBackgroundImgs();
-    }, 600);
+    }, 800);
   }, 10);
 }
 function showAnimationYesstudio() {
@@ -47,9 +50,15 @@ function showAnimationYesstudio() {
       document.getElementById('buttonYesstudioBlock').style.transform = 'translateY(0px)';
     }, 400);
     setTimeout(function() {
+      var links = document.querySelectorAll('.linkToStudio');
+      for (var i = 0; i < links.length; i++) {
+        links[i].style.opacity = '1';
+      }
+    }, 600);
+    setTimeout(function() {
       document.getElementById('mainTitle').style.opacity = '1';
       showBackgroundImgs();
-    }, 600);
+    }, 800);
   }, 10);
 }
 function showBackgroundImgs() {
@@ -138,3 +147,32 @@ function setPositionFooter() {
 //     //wrapBenefits[i].style.opacity = '1';
 //   }
 // }
+
+function validStudioName(e) {
+  var valid = true;
+  if (!/^\w+$/.test(e.value)) {
+    valid = false;
+  }
+
+  if (valid) {
+    document.getElementById('titleInput').innerHTML = 'name studio = valid';
+    document.getElementById('titleInput').style.color = '#1aca00';
+    document.getElementById('inputInput').style.border = '1px solid #1aca00';
+    document.getElementById('buttonSign').setAttribute('disabled', '0');
+  } else if (!valid) {
+    document.getElementById('titleInput').innerHTML = 'name studio = invalid';
+    document.getElementById('titleInput').style.color = '#f77171';
+    document.getElementById('inputInput').style.border = '1px solid #f77171';
+    document.getElementById('buttonSign').setAttribute('disabled', '1');
+  }
+}
+
+function createStudio() {
+  var value = document.getElementById('inputInput').value;
+  console.log(value);
+  console.log(userData);
+
+  if (/^\w+$/.test(e.value)) {
+    socket.emit('createStudio', userData, value);
+  }
+}
