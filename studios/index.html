@@ -129,30 +129,24 @@
           userData = user;
           socket.emit('haveIStudio1', user.id);
         } else {
-          //showAnimationNouser();
-          showAnimationYesstudio();
+          showAnimationNouser();
         }
       });
 
       socket.on('haveIStudio2', function(result) {
         if (result) {
-          socket.emit('listMyStudios1', userData.id);
-          //showAnimationYesstudio();
+          for (var i = 0; i < result.length; i++) {
+            var linkStudio = document.createElement('a');
+            linkStudio.setAttribute('id', 'linkToStudio'+i);
+            linkStudio.setAttribute('class', 'linkToStudio');
+            linkStudio.setAttribute('href', '/s/'+result.id[i]);
+            linkStudio.innerHTML = result.name[i];
+            document.getElementById('yesstudioBlock').appendChild(linkStudio);
+          }
+          showAnimationYesstudio();
         } else if (!result) {
           showAnimationNostudio();
         }
-      });
-
-      socket.on('listMyStudios2', function(result) {
-        for (var i = 0; i < result.length; i++) {
-          var linkStudio = document.createElement('a');
-          linkStudio.setAttribute('id', 'linkToStudio'+i);
-          linkStudio.setAttribute('class', 'linkToStudio');
-          linkStudio.setAttribute('href', '/s/'+result.id[i]);
-          linkStudio.innerHTML = result.name[i];
-          document.getElementById('yesstudioBlock').appendChild(linkStudio);
-        }
-        showAnimationYesstudio();
       });
 
       socket.on('refreshPage', function() {

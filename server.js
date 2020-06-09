@@ -1084,8 +1084,15 @@ io.sockets.on('connection', function(socket) {
     connection.connect(function(err) {
       connection.query("SELECT * FROM users WHERE id='"+idUser+"'", function (err, result, fields) {
         if (result[0].studios != null && result[0].studios != '' && typeof result[0].studios != 'undefined' && !result[0].studios) {
-          var idstudio = result[0].studios.split(',')[0];
-          io.to(socket.id).emit('haveIStudio2', idstudio);
+          // var idstudio = result[0].studios.split(',')[0];
+          // io.to(socket.id).emit('haveIStudio2', idstudio);
+          var studios = result[0].studios.split(',');
+          studios = studios.join('|');
+          connection.query("SELECT * FROM studios WHERE id REGEXP '("+studios+")'", function (err2, result2, fields2) {
+            if (result2[0]) {
+              io.to(socket.id).emit('listMyStudios2', result2);
+            }
+          });
         } else {
           io.to(socket.id).emit('haveIStudio2', false);
         }
@@ -1139,7 +1146,7 @@ io.sockets.on('connection', function(socket) {
       connection.query("SELECT * FROM users WHERE id='"+idUser+"'", function (err, result, fields) {
         if (result[0]) {
           var studios = result[0].studios.split(',');
-          studios = studios.joing('|');
+          studios = studios.join('|');
           connection.query("SELECT * FROM studios WHERE id REGEXP '("+studios+")'", function (err2, result2, fields2) {
             if (result2[0]) {
               // var answer = '';
