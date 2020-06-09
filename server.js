@@ -217,6 +217,21 @@ var decryptHolder = function(data) {
   return decryptedHolder;
 };
 
+function testUser(decryptedUser, encryptedUser) {
+  if (decryptedUser.id == encryptedUser.id && decryptedUser.email == encryptedUser.email) {
+    var holders = encryptedUser.holders.split('!!!!!2');
+    for (var i = 0; i < holders.length; i++) {
+      var currDeHolder = decryptHolder(holders[i]);
+      if (currDeHolder.browser != decryptedUser.holders[i].browser || currDeHolder.browserVersion != decryptedUser.holders[i].browserVersion || currDeHolder.ip != decryptedUser.holders[i].ip || currDeHolder.mobile != decryptedUser.holders[i].mobile || currDeHolder.os != decryptedUser.holders[i].os || currDeHolder.osVersion != decryptedUser.holders[i].osVersion || currDeHolder.pst != decryptedUser.holders[i].pst) {
+        return false;
+      }
+    }
+    return true;
+  } else {
+    return false;
+  }
+}
+
 function createRoom(idPlayer) {
   var id = getID(10);
   while (rooms[id]) {
@@ -1082,26 +1097,6 @@ io.sockets.on('connection', function(socket) {
     });
   });
 
-  function testUser(decryptedUser, encryptedUser) {
-    if (decryptedUser.id == encryptedUser.id && decryptedUser.email == encryptedUser.email) {
-      io.to(socket.id).emit('sendtextttt', encryptedUser.holders);
-      io.to(socket.id).emit('sendtextttt', decryptedUser.holders);
-      var holders = encryptedUser.holders.split('!!!!!2');
-      io.to(socket.id).emit('sendtextttt', holders);
-      for (var i = 0; i < holders.length; i++) {
-        var currDeHolder = decryptHolder(holders[i]);
-        io.to(socket.id).emit('sendtextttt', decryptHolder(holders[i]));
-        io.to(socket.id).emit('sendtextttt', decryptedUser.holders[i]);
-        if (currDeHolder.browser != decryptedUser.holders[i].browser || currDeHolder.browserVersion != decryptedUser.holders[i].browserVersion || currDeHolder.ip != decryptedUser.holders[i].ip || currDeHolder.mobile != decryptedUser.holders[i].mobile || currDeHolder.os != decryptedUser.holders[i].os || currDeHolder.osVersion != decryptedUser.holders[i].osVersion || currDeHolder.pst != decryptedUser.holders[i].pst) {
-          return false;
-        }
-      }
-      return true;
-    } else {
-      return false;
-    }
-  }
-
   socket.on('createStudio', function(validUser, nameStudio) {
     var connection = mysql.createConnection({
       host: "vh50.timeweb.ru",
@@ -1111,7 +1106,6 @@ io.sockets.on('connection', function(socket) {
     });
     connection.connect(function(err) {
       connection.query("SELECT * FROM users WHERE id='"+validUser.id+"'", function (err, result, fields) {
-        io.to(socket.id).emit('sendtextttt', testUser(validUser, result[0], socket.id));
         if (result[0] && testUser(validUser, result[0])) {
           var pstTime = new Date(Date.now()+new Date().getTimezoneOffset()*60*1000+(-7*60*60*1000));
           var mounths = pstTime.getMonth()+1;
@@ -1125,9 +1119,11 @@ io.sockets.on('connection', function(socket) {
           var seconds = pstTime.getSeconds();
           if (seconds < 10) { seconds = '0'+seconds; }
           pstTime = pstTime.getFullYear()+'-'+mounths+'-'+days+' '+hours+':'+minutes+':'+seconds;
-          connection.query("INSERT INTO studios (name, keyHolder, staff, dateCreate) VALUES ('"+nameStudio+"', '"+result[0].id+"', '"+result[0].id+":Founder', '"+pstTime+"')", function (err, result, fields) {
-            if (!err) {
-              io.to(socket.id).emit('refreshPage');
+          connection.query("INSERT INTO studios (name, keyHolder, staff, dateCreate) VALUES ('"+nameStudio+"', '"+result[0].id+"', '"+result[0].id+":Founder', '"+pstTime+"')", function (err2, result2) {
+            if (!err2) {
+              connection.query("UPDATE users SET `studio`='"+result[0].studios+','+result2.insertId+"' WHERE id='"+validUser.id+"'", function (err3, result3) {
+                io.to(socket.id).emit('refreshPage');
+              });
             }
           });
         }
