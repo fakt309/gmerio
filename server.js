@@ -219,7 +219,7 @@ var decryptHolder = function(data) {
 
 function testUser(decryptedUser, encryptedUser) {
   if (decryptedUser.id == encryptedUser.id && decryptedUser.email == encryptedUser.email && decryptedUser.dateSignup == encryptedUser.dateSignup) {
-    var holdersEn = encryptedUser.split('!!!!!2');
+    var holders = encryptedUser.split('!!!!!2');
     for (var i = 0; i < holders.length; i++) {
       if (decryptHolder(holders[i]) != decryptedUser.holders[i]) {
         return false;
