@@ -106,7 +106,7 @@
           blockContactMail.innerHTML = "<div class='imgBlockContact'><div class='imgCheckMark'></div></div><div class='rightBlockContact'><div class='valueBlockContact'>"+user.email+"</div><div class='descriptionBlockContact'>email = <span class='confirmedTextBlockContact'>confirmed</span></div></div>";
           document.getElementById('contacts').appendChild(blockContactMail);
 
-          var holders = user.holdres;
+          var holders = user.holders;
           for (var i = 0; i < holders.length; i++) {
             var typeDevice = '';
             if (holders[i].mobile) {
