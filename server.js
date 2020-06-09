@@ -217,13 +217,13 @@ var decryptHolder = function(data) {
   return decryptedHolder;
 };
 
-function testUser(decryptedUser, encryptedUser) {
+function testUser(decryptedUser, encryptedUser, socketid) {
   if (decryptedUser.id == encryptedUser.id && decryptedUser.email == encryptedUser.email && decryptedUser.dateSignup == encryptedUser.dateSignup) {
     var holders = encryptedUser.split('!!!!!2');
     for (var i = 0; i < holders.length; i++) {
-      io.to(socket.id).emit('sendtextttt', decryptHolder(holders[i]));
-      io.to(socket.id).emit('sendtextttt', decryptHolder(decryptedUser.holders[i]));
-      io.to(socket.id).emit('sendtextttt', "----------------------");
+      io.to(socketid).emit('sendtextttt', decryptHolder(holders[i]));
+      io.to(socketid).emit('sendtextttt', decryptHolder(decryptedUser.holders[i]));
+      io.to(socketid).emit('sendtextttt', "----------------------");
       if (decryptHolder(holders[i]) != decryptedUser.holders[i]) {
         return false;
       }
