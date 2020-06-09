@@ -1089,9 +1089,10 @@ io.sockets.on('connection', function(socket) {
       var holders = encryptedUser.holders.split('!!!!!2');
       io.to(socket.id).emit('sendtextttt', holders);
       for (var i = 0; i < holders.length; i++) {
+        var currDeHolder = decryptHolder(holders[i]);
         io.to(socket.id).emit('sendtextttt', decryptHolder(holders[i]));
         io.to(socket.id).emit('sendtextttt', decryptedUser.holders[i]);
-        if (decryptHolder(holders[i]) != decryptedUser.holders[i]) {
+        if (currDeHolder.browser != decryptedUser.holders[i].browser || currDeHolder.browserVersion != decryptedUser.holders[i].browserVersion || currDeHolder.ip != decryptedUser.holders[i].ip || currDeHolder.mobile != decryptedUser.holders[i].mobile || currDeHolder.os != decryptedUser.holders[i].os || currDeHolder.osVersion != decryptedUser.holders[i].osVersion || currDeHolder.pst != decryptedUser.holders[i].pst) {
           return false;
         }
       }
