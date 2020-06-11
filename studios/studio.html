@@ -174,7 +174,7 @@
       }
 
       socket.on('authorization2', function(user) {
-        if (user && id == user.id) {
+        if (user) {
           socket.emit('getDataStudio', studioName, user);
         } else {
           socket.emit('getDataStudio', studioName);
