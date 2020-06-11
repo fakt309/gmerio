@@ -1194,12 +1194,9 @@ io.sockets.on('connection', function(socket) {
     });
     connection.connect(function(err) {
       connection.query("SELECT * FROM studios WHERE LOWER(name)=LOWER('"+name+"')", function (err1, result1, fields1) {
-        io.to(socket.id).emit('sendtextttt', result1[0]);
         if (result1[0]) {
           if (user && user.id) {
             connection.query("SELECT * FROM users WHERE id='"+user.id+"'", function (err2, result2, fields2) {
-              io.to(socket.id).emit('sendtextttt', result2[0]);
-              io.to(socket.id).emit('sendtextttt', testUser(user, result2[0]));
               if (result2[0] && testUser(user, result2[0])) {
                 var flagKeyHolder = false;
                 var studiosUser = result2[0].studios.split(',');

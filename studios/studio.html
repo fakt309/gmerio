@@ -181,7 +181,7 @@
         }
       });
 
-      socket.emit('getDataStudio2', function(data, isMy) {
+      socket.on('getDataStudio2', function(data, isMy) {
         console.log(data);
         console.log(isMy);
       });
