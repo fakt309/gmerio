@@ -1284,7 +1284,7 @@ io.sockets.on('connection', function(socket) {
                 var studios = result1[0].studios.split(",");
                 var newStudio = '';
                 var flagFirst = true;
-                for (var i = 0; i < studios.length-1; i++) {
+                for (var i = 0; i < studios.length; i++) {
                   if (studios[i] != idStudio.toString()) {
                     if (flagFirst) {
                       newStudio += studios[i];
