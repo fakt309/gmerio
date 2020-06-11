@@ -11,9 +11,9 @@
   <body>
     <section id='backConfirmDeleteStudio'>
       <div id='blockConfirmDeleteStudio'>
-        <div id='labelConfirmDeleteStudio'>enter your email to confirm it</div>
+        <div id='labelConfirmDeleteStudio'>enter name studio to confirm it</div>
         <input id='inputConfirmDeleteStudio' type='text' />
-        <div id='buttonConfirmDeleteStudio'>delete studio permanently</div>
+        <div id='buttonConfirmDeleteStudio' onclick='deleteStudio()'>delete studio permanently</div>
       </div>
     </section>
 
@@ -22,6 +22,9 @@
     <div id='inside2WrapAll'>
       <div id='wrapLinkHome'>
         <a id='linkHome' href='/'>gmer.io</a>
+      </div>
+      <div id='mainNoBlock'>
+        <p id='textNoBlock'>data for this studio not found</p>
       </div>
       <div id='mainBlock'>
         <div id='leftMenu'>
@@ -33,28 +36,35 @@
           <div class='blockContent'>
             <div id='topStudio'>
               <div id='leftTopStudio'>
-                <div id='titleStudio'>GMERIO</div>
-                <div id='descrptionStudio'>gmerio is studio witch making any games.</div>
+                <div id='titleStudio'></div>
+                <div id='descrptionStudio'>
+                  <p id='strokeDescriptionStudio'></p>
+                  <div id='blockInputEditDescription' active='0'>
+                    <div id='titleInputEditDescription'>description</div>
+                    <textarea id='inputInputEditDescription' onfocusin='this.parentElement.setAttribute("focuse", "1")' onfocusout='this.parentElement.setAttribute("focuse", "0")' type='text'></textarea>
+                  </div>
+                  <div id='editDescriptionStudio' onclick='showEditDescInput(this)' condition='edit'></div>
+                </div>
               </div>
               <div id='rightTopStudio'>
                 <div class='blockStatsStudio'>
                   <div class='titleStatsStudio'>games created</div>
-                  <div class='valueStatsStudio' id='valueStatsStudioGames'>2</div>
+                  <div class='valueStatsStudio' id='valueStatsStudioGames'></div>
                 </div>
                 <div class='blockStatsStudio'>
                   <div class='titleStatsStudio'>number of staff</div>
-                  <div class='valueStatsStudio' id='valueStatsStudioStaff'>1</div>
+                  <div class='valueStatsStudio' id='valueStatsStudioStaff'></div>
                 </div>
               </div>
             </div>
             <div id='strokesInfo'>
               <div class='strokeInfoStudio'>
                 <div class='titleStrokeInfoStudio'>key holder:</div>
-                <div class='valueStrokeInfoStudio'><a class='linkUserStroke' id='linkHolderUser' href='/u/44'><span id='linkNameHolder'></span> (id:<span id='linkIdHolder'></span>)</a></div>
+                <div class='valueStrokeInfoStudio'><a class='linkUserStroke' id='linkHolderUser' href='/u/44'><span id='linkNameHolder'>none</span> (id:<span id='linkIdHolder'></span>)</a></div>
               </div>
               <div class='strokeInfoStudio'>
                 <div class='titleStrokeInfoStudio'>date of foundation:</div>
-                <div class='valueStrokeInfoStudio' id='dateFoundStudioValue'>10.06.2019 (363 days)</div>
+                <div class='valueStrokeInfoStudio' id='dateFoundStudioValue'></div>
               </div>
             </div>
             <div id='stringControlStudio'>
@@ -173,33 +183,54 @@
         socket.emit('getDataStudio', studioName);
       }
 
+      var dataUser = null;
       socket.on('authorization2', function(user) {
         if (user) {
+          dataUser = user;
           socket.emit('getDataStudio', studioName, user);
         } else {
           socket.emit('getDataStudio', studioName);
         }
       });
 
+      var dataStudio = null;
       socket.on('getDataStudio2', function(data, isMy) {
+        dataStudio = data;
         console.log(data);
         console.log(isMy);
+        isMy = true;
 
-        fillStudioPage(data);
+        if (data) {
+          fillStudioPage(data);
 
-        if (isMy) {
-          document.getElementById('stringControlStudio').style.display = 'flex';
-          document.getElementById('stringCreateGame').style.display = 'flex';
-          document.getElementById('stringInviteUser').style.display = 'flex';
+          if (isMy) {
+            document.getElementById('stringControlStudio').style.display = 'flex';
+            document.getElementById('stringCreateGame').style.display = 'flex';
+            document.getElementById('stringInviteUser').style.display = 'flex';
+            document.getElementById('strokesInfo').style.borderBottom = '1px solid #999';
+            document.getElementById('listFolders').style.borderBottom = '1px solid #999';
+            document.getElementById('wrapTableStaff').style.borderBottom = '1px solid #999';
+
+            document.getElementById('editDescriptionStudio').style.display = 'flex';
+          }
+
+          animationMainBlock();
+        } else if (!data) {
+          animationNoMainBlock();
         }
       });
 
       socket.on('getNameHolder2', function(fullName) {
         document.getElementById('linkNameHolder').innerHTML = fullName;
+        document.getElementById('linkHolderUser').style.opacity = '1';
       });
 
       //showBlock(0, document.querySelectorAll('.linkMenu')[0]);
       showBlock(0, document.querySelectorAll('.linkMenu')[0]);
+
+      socket.on('editDescription2', function(text) {
+        document.getElementById('strokeDescriptionStudio').innerHTML = text;
+      });
 
       socket.on('refreshPage', function() {
         location.reload();

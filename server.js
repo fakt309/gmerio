@@ -1214,6 +1214,8 @@ io.sockets.on('connection', function(socket) {
           } else {
             io.to(socket.id).emit('getDataStudio2', result1[0], false);
           }
+        } else {
+          io.to(socket.id).emit('getDataStudio2', false);
         }
       });
       setTimeout(function() {
@@ -1233,6 +1235,52 @@ io.sockets.on('connection', function(socket) {
       connection.query("SELECT * FROM users WHERE id='"+idHolder+"'", function (err1, result1, fields1) {
         if (result1[0]) {
           io.to(socket.id).emit('getNameHolder2', result1[0].fullName);
+        }
+      });
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
+    });
+  });
+
+  socket.on('editDescription1', function(user, idStudio, text) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM users WHERE id='"+user.id+"'", function (err1, result1, fields1) {
+        if (result1[0] && testUser(user, result1[0])) {
+          connection.query("UPDATE studios SET `description`='"+text+"' WHERE id='"+idStudio+"'", function (err2, result2, fields2) {
+            if (!err2) {
+              io.to(socket.id).emit('editDescription2', text);
+            }
+          });
+        }
+      });
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
+    });
+  });
+
+  socket.on('deleteStudio', function(user, idStudio) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM users WHERE id='"+user.id+"'", function (err1, result1, fields1) {
+        if (result1[0] && testUser(user, result1[0])) {
+          connection.query("DELETE FROM studios WHERE id='"+idStudio+"'", function (err2, result2, fields2) {
+            if (!err2) {
+              io.to(socket.id).emit('refreshPage');
+            }
+          });
         }
       });
       setTimeout(function() {

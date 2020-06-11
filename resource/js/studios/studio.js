@@ -190,7 +190,9 @@ function splitDate(date) {
 
 function fillStudioPage(data) {
   document.getElementById('titleStudio').innerHTML = data.name;
-  document.getElementById('descrptionStudio').innerHTML = data.description;
+  document.getElementById('strokeDescriptionStudio').innerHTML = data.description;
+  document.getElementById('inputInputEditDescription').innerHTML = data.description;
+  document.getElementById('labelConfirmDeleteStudio').innerHTML = "enter name studio <b>"+data.name+"</b> to confirm it";
 
   var countGames = data.games.split(',').length;
   var countStaff = data.staff.split(',').length;
@@ -203,11 +205,8 @@ function fillStudioPage(data) {
 
   var partsDate = splitDate(data.dateCreate);
   var dateFound = new Date(data.dateCreate).getTime();
-  console.log(partsDate);
-  console.log(dateFound);
   var dateNow = new Date().getTime();
   var daysFound = Math.floor((dateNow-dateFound)/(24*60*60*1000));
-  console.log(daysFound);
   if (daysFound >= 365) {
     var labelYear = 'year';
     if (Math.floor(daysFound/365) > 1) {
@@ -222,4 +221,52 @@ function fillStudioPage(data) {
     document.getElementById('dateFoundStudioValue').innerHTML = partsDate.day+'.'+partsDate.mounth+'.'+partsDate.year+' ('+daysFound+' days)';
   }
 
+}
+
+function animationMainBlock() {
+  document.getElementById('mainBlock').style.display = 'flex';
+  setTimeout(function() {
+    document.getElementById('mainBlock').style.opacity = '1';
+  }, 200);
+}
+
+function animationNoMainBlock() {
+  document.getElementById('mainNoBlock').style.display = 'flex';
+  setTimeout(function() {
+    document.getElementById('mainNoBlock').style.opacity = '1';
+  }, 200);
+}
+
+function showEditDescInput(e) {
+  if (e.getAttribute('condition') == 'edit') {
+    document.getElementById('strokeDescriptionStudio').style.transform = 'scale(0)';
+    document.getElementById('blockInputEditDescription').style.display = 'flex';
+    document.getElementById('editDescriptionStudio').setAttribute('condition', 'send');
+    setTimeout(function() {
+      document.getElementById('strokeDescriptionStudio').style.display = 'none';
+      document.getElementById('blockInputEditDescription').style.transform = 'scale(1)';
+      document.getElementById('blockInputEditDescription').style.opacity = '1';
+      document.getElementById('blockInputEditDescription').style.width = '80%';
+    }, 200);
+  } else if (e.getAttribute('condition') == 'send') {
+    socket.emit('editDescription1', dataUser, dataStudio.id, document.getElementById('inputInputEditDescription').innerHTML);
+    document.getElementById('blockInputEditDescription').style.transform = 'scale(0)';
+    document.getElementById('blockInputEditDescription').style.opacity = '0';
+    document.getElementById('blockInputEditDescription').style.width = '0px';
+    document.getElementById('blockInputEditDescription').style.display = 'none';
+    document.getElementById('editDescriptionStudio').setAttribute('condition', 'edit');
+    document.getElementById('strokeDescriptionStudio').style.display = 'flex';
+    setTimeout(function() {
+      document.getElementById('strokeDescriptionStudio').style.transform = 'scale(1)';
+    }, 200);
+  }
+}
+
+function deleteStudio() {
+  var value = document.getElementById('inputConfirmDeleteStudio').value;
+  console.log(dataStudio.name);
+  console.log(value);
+  if (dataStudio.name.toLowerCase() == value.toLowerCase()) {
+    socket.emit('deleteStudio', dataUser, dataStudio.id);
+  }
 }

@@ -19,14 +19,31 @@
   align-items: center;
   justify-content: flex-start;
 }
+#mainNoBlock {
+  width: 90%;
+  max-width: 1000px;
+  margin: 10px 0px;
+  border: 1px solid #999;
+  border-radius: 15px;
+  display: none;
+  opacity: 0;
+  transition: all ease 0.2s;
+}
+#textNoBlock {
+  margin: 20px;
+  font-size: 14px;
+  color: #666;
+}
 #mainBlock {
   margin: 20px;
   width: 90%;
   max-width: 1000px;
-  display: flex;
+  display: none;
+  opacity: 0;
   flex-direction: row;
   align-items: flex-start;
   justify-content: space-around;
+  transition: all ease 0.2s;
 }
 #leftMenu {
   border: 1px solid #999;
@@ -101,7 +118,7 @@
   align-items: center;
   justify-content: flex-start;
 }
-#blockInputCreateGame, #blockInputInviteUser {
+#blockInputCreateGame, #blockInputInviteUser, #blockInputEditDescription {
   margin: 10px 20px;
   margin-top: 2px;
   display: none;
@@ -110,12 +127,12 @@
   justify-content: center;
   transition: all ease 0.2s;
 }
-#blockInputCreateGame[active='0'], #blockInputInviteUser[active='0'] {
+#blockInputCreateGame[active='0'], #blockInputInviteUser[active='0'], #blockInputEditDescription[active='0'] {
   transform: scale(0);
   width: 0px;
   margin: 0px;
 }
-#titleInputCreateGame, #titleInputInviteUser {
+#titleInputCreateGame, #titleInputInviteUser, #titleInputEditDescription {
   margin-left: 10px;
   padding: 0px 5px;
   font-size: 12px;
@@ -126,13 +143,13 @@
   align-self: flex-start;
   transition: color ease 0.2s;
 }
-#blockInputCreateGame[focuse='0'] #titleInputCreateGame, #blockInputInviteUser[focuse='0'] #titleInputInviteUser {
+#blockInputCreateGame[focuse='0'] #titleInputCreateGame, #blockInputInviteUser[focuse='0'] #titleInputInviteUser, #blockInputEditDescription[focuse='0'] #titleInputEditDescription {
   color: #999;
 }
-#blockInputCreateGame[focuse='1'] #titleInputCreateGame, #blockInputInviteUser[focuse='1'] #titleInputInviteUser {
+#blockInputCreateGame[focuse='1'] #titleInputCreateGame, #blockInputInviteUser[focuse='1'] #titleInputInviteUser, #blockInputEditDescription[focuse='1'] #titleInputEditDescription {
   color: #333;
 }
-#inputInputCreateGame, #inputInputInviteUser {
+#inputInputCreateGame, #inputInputInviteUser, #inputInputEditDescription {
   font-size: 14px;
   color: #333;
   padding: 10px;
@@ -144,10 +161,10 @@
   position: relative;
   transition: border ease 0.2s;
 }
-#blockInputCreateGame[focuse='0'] #inputInputCreateGame, #blockInputInviteUser[focuse='0'] #inputInputInviteUser {
+#blockInputCreateGame[focuse='0'] #inputInputCreateGame, #blockInputInviteUser[focuse='0'] #inputInputInviteUser, #blockInputEditDescription[focuse='0'] #inputInputEditDescription {
   border: 1px solid #999;
 }
-#blockInputCreateGame[focuse='1'] #inputInputCreateGame, #blockInputInviteUser[focuse='1'] #inputInputInviteUser {
+#blockInputCreateGame[focuse='1'] #inputInputCreateGame, #blockInputInviteUser[focuse='1'] #inputInputInviteUser, #blockInputEditDescription[focuse='1'] #inputInputEditDescription {
   border: 1px solid #333;
 }
 #buttonCreateGame, #buttonCancelCreateGame, #buttonInviteUser, #buttonCancelInviteUser, #buttonDeleteStudio {
@@ -203,7 +220,6 @@
   flex-direction: column;
   align-items: stretch;
   justify-content: flex-start;
-  border-bottom: 1px solid #999;
 }
 .wrapFolder {
   display: flex;
@@ -274,7 +290,6 @@
   margin-left: 10px;
 }
 #wrapTableStaff {
-  border-bottom: 1px solid #999;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -336,6 +351,10 @@
   margin-top: 0px;
   font-size: 14px;
   color: #666;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
 }
 #topStudio {
   display: flex;
@@ -382,7 +401,6 @@
   flex-direction: column;
   align-items: flex-start;
   justify-content: space-around;
-  border-bottom: 1px solid #999;
 }
 .strokeInfoStudio {
   margin: 20px;
@@ -472,4 +490,55 @@
 }
 #linkHome:hover {
   color: #5aaaff;
+}
+#linkHolderUser {
+  opacity: 0;
+  transition: all ease 0.2s;
+}
+#editDescriptionStudio {
+  display: none;
+  position: absolute;
+  align-self: flex-end;
+  width: 20px;
+  height: 20px;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin: 0px 5px;
+  cursor: pointer;
+  vertical-align: middle;
+  transition: all ease 0.2s;
+}
+#editDescriptionStudio[condition='edit'] {
+  background-image: url('/resource/img/pen.png');
+}
+#editDescriptionStudio[condition='send'] {
+  background-image: url('/resource/img/checkok1.png');
+}
+#strokeDescriptionStudio {
+  margin: 0px;
+  margin-right: 20px;
+  transform: scale(1);
+  transition: all ease 0.2s;
+}
+#leftTopStudio {
+  flex: 1;
+}
+#inputInputEditDescription {
+  resize: none;
+  font-size: 14px;
+  color: #333;
+  font-family: Arial;
+}
+#inputInputEditDescription::-webkit-scrollbar {
+  width: 2px;
+}
+#inputInputEditDescription::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+#inputInputEditDescription::-webkit-scrollbar-thumb {
+  background: #888;
+}
+#inputInputEditDescription::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
