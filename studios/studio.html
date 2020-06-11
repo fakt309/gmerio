@@ -54,7 +54,7 @@
               </div>
               <div class='strokeInfoStudio'>
                 <div class='titleStrokeInfoStudio'>date of foundation:</div>
-                <div class='valueStrokeInfoStudio'>10.06.2019 (363 days)</div>
+                <div class='valueStrokeInfoStudio' id='dateFoundStudioValue'>10.06.2019 (363 days)</div>
               </div>
             </div>
             <div id='stringControlStudio'>
@@ -194,7 +194,7 @@
         }
       });
 
-      socket.on('getDataHolder2', function(fullName) {
+      socket.on('getNameHolder2', function(fullName) {
         document.getElementById('linkNameHolder').innerHTML = fullName;
       });
 

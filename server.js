@@ -1222,7 +1222,7 @@ io.sockets.on('connection', function(socket) {
     });
   });
 
-  socket.on('getDataHolder1', function(idHolder) {
+  socket.on('getNameHolder1', function(idHolder) {
     var connection = mysql.createConnection({
       host: "vh50.timeweb.ru",
       user: "totarget_gmerio",
@@ -1232,7 +1232,7 @@ io.sockets.on('connection', function(socket) {
     connection.connect(function(err) {
       connection.query("SELECT * FROM users WHERE id='"+idHolder+"'", function (err1, result1, fields1) {
         if (result1[0]) {
-          io.to(socket.id).emit('getDataHolder2', result1[0].fullName);
+          io.to(socket.id).emit('getNameHolder2', result1[0].fullName);
         }
       });
       setTimeout(function() {
