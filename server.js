@@ -1280,7 +1280,34 @@ io.sockets.on('connection', function(socket) {
         if (result1[0] && testUser(user, result1[0])) {
           connection.query("DELETE FROM studios WHERE id='"+idStudio+"'", function (err2, result2, fields2) {
             if (!err2) {
-              io.to(socket.id).emit('refreshPage');
+              if (result1[0].studios != null && result1[0].studios != '' && typeof result1[0].studios != 'undefined' && result1[0].studios) {
+                var studios = result1[0].studios.split(",");
+                var newStudio = '';
+                var flagFirst = true;
+                for (var i = 0; i < studios.length-1; i++) {
+                  if (studios[i] != idStudio.toString()) {
+                    if (flagFirst) {
+                      newStudio += studios[i];
+                      flagFirst = false;
+                      continue;
+                    }
+                    newStudio += ','+studios[i];
+                  }
+                }
+                if (newStudio == '') {
+                  connection.query("UPDATE users SET `studios`=NULL WHERE id='"+user.id+"'", function (err3, result3, fields3) {
+                    if (!err3) {
+                      io.to(socket.id).emit('refreshPage');
+                    }
+                  });
+                } else {
+                  connection.query("UPDATE users SET `studios`='"+newStudio+"' WHERE id='"+user.id+"'", function (err3, result3, fields3) {
+                    if (!err3) {
+                      io.to(socket.id).emit('refreshPage');
+                    }
+                  });
+                }
+              }
             }
           });
         }

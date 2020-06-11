@@ -139,7 +139,7 @@
             var linkStudio = document.createElement('a');
             linkStudio.setAttribute('id', 'linkToStudio'+i);
             linkStudio.setAttribute('class', 'linkToStudio');
-            linkStudio.setAttribute('href', '/s/'+result[i].id);
+            linkStudio.setAttribute('href', '/s/'+(result[i].name.toLowerCase()));
             linkStudio.innerHTML = result[i].name;
             document.getElementById('yesstudioBlock').appendChild(linkStudio);
           }
