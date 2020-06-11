@@ -1222,6 +1222,25 @@ io.sockets.on('connection', function(socket) {
     });
   });
 
+  socket.on('getDataHolder1', function(idHolder) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM users WHERE id='"+idHolder+"'", function (err1, result1, fields1) {
+        if (result1[0]) {
+          io.to(socket.id).emit('getDataHolder2', result1[0].fullName);
+        }
+      });
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
+    });
+  });
+
 	socket.on('requestLink', function(link) {
 		var connection = mysql.createConnection({
       host: "vh50.timeweb.ru",

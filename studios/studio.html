@@ -39,18 +39,18 @@
               <div id='rightTopStudio'>
                 <div class='blockStatsStudio'>
                   <div class='titleStatsStudio'>games created</div>
-                  <div class='valueStatsStudio'>2</div>
+                  <div class='valueStatsStudio' id='valueStatsStudioGames'>2</div>
                 </div>
                 <div class='blockStatsStudio'>
                   <div class='titleStatsStudio'>number of staff</div>
-                  <div class='valueStatsStudio'>1</div>
+                  <div class='valueStatsStudio' id='valueStatsStudioStaff'>1</div>
                 </div>
               </div>
             </div>
             <div id='strokesInfo'>
               <div class='strokeInfoStudio'>
                 <div class='titleStrokeInfoStudio'>key holder:</div>
-                <div class='valueStrokeInfoStudio'><a class='linkUserStroke' href='/u/44'>Vladimir G. (id:44)</a></div>
+                <div class='valueStrokeInfoStudio'><a class='linkUserStroke' id='linkHolderUser' href='/u/44'><span id='linkNameHolder'></span> (id:<span id='linkIdHolder'></span>)</a></div>
               </div>
               <div class='strokeInfoStudio'>
                 <div class='titleStrokeInfoStudio'>date of foundation:</div>
@@ -184,6 +184,18 @@
       socket.on('getDataStudio2', function(data, isMy) {
         console.log(data);
         console.log(isMy);
+
+        fillStudioPage(data);
+
+        if (isMy) {
+          document.getElementById('stringControlStudio').style.display = 'flex';
+          document.getElementById('stringCreateGame').style.display = 'flex';
+          document.getElementById('stringInviteUser').style.display = 'flex';
+        }
+      });
+
+      socket.on('getDataHolder2', function(fullName) {
+        document.getElementById('linkNameHolder').innerHTML = fullName;
       });
 
       //showBlock(0, document.querySelectorAll('.linkMenu')[0]);

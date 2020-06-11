@@ -170,3 +170,53 @@ window.addEventListener("mouseup", function(e) {
     downPressConfirmDeleteStudio = false;
   }
 });
+
+function splitDate(date) {
+  var partsDate = date.split('.')[0].split('T');
+  var daysPart = partsDate[0].split('-');
+  var timesPart = partsDate[1].split(':');
+
+  var answer = {
+    year: daysPart[0],
+    mounth: daysPart[1],
+    day: daysPart[2],
+    hour: timesPart[0],
+    minute: timesPart[1],
+    second: timesPart[2],
+  };
+
+  return answer;
+}
+
+function fillStudioPage(data) {
+  document.getElementById('titleStudio').innerHTML = data.name;
+  document.getElementById('descrptionStudio').innerHTML = data.name;
+
+  var countGames = data.games.split(',').length;
+  var countStaff = data.staff.split(',').length;
+  document.getElementById('valueStatsStudioGames').innerHTML = countGames;
+  document.getElementById('valueStatsStudioStaff').innerHTML = countStaff;
+
+  socket.emit('getNameHolder1', data.keyHolder);
+  document.getElementById('linkIdHolder').innerHTML = data.keyHolder;
+  document.getElementById('linkHolderUser').setAttribute('href', '/u/'+data.keyHolder);
+
+  var partsDate = splitDate(data.dateCreate);
+  var dateFound = new Date(data.dateCreate).getTime();
+  var dateNow = new Date().getTime();
+  var daysFound = Math.floor((dateNow-dateFound)/(24*60*60*1000));
+  if (daysFound >= 365) {
+    var labelYear = 'year';
+    if (Math.floor(daysFound/365) > 1) {
+      labelYear = 'years';
+    }
+    var labelDay = 'days';
+    if (daysFound%365 == 1) {
+      labelDay = 'day';
+    }
+    document.getElementById('valueStrokeInfoStudio').innerHTML = partsDate.day+'.'+partsDate.mounth+'.'+partsDate.year+' ('+Math.floor(daysFound/365)+' '+labelYear+' '+(daysFound%365)+' '+labelDay+')';
+  } else {
+    document.getElementById('valueStrokeInfoStudio').innerHTML = partsDate.day+'.'+partsDate.mounth+'.'+partsDate.year+' ('+daysFound+' days)';
+  }
+
+}
