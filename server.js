@@ -1244,9 +1244,6 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('editDescription1', function(user, idStudio, text) {
-    io.to(socket.id).emit('sendtextttt', user);
-    io.to(socket.id).emit('sendtextttt', idStudio);
-    io.to(socket.id).emit('sendtextttt', text);
     var connection = mysql.createConnection({
       host: "vh50.timeweb.ru",
       user: "totarget_gmerio",
@@ -1255,10 +1252,8 @@ io.sockets.on('connection', function(socket) {
     });
     connection.connect(function(err) {
       connection.query("SELECT * FROM users WHERE id='"+user.id+"'", function (err1, result1, fields1) {
-        io.to(socket.id).emit('sendtextttt', testUser(user, result1[0]));
         if (result1[0] && testUser(user, result1[0])) {
           connection.query("UPDATE studios SET `description`='"+text+"' WHERE id='"+idStudio+"'", function (err2, result2, fields2) {
-            io.to(socket.id).emit('sendtextttt', err2);
             if (!err2) {
               io.to(socket.id).emit('editDescription2', text);
             }
