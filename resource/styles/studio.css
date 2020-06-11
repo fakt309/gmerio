@@ -1,0 +1,475 @@
+#wrapAll {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  font-family: Arial;
+}
+#insideWrapAll {
+  max-height: 100%;
+}
+#inside2WrapAll {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+#mainBlock {
+  margin: 20px;
+  width: 90%;
+  max-width: 1000px;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-around;
+}
+#leftMenu {
+  border: 1px solid #999;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+}
+#rightContent {
+  flex: 1;
+}
+.linkMenu {
+  font-size: 14px;
+  color: #999;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all ease 0.2s;
+}
+.linkMenu:hover {
+  background-color: #99999922;
+}
+.linkMenu:first-child {
+  border-radius: 15px 15px 0px 0px;
+}
+.linkMenu:last-child {
+  border-radius: 0px 0px 15px 15px;
+}
+.linkMenu[active='1'] {
+  color: #fff;
+  background-color: #ce0000;
+  border-radius: 15px;
+  padding: 25px 30px;
+  margin: -5px -10px;
+  z-index: 10;
+}
+.blockContent {
+  margin: 0px 20px;
+  border: 1px solid #999;
+  border-radius: 15px;
+  display: none;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  transform: scale(0);
+  transition: all ease 0.2s;
+}
+.blockContent[active='1'] {
+  transform: scale(1);
+}
+#nogameText {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #999;
+  text-align: center;
+  padding: 20px 0px;
+  border-bottom: 1px solid #999;
+  transition: all ease 0.2s;
+}
+#nogameText[active='0'] {
+  transform: scale(0);
+  margin: 0px;
+  padding: 0px;
+}
+#stringCreateGame, #stringInviteUser, #stringControlStudio {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+}
+#blockInputCreateGame, #blockInputInviteUser {
+  margin: 10px 20px;
+  margin-top: 2px;
+  display: none;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  transition: all ease 0.2s;
+}
+#blockInputCreateGame[active='0'], #blockInputInviteUser[active='0'] {
+  transform: scale(0);
+  width: 0px;
+  margin: 0px;
+}
+#titleInputCreateGame, #titleInputInviteUser {
+  margin-left: 10px;
+  padding: 0px 5px;
+  font-size: 12px;
+  color: #999;
+  z-index: 10;
+  position: relative;
+  background-color: #fff;
+  align-self: flex-start;
+  transition: color ease 0.2s;
+}
+#blockInputCreateGame[focuse='0'] #titleInputCreateGame, #blockInputInviteUser[focuse='0'] #titleInputInviteUser {
+  color: #999;
+}
+#blockInputCreateGame[focuse='1'] #titleInputCreateGame, #blockInputInviteUser[focuse='1'] #titleInputInviteUser {
+  color: #333;
+}
+#inputInputCreateGame, #inputInputInviteUser {
+  font-size: 14px;
+  color: #333;
+  padding: 10px;
+  outline: none;
+  border: 1px solid #999;
+  border-radius: 5px;
+  margin-top: -5px;
+  z-index: 0;
+  position: relative;
+  transition: border ease 0.2s;
+}
+#blockInputCreateGame[focuse='0'] #inputInputCreateGame, #blockInputInviteUser[focuse='0'] #inputInputInviteUser {
+  border: 1px solid #999;
+}
+#blockInputCreateGame[focuse='1'] #inputInputCreateGame, #blockInputInviteUser[focuse='1'] #inputInputInviteUser {
+  border: 1px solid #333;
+}
+#buttonCreateGame, #buttonCancelCreateGame, #buttonInviteUser, #buttonCancelInviteUser, #buttonDeleteStudio {
+  margin: 20px;
+  padding: 10px;
+  font-size: 14px;
+  color: #fff;
+  background-color: #ce0000;
+  border-radius: 5px;
+  z-index: 10;
+  cursor: pointer;
+  transition: all ease 0.2s;
+}
+#buttonCreateGame[disabled='1'], #buttonInviteUser[disabled='1'] {
+  background-color: #999;
+  cursor: default;
+}
+#buttonCancelCreateGame, #buttonCancelInviteUser {
+  transform: scale(1);
+  display: none;
+}
+#buttonCancelCreateGame[active='0'], #buttonCancelInviteUser[active='0'] {
+  transform: scale(0);
+  margin: 20px 0px;
+  width: 0px;
+}
+#infoChoosenFolder {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  border-bottom: 1px solid #999;
+}
+#fullWayChoosenFolder {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  margin: 20px;
+  font-size: 14px;
+  color: #999;
+}
+#hostWayChoosenFolder {
+  margin: 0px;
+  color: #999;
+}
+#pathWayChoosenFolder {
+  margin: 0px;
+  color: #333;
+}
+#listFolders {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  border-bottom: 1px solid #999;
+}
+.wrapFolder {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+}
+.oneFolder {
+  padding: 10px 20px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  transition: all ease 0.2s;
+}
+.oneFolder:hover {
+  background-color: #99999922;
+}
+.oneFolder[focus='1'] {
+  background-color: #99999999;
+}
+.imgFolder {
+  width: 20px;
+  height: 20px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.oneFolder[typefolder='game'] .imgFolder {
+  background-image: url('/resource/img/game.png');
+}
+.oneFolder[typefolder='folder'] .imgFolder {
+  background-image: url('/resource/img/folder.png');
+}
+.oneFolder[typefolder='img'] .imgFolder {
+  background-image: url('/resource/img/img.png');
+}
+.oneFolder[typefolder='txt'] .imgFolder {
+  background-image: url('/resource/img/txt.png');
+}
+.oneFolder[typefolder='none'] .imgFolder {
+  background-image: url('/resource/img/file.png');
+}
+.titleFolder {
+  margin-left: 10px;
+  font-size: 14px;
+  color: #666;
+}
+.netFolders {
+  width: 20px;
+  height: 20px;
+}
+.netFolders1, .netFolders2 {
+  position: absolute;
+  background: #666;
+  z-index: -1;
+}
+.netFolders1 {
+  width: 1px;
+  height: 40px;
+  margin-left: 10px;
+  margin-top: -30px;
+}
+.netFolders2 {
+  width: 20px;
+  height: 1px;
+  margin-top: 10px;
+  margin-left: 10px;
+}
+#wrapTableStaff {
+  border-bottom: 1px solid #999;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+}
+#tableStaff {
+  margin: 20px;
+  font-size: 14px;
+  color: #666;
+}
+#tableStaff td {
+  text-align: center;
+}
+.wrapTdTableStaff {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+.editUser {
+  text-align: center;
+  font-size: 14px;
+  color: #999;
+  cursor: pointer;
+  transition: all ease 0.2s;
+  vertical-align: middle;
+}
+.editUser:hover {
+  color: #666;
+}
+.linkUser, .linkUserStroke {
+  margin: 10px;
+  color: #005fc3;
+  text-decoration: none;
+  transition: all ease 0.2s;
+}
+.linkUser:hover, .linkUserStroke:hover {
+  color: #5aaaff;
+}
+.linkUserStroke {
+  margin: 0px;
+}
+.key {
+  width: 30px;
+  height: 30px;
+  background-image: url('/resource/img/key2.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+#titleStudio {
+  margin: 20px;
+  font-weight: bold;
+  font-size: 18px;
+  color: #999;
+}
+#descrptionStudio {
+  margin: 20px;
+  margin-top: 0px;
+  font-size: 14px;
+  color: #666;
+}
+#topStudio {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #999;
+}
+#rightTopStudio {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+}
+.blockStatsStudio {
+  width: 120px;
+  height: 120px;
+  margin: 20px;
+  border-radius: 10px;
+  border: 1px solid #999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.titleStatsStudio {
+  margin: 0px 10px;
+  margin-top: -45px;
+  margin-bottom: 25px;
+  padding: 0px 10px;
+  font-size: 12px;
+  color: #999;
+  background-color: #fff;
+}
+.valueStatsStudio {
+  color: #999;
+  font-weight: bold;
+  font-size: 50px;
+  text-align: center;
+  white-space: nowrap;
+}
+#strokesInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-around;
+  border-bottom: 1px solid #999;
+}
+.strokeInfoStudio {
+  margin: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+.titleStrokeInfoStudio {
+  font-size: 12px;
+  color: #999;
+}
+.valueStrokeInfoStudio {
+  font-size: 18px;
+  font-weight: bold;
+  color: #999;
+}
+#backConfirmDeleteStudio {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  width: 100vw;
+  height: 100vh;
+  background-color: #00000077;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: Arial;
+  opacity: 0;
+  z-index: 100;
+  transition: all ease 0.2s;
+}
+#blockConfirmDeleteStudio {
+  width: 70%;
+  max-width: 300px;
+  background-color: #fff;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateY(-40px);
+  justify-content: center;
+  transition: all ease 0.2s;
+}
+#labelConfirmDeleteStudio {
+  margin: 20px;
+  color: #666;
+  font-size: 14px;
+  text-align: center;
+}
+#inputConfirmDeleteStudio {
+  margin: 20px;
+  margin-top: 0px;
+  padding: 10px;
+  font-size: 14px;
+  color: #333;
+  border: 1px solid #999;
+  outline: none;
+  border-radius: 5px;
+}
+#buttonConfirmDeleteStudio {
+  margin-top: 0px;
+  margin-right: -30px;
+  margin-bottom: -16px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  cursor: pointer;
+  background-color: #ce0000;
+  color: #fff;
+  align-self: flex-end;
+  transform: translateY(80px);
+  transition: all ease 0.2s;
+}
+#wrapLinkHome {
+  width: 90%;
+  max-width: 1000px;
+  margin: 0px 10px;
+  font-family: Arial;
+}
+#linkHome {
+  margin-left: 10px;
+  color: #005fc3;
+  text-decoration: none;
+  transition: all ease 0.2s;
+}
+#linkHome:hover {
+  color: #5aaaff;
+}

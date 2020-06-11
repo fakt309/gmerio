@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Your studio</title>
+
+    <link rel="stylesheet" href="/resource/styles/studio.css" />
+  </head>
+  <body>
+    <section id='backConfirmDeleteStudio'>
+      <div id='blockConfirmDeleteStudio'>
+        <div id='labelConfirmDeleteStudio'>enter your email to confirm it</div>
+        <input id='inputConfirmDeleteStudio' type='text' />
+        <div id='buttonConfirmDeleteStudio'>delete studio permanently</div>
+      </div>
+    </section>
+
+    <section id='wrapAll'>
+    <div id='insideWrapAll'>
+    <div id='inside2WrapAll'>
+      <div id='wrapLinkHome'>
+        <a id='linkHome' href='/'>gmer.io</a>
+      </div>
+      <div id='mainBlock'>
+        <div id='leftMenu'>
+          <div class='linkMenu' onclick='showBlock(0, this)'>GMERIO</div>
+          <div class='linkMenu' onclick='showBlock(1, this)'>games</div>
+          <div class='linkMenu' onclick='showBlock(2, this)'>staff</div>
+        </div>
+        <div id='rightContent'>
+          <div class='blockContent'>
+            <div id='topStudio'>
+              <div id='leftTopStudio'>
+                <div id='titleStudio'>GMERIO</div>
+                <div id='descrptionStudio'>gmerio is studio witch making any games.</div>
+              </div>
+              <div id='rightTopStudio'>
+                <div class='blockStatsStudio'>
+                  <div class='titleStatsStudio'>games created</div>
+                  <div class='valueStatsStudio'>2</div>
+                </div>
+                <div class='blockStatsStudio'>
+                  <div class='titleStatsStudio'>number of staff</div>
+                  <div class='valueStatsStudio'>1</div>
+                </div>
+              </div>
+            </div>
+            <div id='strokesInfo'>
+              <div class='strokeInfoStudio'>
+                <div class='titleStrokeInfoStudio'>key holder:</div>
+                <div class='valueStrokeInfoStudio'><a class='linkUserStroke' href='/u/44'>Vladimir G. (id:44)</a></div>
+              </div>
+              <div class='strokeInfoStudio'>
+                <div class='titleStrokeInfoStudio'>date of foundation:</div>
+                <div class='valueStrokeInfoStudio'>10.06.2019 (363 days)</div>
+              </div>
+            </div>
+            <div id='stringControlStudio'>
+              <div id='buttonDeleteStudio' onclick='showConfirmDeleteStudioWindow()'>delete studio</div>
+            </div>
+          </div>
+          <div class='blockContent'>
+            <div id='nogameText' active='0'>You don't have any game</div>
+            <div id='gamesFolders'>
+              <div id='infoChoosenFolder'>
+                <div id='fullWayChoosenFolder'><p id='hostWayChoosenFolder'>https://gmer.io</p><p id='pathWayChoosenFolder'>/g/cannons</p></div>
+              </div>
+              <div id='listFolders'>
+                <div class='oneFolder' typefolder='game' onclick='this.setAttribute("focus", "1")'>
+                  <div class='imgFolder'></div>
+                  <div class='titleFolder'>/g/cannons</div>
+                </div>
+                <div class='oneFolder' typefolder='folder' onclick='this.setAttribute("focus", "1")'>
+                  <div class='netFolders'><div class='netFolders1'></div><div class='netFolders2'></div></div>
+                  <div class='imgFolder'></div>
+                  <div class='titleFolder'>resource</div>
+                </div>
+                <div class='oneFolder' typefolder='img' onclick='this.setAttribute("focus", "1")' style='padding-left:40px'>
+                  <div class='netFolders'><div class='netFolders1'></div><div class='netFolders2'></div></div>
+                  <div class='imgFolder'></div>
+                  <div class='titleFolder'>image.png</div>
+                </div>
+                <div class='oneFolder' typefolder='txt' onclick='this.setAttribute("focus", "1")' style='padding-left:40px'>
+                  <div class='netFolders'><div class='netFolders1'></div><div class='netFolders2'></div></div>
+                  <div class='imgFolder'></div>
+                  <div class='titleFolder'>index.html</div>
+                </div>
+                <div class='oneFolder' typefolder='none' onclick='this.setAttribute("focus", "1")' style='padding-left:40px'>
+                  <div class='netFolders'><div class='netFolders1'></div><div class='netFolders2'></div></div>
+                  <div class='imgFolder'></div>
+                  <div class='titleFolder'>index</div>
+                </div>
+                <div class='oneFolder' typefolder='game' onclick='this.setAttribute("focus", "1")'>
+                  <div class='imgFolder'></div>
+                  <div class='titleFolder'>/g/stealth</div>
+                </div>
+                <div class='oneFolder' typefolder='folder' onclick='this.setAttribute("focus", "1")'>
+                  <div class='netFolders'><div class='netFolders1'></div><div class='netFolders2'></div></div>
+                  <div class='imgFolder'></div>
+                  <div class='titleFolder'>image</div>
+                </div>
+                <div class='oneFolder' typefolder='img' onclick='this.setAttribute("focus", "1")' style='padding-left:40px'>
+                  <div class='netFolders'><div class='netFolders1'></div><div class='netFolders2'></div></div>
+                  <div class='imgFolder'></div>
+                  <div class='titleFolder'>index.html</div>
+                </div>
+              </div>
+            </div>
+            <div id='stringCreateGame'>
+              <div id='blockInputCreateGame' active='0'>
+                <div id='titleInputCreateGame'>name game</div>
+                <input id='inputInputCreateGame' oninput='validGameName(this)' onfocusin='this.parentElement.setAttribute("focuse", "1")' onfocusout='this.parentElement.setAttribute("focuse", "0")' type='text' />
+              </div>
+              <div id='buttonCreateGame' onclick='clickCreateGame()'>+ create new game</div>
+              <div id='buttonCancelCreateGame' onclick='clickCancelCreateGame()' active='0'>cancel</div>
+            </div>
+          </div>
+          <div class='blockContent'>
+            <div id='wrapTableStaff'>
+              <table id='tableStaff'>
+                <tr>
+                  <td><div class='editUser'>&#8226;&#8226;&#8226;</div></td>
+                  <td><div class='wrapTdTableStaff'><div class='key'></div><a class='linkUser' href='/u/44'>Vladimir G. (id:44)</a></div></td>
+                  <td>founder</td>
+                </tr>
+                <tr>
+                  <td><div class='editUser'>&#8226;&#8226;&#8226;</div></td>
+                  <td><div class='wrapTdTableStaff'><a class='linkUser' href='/u/89'>Sama K. (id:89)</a></div></td>
+                  <td>art designer</td>
+                </tr>
+                <tr>
+                  <td><div class='editUser'>&#8226;&#8226;&#8226;</div></td>
+                  <td><div class='wrapTdTableStaff'><a class='linkUser' href='/u/89'>G. (id:89)</a></div></td>
+                  <td>art designer</td>
+                </tr>
+                <tr>
+                  <td><div class='editUser'>&#8226;&#8226;&#8226;</div></td>
+                  <td><div class='wrapTdTableStaff'><a class='linkUser' href='/u/89'>Sama K. (id:89)</a></div></td>
+                  <td>sound producer</td>
+                </tr>
+              </table>
+            </div>
+
+            <div id='stringInviteUser'>
+              <div id='blockInputInviteUser' active='0'>
+                <div id='titleInputInviteUser'>id user</div>
+                <input id='inputInputInviteUser' oninput='validUserName(this)' onfocusin='this.parentElement.setAttribute("focuse", "1")' onfocusout='this.parentElement.setAttribute("focuse", "0")' type='text' />
+              </div>
+              <div id='buttonInviteUser' onclick='clickInviteUser()'>+ invite user</div>
+              <div id='buttonCancelInviteUser' onclick='clickCancelInviteUser()' active='0'>cancel</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    </div>
+    </section>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src='/resource/js/users/getDeviceData.js'></script>
+    <script src='/resource/js/studios/studio.js'></script>
+    <script type="text/javascript">
+      var socket = io();
+
+      var studioName = String(window.location.pathname.split('/')[2]);
+      var signinMail = getCookie('signinMail');
+      if (typeof signinMail != 'undefined' || signinMail != '') {
+        socket.emit('authorization', signinMail, getDeviceData());
+      } else {
+        socket.emit('getDataStudio', studioName);
+      }
+
+      socket.on('authorization2', function(user) {
+        if (user && id == user.id) {
+          socket.emit('getDataStudio', studioName, user);
+        } else {
+          socket.emit('getDataStudio', studioName);
+        }
+      });
+
+      socket.emit('getDataStudio2', function(data, isMy) {
+        console.log(data);
+        console.log(isMy);
+      });
+
+      //showBlock(0, document.querySelectorAll('.linkMenu')[0]);
+      showBlock(0, document.querySelectorAll('.linkMenu')[0]);
+    </script>
+  </body>
+</html>

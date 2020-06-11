@@ -144,7 +144,9 @@ app.get('/s*', function(request, respons) {
   if (url[1] == 's') {
     if (url.length == 2) {
       respons.sendFile(__dirname+'/studios/index.html');
-    } else if (url.length > 2) {
+    } else if (url.length == 3) {
+      respons.sendFile(__dirname+'/studios/studio.html');
+    } else if (url.length > 3) {
       respons.status(404).send();
     }
   } else {
@@ -1105,7 +1107,7 @@ io.sockets.on('connection', function(socket) {
       database: "totarget_gmerio"
     });
     connection.connect(function(err) {
-      connection.query("SELECT * FROM studios WHERE name='"+nameStudio+"'", function (err0, result0) {
+      connection.query("SELECT * FROM studios WHERE LOWER(name)=LOWER('"+nameStudio+"')", function (err0, result0) {
       if (result0[0]) {
         io.to(socket.id).emit('createStudio2', 'err:a studio with that name already exists');
       } else if (!result0[0]) {
@@ -1175,6 +1177,43 @@ io.sockets.on('connection', function(socket) {
           });
           // connection.query("INSERT INTO studios (name, keyHolder, staff, dateCreate) VALUES ('"+nameStudio+"', '"+result[0].id+"', '"+result[0].id+":Founder', '"+pstTime+"')", function (err, result, fields) {});
           // io.to(socket.id).emit('refreshPage');
+        }
+      });
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
+    });
+  });
+
+  socket.on('getDataStudio', function(name, user) {//this place
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM studios WHERE name='"+name+"'", function (err1, result1, fields1) {
+        if (result1[0]) {
+          if (user && user.id) {
+            connection.query("SELECT * FROM studios WHERE name='"+name+"'", function (err2, result2, fields2) {
+              if (result2[0] && testUser(user, result2[0])) {
+                var flagKeyHolder = false;
+                var studiosUser = result2[0].studios.split(',');
+                for (var i = 0; i < studiosUser.length; i++) {
+                  if (studiosUser[i] == result1[0].id) {
+                    flagKeyHolder = true;
+                    break;
+                  }
+                }
+                io.to(socket.id).emit('getDataStudio2', result1[0], flagKeyHolder);
+              } else {
+                io.to(socket.id).emit('getDataStudio2', result1[0], false);
+              }
+            });
+          } else {
+            io.to(socket.id).emit('getDataStudio2', result1[0], false);
+          }
         }
       });
       setTimeout(function() {
@@ -1285,7 +1324,7 @@ io.sockets.on('connection', function(socket) {
           });
         }
       });
-      io.to(socket.id).emit('removeAdditionalCookie');//testing
+      io.to(socket.id).emit('removeAdditionalCookie');
 			setTimeout(function() {
 					connection.end();
 			}, 1500);
