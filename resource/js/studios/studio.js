@@ -190,7 +190,7 @@ function splitDate(date) {
 
 function fillStudioPage(data) {
   document.getElementById('titleStudio').innerHTML = data.name;
-  document.getElementById('descrptionStudio').innerHTML = data.name;
+  document.getElementById('descrptionStudio').innerHTML = data.description;
 
   var countGames = data.games.split(',').length;
   var countStaff = data.staff.split(',').length;
@@ -203,8 +203,11 @@ function fillStudioPage(data) {
 
   var partsDate = splitDate(data.dateCreate);
   var dateFound = new Date(data.dateCreate).getTime();
+  console.log(partsDate);
+  console.log(dateFound);
   var dateNow = new Date().getTime();
   var daysFound = Math.floor((dateNow-dateFound)/(24*60*60*1000));
+  console.log(daysFound);
   if (daysFound >= 365) {
     var labelYear = 'year';
     if (Math.floor(daysFound/365) > 1) {
