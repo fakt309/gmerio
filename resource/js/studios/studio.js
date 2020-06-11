@@ -249,6 +249,9 @@ function showEditDescInput(e) {
       document.getElementById('blockInputEditDescription').style.width = '80%';
     }, 200);
   } else if (e.getAttribute('condition') == 'send') {
+    console.log(dataUser);
+    console.log(dataStudio.id);
+    console.log(document.getElementById('inputInputEditDescription').innerHTML);
     socket.emit('editDescription1', dataUser, dataStudio.id, document.getElementById('inputInputEditDescription').innerHTML);
     document.getElementById('blockInputEditDescription').style.transform = 'scale(0)';
     document.getElementById('blockInputEditDescription').style.opacity = '0';
