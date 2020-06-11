@@ -1258,6 +1258,7 @@ io.sockets.on('connection', function(socket) {
         io.to(socket.id).emit('sendtextttt', testUser(user, result1[0]));
         if (result1[0] && testUser(user, result1[0])) {
           connection.query("UPDATE studios SET `description`='"+text+"' WHERE id='"+idStudio+"'", function (err2, result2, fields2) {
+            io.to(socket.id).emit('sendtextttt', err2);
             if (!err2) {
               io.to(socket.id).emit('editDescription2', text);
             }
