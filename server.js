@@ -1199,11 +1199,13 @@ io.sockets.on('connection', function(socket) {
             connection.query("SELECT * FROM users WHERE id='"+user.id+"'", function (err2, result2, fields2) {
               if (result2[0] && testUser(user, result2[0])) {
                 var flagKeyHolder = false;
-                var studiosUser = result2[0].studios.split(',');
-                for (var i = 0; i < studiosUser.length; i++) {
-                  if (studiosUser[i] == result1[0].id) {
-                    flagKeyHolder = true;
-                    break;
+                if (result2[0].studios != null && typeof result2[0].studios != 'undefined' && result2[0].studios && result2[0].studios != '') {
+                  var studiosUser = result2[0].studios.split(',');
+                  for (var i = 0; i < studiosUser.length; i++) {
+                    if (studiosUser[i] == result1[0].id) {
+                      flagKeyHolder = true;
+                      break;
+                    }
                   }
                 }
                 io.to(socket.id).emit('getDataStudio2', result1[0], flagKeyHolder);
