@@ -72,7 +72,8 @@
             </div>
           </div>
           <div class='blockContent'>
-            <div id='nogameText' active='0'>You don't have any game</div>
+            <div id='nogameText' active='0'>This studio don't have any game</div>
+            <div id='listGames'></div>
             <div id='gamesFolders'>
               <div id='infoChoosenFolder'>
                 <div id='fullWayChoosenFolder'><p id='hostWayChoosenFolder'>https://gmer.io</p><p id='pathWayChoosenFolder'>/g/cannons</p></div>
@@ -194,10 +195,14 @@
       });
 
       var dataStudio = null;
+      var dataIsMy = false;
       socket.on('getDataStudio2', function(data, isMy) {
+        // isMy = true;
+
         dataStudio = data;
-        console.log(data);
-        console.log(isMy);
+        dataIsMy = isMy;
+        // console.log(data);
+        // console.log(isMy);
 
         if (data) {
           fillStudioPage(data);
@@ -209,6 +214,8 @@
             document.getElementById('strokesInfo').style.borderBottom = '1px solid #999';
             document.getElementById('listFolders').style.borderBottom = '1px solid #999';
             document.getElementById('wrapTableStaff').style.borderBottom = '1px solid #999';
+            document.getElementById('nogameText').style.borderBottom = '1px solid #999';
+
 
             document.getElementById('editDescriptionStudio').style.display = 'flex';
           }
@@ -229,6 +236,17 @@
 
       socket.on('editDescription2', function(text) {
         document.getElementById('strokeDescriptionStudio').innerHTML = text;
+      });
+
+      socket.on('getGames2', function(games) {
+        for (var i = 0; i < games.length; i++) {
+          var oneGame = document.createElement('a');
+          oneGame.setAttribute('id', 'oneGame'+i);
+          oneGame.setAttribute('class', 'oneGame');
+          oneGame.setAttribute('href', '/g/'+games[i].name);
+          oneGame.innerHTML = "<div class='rightGame'><div class='titleGame'>"+games[i].name+"</div><div class='authorGame'>"+games[i].authors+"</div></div>";
+          document.getElementById('listGames').appendChild(oneGame);
+        }
       });
 
       socket.on('refreshPage', function() {

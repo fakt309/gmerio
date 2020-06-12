@@ -194,7 +194,10 @@ function fillStudioPage(data) {
   document.getElementById('inputInputEditDescription').innerHTML = data.description;
   document.getElementById('labelConfirmDeleteStudio').innerHTML = "enter name studio <b>"+data.name+"</b> to confirm it";
 
-  var countGames = data.games.split(',').length;
+  var countGames = 0;
+  if (data.games != '') {
+    countGames = data.games.split(',').length;
+  }
   var countStaff = data.staff.split(',').length;
   document.getElementById('valueStatsStudioGames').innerHTML = countGames;
   document.getElementById('valueStatsStudioStaff').innerHTML = countStaff;
@@ -219,6 +222,21 @@ function fillStudioPage(data) {
     document.getElementById('dateFoundStudioValue').innerHTML = partsDate.day+'.'+partsDate.mounth+'.'+partsDate.year+' ('+Math.floor(daysFound/365)+' '+labelYear+' '+(daysFound%365)+' '+labelDay+')';
   } else {
     document.getElementById('dateFoundStudioValue').innerHTML = partsDate.day+'.'+partsDate.mounth+'.'+partsDate.year+' ('+daysFound+' days)';
+  }
+  socket.emit('getGames1', data.games.replace(/\,/g, "|"));
+  if (countGames == 0) {
+    document.getElementById('nogameText').setAttribute('active', '1');
+    document.getElementById('nogameText').style.display = 'flex';
+  } else if (countGames > 0) {
+    document.getElementById('nogameText').setAttribute('active', '0');
+    document.getElementById('nogameText').style.display = 'none';
+
+    if (dataIsMy) {
+      document.getElementById('gamesFolders').style.display = 'flex';
+      socket.emit('getFoldersGames1', dataUser, data.id);
+    } else if (!dataIsMy) {
+      document.getElementById('listGames').style.display = 'flex';
+    }
   }
 
 }
@@ -264,8 +282,6 @@ function showEditDescInput(e) {
 
 function deleteStudio() {
   var value = document.getElementById('inputConfirmDeleteStudio').value;
-  console.log(dataStudio.name);
-  console.log(value);
   if (dataStudio.name.toLowerCase() == value.toLowerCase()) {
     socket.emit('deleteStudio', dataUser, dataStudio.id);
   }

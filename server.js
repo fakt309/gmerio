@@ -1164,19 +1164,9 @@ io.sockets.on('connection', function(socket) {
           studios = studios.join('|');
           connection.query("SELECT * FROM studios WHERE id REGEXP '("+studios+")'", function (err2, result2, fields2) {
             if (result2[0]) {
-              // var answer = '';
-              // for (var i = 0; i < result2.length; i++) {
-              //   if (i == 0) {
-              //     answer += result2.id[i];
-              //     continue;
-              //   }
-              //   answer += ','+result2.id[i];
-              // }
               io.to(socket.id).emit('listMyStudios2', result2);
             }
           });
-          // connection.query("INSERT INTO studios (name, keyHolder, staff, dateCreate) VALUES ('"+nameStudio+"', '"+result[0].id+"', '"+result[0].id+":Founder', '"+pstTime+"')", function (err, result, fields) {});
-          // io.to(socket.id).emit('refreshPage');
         }
       });
       setTimeout(function() {
@@ -1310,6 +1300,62 @@ io.sockets.on('connection', function(socket) {
               }
             }
           });
+        }
+      });
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
+    });
+  });
+
+  socket.on('getGames1', function(regexp) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM games WHERE id REGEXP '("+regexp+")'", function (err1, result1, fields1) {
+        if (result1[0]) {
+          io.to(socket.id).emit('getGames2', result1);
+        }
+      });
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
+    });
+  });
+  //this place
+  socket.on('getFoldersGames1', function(user, studioId) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM users WHERE id='"+user.id+"'", function (err1, result1, fields1) {
+        if (result1[0] && testUser(user, result1[0])) {
+          var studios = result1[0].studios;
+          if (studios != null && studios != '' && typeof studios != 'undefined' && studios) {
+            studios = studios.split(',');
+            for (var i = 0; i < studios.length; i++) {
+              if (studios[i] == studioId.toString()) {
+                connection.query("SELECT * FROM studio WHERE id='"+studios[i]+"'", function (err2, result2, fields2) {
+                  if (result2[0]) {
+                    var regexpGames = result2[0].games.replace(/\,/g, "|");
+                    connection.query("SELECT * FROM games WHERE id REGEXP '("+regexpGames+")'", function (err3, result3, fields3) {
+                      if (result3[0]) {
+                        io.to(socket.id).emit('sendtextttt', result3[0]);
+                      }
+                    });
+                  }
+                });
+                break;
+              }
+            }
+          }
         }
       });
       setTimeout(function() {
