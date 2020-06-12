@@ -223,7 +223,7 @@ function fillStudioPage(data) {
   } else {
     document.getElementById('dateFoundStudioValue').innerHTML = partsDate.day+'.'+partsDate.mounth+'.'+partsDate.year+' ('+daysFound+' days)';
   }
-  socket.emit('getGames1', data.games.replace(/\,/g, "|"));
+
   if (countGames == 0) {
     document.getElementById('nogameText').setAttribute('active', '1');
     document.getElementById('nogameText').style.display = 'flex';
@@ -238,6 +238,7 @@ function fillStudioPage(data) {
       socket.emit('getFoldersGames1', dataUser, data.id);
       document.getElementById('gamesFolders').style.display = 'flex';
     } else if (!dataIsMy) {
+      socket.emit('getGames1', data.games.replace(/\,/g, "|"));
       document.getElementById('listGames').style.display = 'flex';
     }
   }
