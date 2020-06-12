@@ -1342,10 +1342,7 @@ io.sockets.on('connection', function(socket) {
             studios = studios.split(',');
             for (var i = 0; i < studios.length; i++) {
               if (studios[i] == studioId.toString()) {
-                io.to(socket.id).emit('sendtextttt', 'yes');
-                connection.query("SELECT * FROM studio WHERE id='"+studios[i]+"'", function (err2, result2, fields2) {
-                  io.to(socket.id).emit('sendtextttt', err2);
-                  io.to(socket.id).emit('sendtextttt', result2[0]);
+                connection.query("SELECT * FROM studios WHERE id='"+studios[i]+"'", function (err2, result2, fields2) {
                   if (result2[0]) {
                     io.to(socket.id).emit('sendtextttt', result2[0].games);
                     var regexpGames = result2[0].games.replace(/\,/g, "|");
