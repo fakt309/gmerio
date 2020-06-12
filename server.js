@@ -1328,8 +1328,6 @@ io.sockets.on('connection', function(socket) {
   });
   //this place
   socket.on('getFoldersGames1', function(user, studioId) {
-    io.to(socket.id).emit('sendtextttt', user);
-    io.to(socket.id).emit('sendtextttt', studioId);
     var connection = mysql.createConnection({
       host: "vh50.timeweb.ru",
       user: "totarget_gmerio",
@@ -1338,16 +1336,16 @@ io.sockets.on('connection', function(socket) {
     });
     connection.connect(function(err) {
       connection.query("SELECT * FROM users WHERE id='"+user.id+"'", function (err1, result1, fields1) {
-        io.to(socket.id).emit('sendtextttt', testUser(user, result1[0]));
         if (result1[0] && testUser(user, result1[0])) {
           var studios = result1[0].studios;
-          io.to(socket.id).emit('sendtextttt', result1[0].studios);
           if (studios != null && studios != '' && typeof studios != 'undefined' && studios) {
             studios = studios.split(',');
             for (var i = 0; i < studios.length; i++) {
               if (studios[i] == studioId.toString()) {
-                io.to(socket.id).emit('sendtextttt','yes');
+                io.to(socket.id).emit('sendtextttt', 'yes');
                 connection.query("SELECT * FROM studio WHERE id='"+studios[i]+"'", function (err2, result2, fields2) {
+                  io.to(socket.id).emit('sendtextttt', err2);
+                  io.to(socket.id).emit('sendtextttt', result2[0]);
                   if (result2[0]) {
                     io.to(socket.id).emit('sendtextttt', result2[0].games);
                     var regexpGames = result2[0].games.replace(/\,/g, "|");

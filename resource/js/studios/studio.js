@@ -232,9 +232,6 @@ function fillStudioPage(data) {
     document.getElementById('nogameText').style.display = 'none';
 
     if (dataIsMy) {
-      console.log(dataUser);
-      console.log(dataIsMy);
-      console.log(data.id);
       socket.emit('getFoldersGames1', dataUser, data.id);
       document.getElementById('gamesFolders').style.display = 'flex';
     } else if (!dataIsMy) {
