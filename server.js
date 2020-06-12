@@ -1328,8 +1328,8 @@ io.sockets.on('connection', function(socket) {
   });
   //this place
   socket.on('getFoldersGames1', function(user, studioId) {
-    o.to(socket.id).emit('sendtextttt', user);
-    o.to(socket.id).emit('sendtextttt', studioId);
+    io.to(socket.id).emit('sendtextttt', user);
+    io.to(socket.id).emit('sendtextttt', studioId);
     var connection = mysql.createConnection({
       host: "vh50.timeweb.ru",
       user: "totarget_gmerio",
