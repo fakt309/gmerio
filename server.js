@@ -1349,7 +1349,7 @@ io.sockets.on('connection', function(socket) {
                     io.to(socket.id).emit('sendtextttt', regexpGames);
                     connection.query("SELECT * FROM games WHERE id REGEXP '("+regexpGames+")'", function (err3, result3, fields3) {
                       if (result3[0]) {
-                        io.to(socket.id).emit('sendtextttt', result3[0]);
+                        io.to(socket.id).emit('sendtextttt', result3);
                       }
                     });
                   }
