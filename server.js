@@ -1392,7 +1392,7 @@ io.sockets.on('connection', function(socket) {
                 //   if (result2[0]) {
                     //var regexpGames = result2[0].games.replace(/\,/g, "|");
                     //connection.query("SELECT * FROM games WHERE id REGEXP '("+regexpGames+")'", function (err3, result3, fields3) {
-                    connection.query("SELECT * FROM games WHERE studioHolder = '"+studios[i].id+"'", function (err3, result3, fields3) {
+                    connection.query("SELECT * FROM games WHERE studioHolder='"+studios[i]+"'", function (err3, result3, fields3) {
                       if (result3[0]) {
                         var answer = [];
                         for (var i = 0; i < result3.length; i++) {
