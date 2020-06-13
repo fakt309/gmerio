@@ -234,6 +234,35 @@ function testUser(decryptedUser, encryptedUser) {
   }
 }
 
+var listDir = function(host, dir, filelist) {
+  var files = fs.readdirSync(dir);
+  filelist = filelist || [];
+  files.forEach(function(file) {
+    if (fs.statSync(dir+'/'+file).isDirectory()) {
+      filelist = listDir(host, dir+'/'+file, filelist);
+    } else {
+      filelist.push('/g'+(dir+'/'+file).replace(host, ''));
+    }
+  });
+  return filelist;
+};
+
+function getPstTime() {
+  var pstTime = new Date(Date.now()+new Date().getTimezoneOffset()*60*1000+(-7*60*60*1000));
+  var mounths = pstTime.getMonth()+1;
+  if (mounths < 10) { mounths = '0'+mounths; }
+  var days = pstTime.getDate();
+  if (days < 10) { days = '0'+days; }
+  var hours = pstTime.getHours();
+  if (hours < 10) { hours = '0'+hours; }
+  var minutes = pstTime.getMinutes();
+  if (minutes < 10) { minutes = '0'+minutes; }
+  var seconds = pstTime.getSeconds();
+  if (seconds < 10) { seconds = '0'+seconds; }
+  pstTime = pstTime.getFullYear()+'-'+mounths+'-'+days+' '+hours+':'+minutes+':'+seconds;
+  return pstTime;
+}
+
 function createRoom(idPlayer) {
   var id = getID(10);
   while (rooms[id]) {
@@ -1326,7 +1355,7 @@ io.sockets.on('connection', function(socket) {
       }, 1500);
     });
   });
-  //this place
+
   socket.on('getFoldersGames1', function(user, studioId) {
     var connection = mysql.createConnection({
       host: "vh50.timeweb.ru",
@@ -1334,6 +1363,114 @@ io.sockets.on('connection', function(socket) {
       password: "Jc3FiReQ",
       database: "totarget_gmerio"
     });
+
+    var alternative = false;
+    if (alternative) {
+      // connection.query("SELECT * FROM games WHERE studioHolder = '1'", function (err3, result3, fields3) {
+      //   if (result3[0]) {
+      //     var answer = [];
+      //     for (var i = 0; i < result3.length; i++) {
+      //       var gameName = result3[i].name;
+      //       answer[i] = listDir(__dirname+'/games', __dirname+'/games/'+gameName);
+      //     }
+      //     io.to(socket.id).emit('getFoldersGames2', answer);
+      //   }
+      // });
+      // setTimeout(function() {
+      //     connection.end();
+      // }, 1500);
+    } else {
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM users WHERE id='"+user.id+"'", function (err1, result1, fields1) {
+        if (result1[0] && testUser(user, result1[0])) {
+          var studios = result1[0].studios;
+          if (studios != null && studios != '' && typeof studios != 'undefined' && studios) {
+            studios = studios.split(',');
+            for (var i = 0; i < studios.length; i++) {
+              if (studios[i] == studioId.toString()) {
+                // connection.query("SELECT * FROM studios WHERE id='"+studios[i]+"'", function (err2, result2, fields2) {
+                //   if (result2[0]) {
+                    //var regexpGames = result2[0].games.replace(/\,/g, "|");
+                    //connection.query("SELECT * FROM games WHERE id REGEXP '("+regexpGames+")'", function (err3, result3, fields3) {
+                    connection.query("SELECT * FROM games WHERE studioHolder = '("+studios[i].id+")'", function (err3, result3, fields3) {
+                      if (result3[0]) {
+                        var answer = [];
+                        for (var i = 0; i < result3.length; i++) {
+                          var gameName = result3[i].name;
+                          answer[i] = listDir(__dirname+'/games', __dirname+'/games/'+gameName);
+                        }
+                        io.to(socket.id).emit('getFoldersGames2', answer);
+                      }
+                    });
+                //   }
+                // });
+                break;
+              }
+            }
+          }
+        }
+      });
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
+    });
+
+    }
+  });
+
+  socket.on('createGame1', function(user, studioId, name) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+
+    var alternative = false;
+    if (alternative) {
+      // connection.query("SELECT * FROM studios WHERE id='"+studioId+"'", function (err2, result2, fields2) {
+      //   if (result2[0]) {
+      //     connection.query("SELECT * FROM games WHERE name='"+name+"'", function (err2a5, result2a5) {
+      //       if (!result2a5[0]) {
+      //         connection.query("INSERT INTO games (name, studioHolder, dateCreate) VALUES ('"+name+"', '"+studioId+"', '"+getPstTime()+"')", function (err3, result3) {
+      //           if (result3) {
+      //             if (!fs.existsSync(__dirname+'/games/'+name)) {
+      //                 fs.mkdirSync(__dirname+'/games/'+name);
+      //                 fs.appendFileSync(__dirname+'/games/'+name+'/index.html', 'Here should be code your game.');
+      //
+      //                 if (result2[0].games == null || result2[0].games == '' || typeof result2[0].games == 'undefined' || !result2[0].games) {
+      //                   connection.query("UPDATE studios SET `games`='"+result3.insertId+"' WHERE id='"+result2[0].id+"'", function (err4, result4, fields4) {
+      //                     if (!err4) {
+      //                       var answer = [];
+      //                       answer[0] = listDir(__dirname+'/games', __dirname+'/games/'+name);
+      //                       //io.to(socket.id).emit('getFoldersGames2', answer);
+      //                       io.to(socket.id).emit('refillPage');
+      //                     }
+      //                   });
+      //                 } else {
+      //                   connection.query("UPDATE studios SET `games`='"+result2[0].games+","+result3.insertId+"' WHERE id='"+result2[0].id+"'", function (err4, result4, fields4) {
+      //                     if (!err4) {
+      //                       var answer = [];
+      //                       answer[0] = listDir(__dirname+'/games', __dirname+'/games/'+name);
+      //                       //io.to(socket.id).emit('getFoldersGames2', answer);
+      //                       io.to(socket.id).emit('refillPage');
+      //                     }
+      //                   });
+      //                 }
+      //
+      //             }
+      //           }
+      //         });
+      //       } else if (result2a5[0]) {
+      //         io.to(socket.id).emit('errCreateGmae', 'The game with that name already exists');
+      //       }
+      //     });
+      //   }
+      // });
+      // setTimeout(function() {
+      //     connection.end();
+      // }, 1500);
+    } else {
     connection.connect(function(err) {
       connection.query("SELECT * FROM users WHERE id='"+user.id+"'", function (err1, result1, fields1) {
         if (result1[0] && testUser(user, result1[0])) {
@@ -1344,12 +1481,39 @@ io.sockets.on('connection', function(socket) {
               if (studios[i] == studioId.toString()) {
                 connection.query("SELECT * FROM studios WHERE id='"+studios[i]+"'", function (err2, result2, fields2) {
                   if (result2[0]) {
-                    io.to(socket.id).emit('sendtextttt', result2[0].games);
-                    var regexpGames = result2[0].games.replace(/\,/g, "|");
-                    io.to(socket.id).emit('sendtextttt', regexpGames);
-                    connection.query("SELECT * FROM games WHERE id REGEXP '("+regexpGames+")'", function (err3, result3, fields3) {
-                      if (result3[0]) {
-                        io.to(socket.id).emit('sendtextttt', result3);
+                    connection.query("SELECT * FROM games WHERE name='"+name+"'", function (err2a5, result2a5) {
+                      if (!result2a5[0]) {
+                        connection.query("INSERT INTO games (name, studioHolder, dateCreate) VALUES ('"+name+"', '"+studioId+"', '"+getPstTime()+"')", function (err3, result3) {
+                          if (result3) {
+                            if (!fs.existsSync(__dirname+'/games/'+name)) {
+                                fs.mkdirSync(__dirname+'/games/'+name);
+                                fs.appendFileSync(__dirname+'/games/'+name+'/index.html', 'Here should be code your game.');
+
+                                if (result2[0].games == null || result2[0].games == '' || typeof result2[0].games == 'undefined' || !result2[0].games) {
+                                  connection.query("UPDATE studios SET `games`='"+result3.insertId+"' WHERE id='"+result2[0].id+"'", function (err4, result4, fields4) {
+                                    if (!err4) {
+                                      var answer = [];
+                                      answer[0] = listDir(__dirname+'/games', __dirname+'/games/'+name);
+                                      //io.to(socket.id).emit('getFoldersGames2', answer);
+                                      io.to(socket.id).emit('refillPage');
+                                    }
+                                  });
+                                } else {
+                                  connection.query("UPDATE studios SET `games`='"+result2[0].games+","+result3.insertId+"' WHERE id='"+result2[0].id+"'", function (err4, result4, fields4) {
+                                    if (!err4) {
+                                      var answer = [];
+                                      answer[0] = listDir(__dirname+'/games', __dirname+'/games/'+name);
+                                      //io.to(socket.id).emit('getFoldersGames2', answer);
+                                      io.to(socket.id).emit('refillPage');
+                                    }
+                                  });
+                                }
+
+                            }
+                          }
+                        });
+                      } else if (result2a5[0]) {
+                        io.to(socket.id).emit('errCreateGmae', 'The game with that name already exists');
                       }
                     });
                   }
@@ -1362,8 +1526,10 @@ io.sockets.on('connection', function(socket) {
       });
       setTimeout(function() {
           connection.end();
-      }, 1500);
+      }, 2500);
     });
+
+    }
   });
 
 	socket.on('requestLink', function(link) {

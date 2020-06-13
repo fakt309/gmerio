@@ -7,11 +7,12 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  justify-content: center;
+  justify-content: flex-start;
   font-family: Arial;
 }
 #insideWrapAll {
   max-height: 100%;
+  margin-top: 50px;
 }
 #inside2WrapAll {
   display: flex;
@@ -219,6 +220,7 @@
   flex-direction: column;
   align-items: stretch;
   justify-content: flex-start;
+  transition: all ease 0.2s;
 }
 .wrapFolder {
   display: flex;
@@ -590,5 +592,17 @@
   margin: 20px;
   margin-top: 5px;
   color: #666;
+  font-size: 14px;
+}
+.wrapFolder {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  transition: all ease 0.2s;
+}
+#errorTextCreateGame {
+  display: none;
+  color: #f77171;
   font-size: 14px;
 }

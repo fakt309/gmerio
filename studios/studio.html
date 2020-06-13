@@ -78,46 +78,7 @@
               <div id='infoChoosenFolder'>
                 <div id='fullWayChoosenFolder'><p id='hostWayChoosenFolder'>https://gmer.io</p><p id='pathWayChoosenFolder'>/g/cannons</p></div>
               </div>
-              <div id='listFolders'>
-                <div class='oneFolder' typefolder='game' onclick='this.setAttribute("focus", "1")'>
-                  <div class='imgFolder'></div>
-                  <div class='titleFolder'>/g/cannons</div>
-                </div>
-                <div class='oneFolder' typefolder='folder' onclick='this.setAttribute("focus", "1")'>
-                  <div class='netFolders'><div class='netFolders1'></div><div class='netFolders2'></div></div>
-                  <div class='imgFolder'></div>
-                  <div class='titleFolder'>resource</div>
-                </div>
-                <div class='oneFolder' typefolder='img' onclick='this.setAttribute("focus", "1")' style='padding-left:40px'>
-                  <div class='netFolders'><div class='netFolders1'></div><div class='netFolders2'></div></div>
-                  <div class='imgFolder'></div>
-                  <div class='titleFolder'>image.png</div>
-                </div>
-                <div class='oneFolder' typefolder='txt' onclick='this.setAttribute("focus", "1")' style='padding-left:40px'>
-                  <div class='netFolders'><div class='netFolders1'></div><div class='netFolders2'></div></div>
-                  <div class='imgFolder'></div>
-                  <div class='titleFolder'>index.html</div>
-                </div>
-                <div class='oneFolder' typefolder='none' onclick='this.setAttribute("focus", "1")' style='padding-left:40px'>
-                  <div class='netFolders'><div class='netFolders1'></div><div class='netFolders2'></div></div>
-                  <div class='imgFolder'></div>
-                  <div class='titleFolder'>index</div>
-                </div>
-                <div class='oneFolder' typefolder='game' onclick='this.setAttribute("focus", "1")'>
-                  <div class='imgFolder'></div>
-                  <div class='titleFolder'>/g/stealth</div>
-                </div>
-                <div class='oneFolder' typefolder='folder' onclick='this.setAttribute("focus", "1")'>
-                  <div class='netFolders'><div class='netFolders1'></div><div class='netFolders2'></div></div>
-                  <div class='imgFolder'></div>
-                  <div class='titleFolder'>image</div>
-                </div>
-                <div class='oneFolder' typefolder='img' onclick='this.setAttribute("focus", "1")' style='padding-left:40px'>
-                  <div class='netFolders'><div class='netFolders1'></div><div class='netFolders2'></div></div>
-                  <div class='imgFolder'></div>
-                  <div class='titleFolder'>index.html</div>
-                </div>
-              </div>
+              <div id='listFolders'></div>
             </div>
             <div id='stringCreateGame'>
               <div id='blockInputCreateGame' active='0'>
@@ -126,6 +87,7 @@
               </div>
               <div id='buttonCreateGame' onclick='clickCreateGame()'>+ create new game</div>
               <div id='buttonCancelCreateGame' onclick='clickCancelCreateGame()' active='0'>cancel</div>
+              <div id='errorTextCreateGame'></div>
             </div>
           </div>
           <div class='blockContent'>
@@ -226,6 +188,27 @@
         }
       });
 
+      socket.on('getFoldersGames2', function(list) {
+        console.log(list);
+        document.getElementById('listFolders').style.transform = 'scale(0)';
+
+        setTimeout(function() {
+          document.getElementById('listFolders').innerHTML = '';
+          document.getElementById('listFolders').style.transform = 'scale(1)';
+
+          for (var i = 0; i < list.length; i++) {
+            var nameGame = list[i][0].split('/')[2];
+
+            var wrapFolder = document.createElement('div');
+            wrapFolder.setAttribute('class', 'wrapFolder');
+            wrapFolder.setAttribute('path', '/g');
+            document.getElementById('listFolders').appendChild(wrapFolder);
+
+            insertFolder('/g/'+nameGame, list[i]);
+          }
+        }, 200);
+      });
+
       socket.on('getNameHolder2', function(fullName) {
         document.getElementById('linkNameHolder').innerHTML = fullName;
         document.getElementById('linkHolderUser').style.opacity = '1';
@@ -246,6 +229,19 @@
           oneGame.setAttribute('href', '/g/'+games[i].name);
           oneGame.innerHTML = "<div class='rightGame'><div class='titleGame'>"+games[i].name+"</div><div class='authorGame'>"+games[i].authors+"</div></div>";
           document.getElementById('listGames').appendChild(oneGame);
+        }
+      });
+
+      socket.on('errCreateGmae', function(text) {
+        document.getElementById('errorTextCreateGame').innerHTML = text;
+        document.getElementById('errorTextCreateGame').style.display = 'flex';
+      });
+
+      socket.on('refillPage', function() {
+        if (dataUser) {
+          socket.emit('getDataStudio', studioName, dataUser);
+        } else {
+          socket.emit('getDataStudio', studioName);
         }
       });
 

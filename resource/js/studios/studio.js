@@ -41,9 +41,12 @@ function showBlock(indexLink, e) {
 
 function clickCreateGame() {
   var input = document.getElementById('blockInputCreateGame');
+  var inputInput = document.getElementById('inputInputCreateGame');
   var button = document.getElementById('buttonCreateGame');
   var buttonCancel = document.getElementById('buttonCancelCreateGame');
   if (input.getAttribute('active') == '0') {
+    document.getElementById('errorTextCreateGame').innerHTML = '';
+    document.getElementById('errorTextCreateGame').style.display = 'none';
     input.style.display = 'flex';
     buttonCancel.style.display = 'flex';
     setTimeout(function() {
@@ -52,6 +55,15 @@ function clickCreateGame() {
       buttonCancel.setAttribute('active', '1');
       button.innerHTML = 'create';
     }, 10);
+  } else if (input.getAttribute('active') == '1' && button.getAttribute('disabled') != '1') {
+    socket.emit('createGame1', dataUser, dataStudio.id, inputInput.value);
+    input.setAttribute('active', '0');
+    buttonCancel.setAttribute('active', '0');
+    button.innerHTML = '+ create new game';
+    setTimeout(function() {
+      input.style.display = 'none';
+      buttonCancel.style.display = 'none';
+    }, 200);
   }
 }
 
@@ -286,4 +298,113 @@ function deleteStudio() {
   if (dataStudio.name.toLowerCase() == value.toLowerCase()) {
     socket.emit('deleteStudio', dataUser, dataStudio.id);
   }
+}
+function switchOpenFolder(path, e) {
+  window.getSelection().removeAllRanges();
+  var wrap = document.querySelectorAll('.wrapFolder[path="'+path+'"]')[0];
+  if (wrap.getAttribute('openDir') == '2') {
+    hideWrapDir(path);
+  } else if (wrap.getAttribute('openDir') == '1') {
+    showWrapDir(path);
+  }
+  window.getSelection().removeAllRanges();
+}
+function hideWrapDir(path) {
+  var wrap = document.querySelectorAll('.wrapFolder[path="'+path+'"]')[0];
+  wrap.setAttribute('openDir', '1');
+  wrap.style.transform = 'scale(0)';
+  setTimeout(function() {
+    wrap.style.display = 'none';
+  }, 200);
+}
+function showWrapDir(path) {
+  var wrap = document.querySelectorAll('.wrapFolder[path="'+path+'"]')[0];
+  wrap.setAttribute('openDir', '2');
+  wrap.style.display = 'flex';
+  setTimeout(function() {
+    wrap.style.transform = 'scale(1)';
+  }, 10);
+}
+
+function addFolderString(type, name, path) {
+  var pathPreWrap = '';
+  var partsPath = path.split('/');
+  for (var i = 1; i < partsPath.length-1; i++) {
+    pathPreWrap += '/'+partsPath[i]
+  }
+
+  var oneFolder = document.createElement('div');
+  var paddingLeft = (path.split('/').length-3)*20;
+  if (path.split('/').length == 3) {
+    paddingLeft = 20;
+  }
+  oneFolder.setAttribute('class', 'oneFolder');
+  oneFolder.setAttribute('path', path);
+  oneFolder.setAttribute('typefolder', type);
+  oneFolder.setAttribute('onclick', 'this.setAttribute("focus", "1")');
+  oneFolder.style.paddingLeft = paddingLeft+'px';
+  if (path.split('/').length == 3) {
+    oneFolder.innerHTML = "<div class='imgFolder'></div><div class='titleFolder'>"+name+"</div>";
+  } else if (path.split('/').length > 3) {
+    oneFolder.innerHTML = "<div class='netFolders'><div class='netFolders1'></div><div class='netFolders2'></div></div><div class='imgFolder'></div><div class='titleFolder'>"+name+"</div>";
+  }
+
+  document.querySelectorAll('.wrapFolder[path="'+pathPreWrap+'"]')[0].appendChild(oneFolder);
+}
+
+function insertFolder(pathFolder, insideFiles) {
+  var pathFolderParts = pathFolder.split('/');
+  var typeFolder = 'folder';
+  if (pathFolderParts.length == 3) {
+    typeFolder = 'game';
+  }
+
+  addFolderString(typeFolder, pathFolderParts[pathFolderParts.length-1], pathFolder);
+  document.querySelectorAll('.oneFolder[path="'+pathFolder+'"]')[0].setAttribute('ondblclick', 'switchOpenFolder("'+pathFolder+'", event)');
+
+  var pathPreWrap = '';
+  for (var i = 1; i < pathFolderParts.length-1; i++) {
+    pathPreWrap += '/'+pathFolderParts[i]
+  }
+  var wrapFolder = document.createElement('div');
+  wrapFolder.setAttribute('class', 'wrapFolder');
+  wrapFolder.setAttribute('path', pathFolder);
+  if (pathFolderParts.length > 3) {
+    //wrapFolder.style.height = '0px';
+    wrapFolder.style.display = 'none';
+    wrapFolder.style.transform = 'scale(0)';
+    wrapFolder.setAttribute('openDir', '1');
+  } else {
+    wrapFolder.style.display = 'flex';
+    wrapFolder.style.transform = 'scale(1)';
+    wrapFolder.setAttribute('openDir', '2');
+  }
+  document.querySelectorAll('.wrapFolder[path="'+pathPreWrap+'"]')[0].appendChild(wrapFolder);
+
+  for (var i = 0; i < insideFiles.length; i++) {
+    var partsNewFolder = insideFiles[i].split('/');
+    var pathNewFolder = '';
+    for (var j = 1; j < pathFolderParts.length+1; j++) {
+      pathNewFolder += '/'+partsNewFolder[j];
+    }
+    if (partsNewFolder.length > pathFolderParts.length+1 && !document.querySelectorAll('.oneFolder[path="'+pathNewFolder+'"]')[0]) {
+      insideFiles = insertFolder(pathNewFolder, insideFiles);
+    }
+  }
+
+  for (var i = 0; i < insideFiles.length; i++) {
+    var partsNewFolder = insideFiles[i].split('/');
+    var pathNewFolder = '';
+    for (var j = 1; j < pathFolderParts.length+1; j++) {
+      pathNewFolder += '/'+partsNewFolder[j];
+    }
+    var regexp = new RegExp("^"+pathFolder, "g");
+    if (regexp.test(pathNewFolder) && partsNewFolder.length == pathFolderParts.length+1 && !document.querySelectorAll('.oneFolder[path="'+pathNewFolder+'"]')[0]) {
+      addFolderString('none', partsNewFolder[partsNewFolder.length-1], pathNewFolder);
+      insideFiles.splice(i, 1);
+      i--;
+    }
+  }
+
+  return insideFiles;
 }
