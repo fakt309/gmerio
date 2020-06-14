@@ -1557,10 +1557,9 @@ io.sockets.on('connection', function(socket) {
     } else {
       connection.connect(function(err) {
         connection.query("SELECT * FROM users WHERE id='"+user.id+"'", function (err1, result1, fields1) {
-          io.to(socket.id).emit('sendtextttt', testUser(user, result1[0]));
           if (result1[0] && testUser(user, result1[0])) {
             var flagContinue = false;
-            var studios = user.studios.split(',');
+            var studios = result1[0].studios.split(',');
             for (var i = 0; i < studios.length; i++) {
               if (studios[i] == idStudio) {
                 flagContinue = true;
