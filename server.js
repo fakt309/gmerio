@@ -1627,13 +1627,17 @@ io.sockets.on('connection', function(socket) {
                       }
                       io.to(socket.id).emit('sendtextttt', 'go through folders');
                       if (pathsFile[0]) {
+                        io.to(socket.id).emit('sendtextttt', 'yes file');
                         for (var i = 0; i < pathsFile.length; i++) {
                           var paths = pathsFile[i].split('/');
                           paths[1] = 'games';
                           var nameGame = paths[2];
                           paths = paths.join('/');
+                          io.to(socket.id).emit('sendtextttt', nameGame);
+                          io.to(socket.id).emit('sendtextttt', paths);
                           for (var j = 0; j < result2.length; j++) {
                             if (result2[i].name == nameGame) {
+                              io.to(socket.id).emit('sendtextttt', 'delete file');
                               try {
                                 fs.unlinkSync(__dirname+paths);
                               } catch {}
