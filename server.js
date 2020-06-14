@@ -1580,7 +1580,7 @@ io.sockets.on('connection', function(socket) {
                           var nameGame = paths[2];
                           paths = paths.join('/');
                           for (var j = 0; j < result2.length; j++) {
-                            if (result2[i].name == nameGame) {
+                            if (result2[j].name == nameGame) {
                                   var oldGames = result3[0].games.split(',');
                                   var newGames = '';
                                   var flagComma = true;
@@ -1616,7 +1616,7 @@ io.sockets.on('connection', function(socket) {
                           var nameGame = paths[2];
                           paths = paths.join('/');
                           for (var j = 0; j < result2.length; j++) {
-                            if (result2[i].name == nameGame) {
+                            if (result2[j].name == nameGame) {
                               try {
                                 fs.rmdirSync(__dirname+paths, { recursive: true });
                               } catch {}
@@ -1636,7 +1636,7 @@ io.sockets.on('connection', function(socket) {
                           io.to(socket.id).emit('sendtextttt', nameGame);
                           io.to(socket.id).emit('sendtextttt', paths);
                           for (var j = 0; j < result2.length; j++) {
-                            if (result2[i].name == nameGame) {
+                            if (result2[j].name == nameGame) {
                               io.to(socket.id).emit('sendtextttt', 'delete file');
                               try {
                                 fs.unlinkSync(__dirname+paths);
