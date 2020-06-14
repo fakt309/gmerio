@@ -1539,11 +1539,6 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('deleteFolders1', function(user, idStudio, pathsGame, pathsFolder, pathsFile) {
-    io.to(socket.id).emit('sendtextttt', user);
-    io.to(socket.id).emit('sendtextttt', idStudio);
-    io.to(socket.id).emit('sendtextttt', pathsGame);
-    io.to(socket.id).emit('sendtextttt', pathsFolder);
-    io.to(socket.id).emit('sendtextttt', pathsFile);
     var connection = mysql.createConnection({
       host: "vh50.timeweb.ru",
       user: "totarget_gmerio",
@@ -1637,7 +1632,6 @@ io.sockets.on('connection', function(socket) {
                           }
                         }
                       }
-                      io.to(socket.id).emit('refillPage');
                     }
                   });
                 }
