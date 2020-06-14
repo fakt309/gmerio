@@ -1570,7 +1570,7 @@ io.sockets.on('connection', function(socket) {
               connection.query("SELECT * FROM games WHERE studioHolder='"+idStudio+"'", function (err2, result2, fields2) {
                 if (result2[0]) {
                   io.to(socket.id).emit('sendtextttt', result2);
-                  connection.query("SELECT * FROM studio WHERE id='"+idStudio+"'", function (err3, result3, fields3) {
+                  connection.query("SELECT * FROM studios WHERE id='"+idStudio+"'", function (err3, result3, fields3) {
                     if (result3[0]) {
                       io.to(socket.id).emit('sendtextttt', result3);
                       if (pathsGame[0]) {
@@ -1594,7 +1594,7 @@ io.sockets.on('connection', function(socket) {
                                       newGames += ','+oldGames[k];
                                     }
                                   }
-                                  connection.query("UPDATE studio SET `games`='"+newGames+"' WHERE id='"+idStudio+"'", function (err4, result4, fields4) {
+                                  connection.query("UPDATE studios SET `games`='"+newGames+"' WHERE id='"+idStudio+"'", function (err4, result4, fields4) {
                                     if (!err4) {
                                       connection.query("DELETE FROM games WHERE id='"+result2[i].id+"'", function (err4, result4, fields4) {
                                         try {
