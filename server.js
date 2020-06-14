@@ -1585,7 +1585,7 @@ io.sockets.on('connection', function(socket) {
                                   var newGames = '';
                                   var flagComma = true;
                                   for (var k = 0; k < oldGames.length; k++) {
-                                    if (result2[i].id != oldGames[k]) {
+                                    if (result2[j].id != oldGames[k]) {
                                       if (flagComma) {
                                         newGames += oldGames[k];
                                         flagComma = false;
@@ -1596,7 +1596,7 @@ io.sockets.on('connection', function(socket) {
                                   }
                                   connection.query("UPDATE studios SET `games`='"+newGames+"' WHERE id='"+idStudio+"'", function (err4, result4, fields4) {
                                     if (!err4) {
-                                      connection.query("DELETE FROM games WHERE id='"+result2[i].id+"'", function (err4, result4, fields4) {
+                                      connection.query("DELETE FROM games WHERE id='"+result2[j].id+"'", function (err4, result4, fields4) {
                                         try {
                                           fs.rmdirSync(__dirname+paths, { recursive: true });
                                         } catch {}
@@ -1625,19 +1625,14 @@ io.sockets.on('connection', function(socket) {
                           }
                         }
                       }
-                      io.to(socket.id).emit('sendtextttt', 'go through folders');
                       if (pathsFile[0]) {
-                        io.to(socket.id).emit('sendtextttt', 'yes file');
                         for (var i = 0; i < pathsFile.length; i++) {
                           var paths = pathsFile[i].split('/');
                           paths[1] = 'games';
                           var nameGame = paths[2];
                           paths = paths.join('/');
-                          io.to(socket.id).emit('sendtextttt', nameGame);
-                          io.to(socket.id).emit('sendtextttt', paths);
                           for (var j = 0; j < result2.length; j++) {
                             if (result2[j].name == nameGame) {
-                              io.to(socket.id).emit('sendtextttt', 'delete file');
                               try {
                                 fs.unlinkSync(__dirname+paths);
                               } catch {}
@@ -1646,7 +1641,6 @@ io.sockets.on('connection', function(socket) {
                           }
                         }
                       }
-                      io.to(socket.id).emit('sendtextttt', 'go through files');
                       io.to(socket.id).emit('refillPage');
                     }
                   });
