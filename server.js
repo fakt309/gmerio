@@ -1556,7 +1556,6 @@ io.sockets.on('connection', function(socket) {
     } else {
       connection.connect(function(err) {
         connection.query("SELECT * FROM users WHERE id='"+user.id+"'", function (err1, result1, fields1) {
-          io.to(socket.id).emit('sendtextttt', testUser(user, result1[0]));
           if (result1[0] && testUser(user, result1[0])) {
             var flagContinue = false;
             var studios = user.studios.split(',');
@@ -1566,14 +1565,11 @@ io.sockets.on('connection', function(socket) {
                 break;
               }
             }
-            io.to(socket.id).emit('sendtextttt', flagContinue);
             if (flagContinue) {
               connection.query("SELECT * FROM games WHERE studioHolder='"+idStudio+"'", function (err2, result2, fields2) {
                 if (result2[0]) {
-                  io.to(socket.id).emit('sendtextttt', result2);
                   connection.query("SELECT * FROM studio WHERE id='"+idStudio+"'", function (err3, result3, fields3) {
                     if (result3[0]) {
-                      io.to(socket.id).emit('sendtextttt', result3);
                       if (pathsGame[0]) {
                         for (var i = 0; i < pathsGame.length; i++) {
                           var paths = pathsGame[i].split('/');
@@ -1609,7 +1605,6 @@ io.sockets.on('connection', function(socket) {
                           }
                         }
                       }
-                      io.to(socket.id).emit('sendtextttt', 'go through games');
                       if (pathsFolder[0]) {
                         for (var i = 0; i < pathsFolder.length; i++) {
                           var paths = pathsFolder[i].split('/');
@@ -1626,7 +1621,6 @@ io.sockets.on('connection', function(socket) {
                           }
                         }
                       }
-                      io.to(socket.id).emit('sendtextttt', 'go through folders');
                       if (pathsFile[0]) {
                         for (var i = 0; i < pathsFile.length; i++) {
                           var paths = pathsFile[i].split('/');
@@ -1643,7 +1637,6 @@ io.sockets.on('connection', function(socket) {
                           }
                         }
                       }
-                      io.to(socket.id).emit('sendtextttt', 'go through files');
                       io.to(socket.id).emit('refillPage');
                     }
                   });
