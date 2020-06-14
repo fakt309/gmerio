@@ -9,6 +9,15 @@
     <link rel="stylesheet" href="/resource/styles/studio.css" />
   </head>
   <body>
+    <div id='labelNearMouse'></div>
+
+    <section id='backConfirmDeleteGame'>
+      <div id='blockConfirmDeleteGame'>
+        <div id='labelConfirmDeleteGame'>Are you sure you want to delete game from gmerio? Maybe you want to transit this game to us?  You can write to us by form on this site. We will answer you in short terms. We would glad to take it and maybe even pay you money.</div>
+        <div id='buttonConfirmDeleteGame' onclick='deleteFoldersConfirmed()'>anyway delete game permanently</div>
+      </div>
+    </section>
+
     <section id='backConfirmDeleteStudio'>
       <div id='blockConfirmDeleteStudio'>
         <div id='labelConfirmDeleteStudio'>enter name studio to confirm it</div>
@@ -76,7 +85,17 @@
             <div id='listGames'></div>
             <div id='gamesFolders'>
               <div id='infoChoosenFolder'>
-                <div id='fullWayChoosenFolder'><p id='hostWayChoosenFolder'>https://gmer.io</p><p id='pathWayChoosenFolder'>/g/cannons</p></div>
+                <div id='fullWayChoosenFolder'><p id='hostWayChoosenFolder'>https://gmer.io</p><p id='pathWayChoosenFolder'></p></div>
+                <div id='panelControl'>
+                  <div id='renameFolderButton'>
+                    <div id='imgRenameFolder'></div>
+                    <div id='titleRenameFolderButton'>rename</div>
+                  </div>
+                  <div id='deleteFolderButton' onclick='confirmMouseDeleteFolders()'>
+                    <div id='imgDeleteFolder'></div>
+                    <div id='titleDeleteFolderButton'>delete</div>
+                  </div>
+                </div>
               </div>
               <div id='listFolders'></div>
             </div>
@@ -204,7 +223,11 @@
             wrapFolder.setAttribute('path', '/g');
             document.getElementById('listFolders').appendChild(wrapFolder);
 
-            insertFolder('/g/'+nameGame, list[i]);
+            if (typeof list[i] == 'string') {
+              insertFolder(list[i], false);
+            } else {
+              insertFolder('/g/'+nameGame, list[i]);
+            }
           }
         }, 200);
       });

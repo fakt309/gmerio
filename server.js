@@ -1372,6 +1372,9 @@ io.sockets.on('connection', function(socket) {
       //     for (var i = 0; i < result3.length; i++) {
       //       var gameName = result3[i].name;
       //       answer[i] = listDir(__dirname+'/games', __dirname+'/games/'+gameName);
+      //       if (!answer[i][0]) {
+      //         answer[i] = "/g/"+gameName;
+      //       }
       //     }
       //     io.to(socket.id).emit('getFoldersGames2', answer);
       //   }
@@ -1398,6 +1401,9 @@ io.sockets.on('connection', function(socket) {
                         for (var i = 0; i < result3.length; i++) {
                           var gameName = result3[i].name;
                           answer[i] = listDir(__dirname+'/games', __dirname+'/games/'+gameName);
+                          if (!answer[i][0]) {
+                            answer[i] = "/g/"+gameName;
+                          }
                         }
                         io.to(socket.id).emit('getFoldersGames2', answer);
                       }
@@ -1529,6 +1535,117 @@ io.sockets.on('connection', function(socket) {
       }, 2500);
     });
 
+    }
+  });
+
+  socket.on('deleteFolders1', function(user, idStudio, pathsGame, pathsFolder, pathsFile) {
+    console.log(pathsGame);
+    console.log(pathsFolder);
+    console.log(pathsFile);
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+
+    var alternative = false;
+    if (alternative) {
+    } else {
+      connection.connect(function(err) {
+        connection.query("SELECT * FROM users WHERE id='"+user.id+"'", function (err1, result1, fields1) {
+          if (result1[0] && testUser(user, result1[0])) {
+            var flagContinue = false;
+            var studios = user.studios.split(',');
+            for (var i = 0; i < studios.length; i++) {
+              if (studios[i] == idStudio) {
+                flagContinue = true;
+                break;
+              }
+            }
+            if (flagContinue) {
+              connection.query("SELECT * FROM games WHERE studioHolder='"+idStudio+"'", function (err2, result2, fields2) {
+                if (result2[0]) {
+                  connection.query("SELECT * FROM studio WHERE id='"+idStudio+"'", function (err3, result3, fields3) {
+                    if (result3[0]) {
+                      if (pathsGame[0]) {
+                        for (var i = 0; i < pathsGame.length; i++) {
+                          var paths = pathsGame[i].split('/');
+                          paths[1] = 'games';
+                          var nameGame = paths[2];
+                          paths = paths.join('/');
+                          for (var j = 0; j < result2.length; j++) {
+                            if (result2[i].name == nameGame) {
+                                  var oldGames = result3[0].games.split(',');
+                                  var newGames = '';
+                                  var flagComma = true;
+                                  for (var k = 0; k < oldGames.length; k++) {
+                                    if (result2[i].id != oldGames[k]) {
+                                      if (flagComma) {
+                                        newGames += oldGames[k];
+                                        flagComma = false;
+                                        continue;
+                                      }
+                                      newGames += ','+oldGames[k];
+                                    }
+                                  }
+                                  connection.query("UPDATE studio SET `games`='"+newGames+"' WHERE id='"+idStudio+"'", function (err4, result4, fields4) {
+                                    if (!err4) {
+                                      connection.query("DELETE FROM games WHERE id='"+result2[i].id+"'", function (err4, result4, fields4) {
+                                        try {
+                                          fs.rmdirSync(__dirname+paths, { recursive: true });
+                                        } catch {}
+                                      });
+                                    }
+                                  });
+                              break;
+                            }
+                          }
+                        }
+                      }
+                      if (pathsFolder[0]) {
+                        for (var i = 0; i < pathsFolder.length; i++) {
+                          var paths = pathsFolder[i].split('/');
+                          paths[1] = 'games';
+                          var nameGame = paths[2];
+                          paths = paths.join('/');
+                          for (var j = 0; j < result2.length; j++) {
+                            if (result2[i].name == nameGame) {
+                              try {
+                                fs.rmdirSync(__dirname+paths, { recursive: true });
+                              } catch {}
+                              break;
+                            }
+                          }
+                        }
+                      }
+                      if (pathsFile[0]) {
+                        for (var i = 0; i < pathsFile.length; i++) {
+                          var paths = pathsFile[i].split('/');
+                          paths[1] = 'games';
+                          var nameGame = paths[2];
+                          paths = paths.join('/');
+                          for (var j = 0; j < result2.length; j++) {
+                            if (result2[i].name == nameGame) {
+                              try {
+                                fs.unlinkSync(__dirname+paths);
+                              } catch {}
+                              break;
+                            }
+                          }
+                        }
+                      }
+                    }
+                  });
+                }
+              });
+            }
+          }
+        });
+        setTimeout(function() {
+            connection.end();
+        }, 3500);
+      });
     }
   });
 

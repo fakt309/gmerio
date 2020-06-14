@@ -141,14 +141,31 @@ function clickCancelInviteUser() {
   }, 200);
 }
 
-var downPressConfirmDelete = false;
 window.addEventListener("mousedown", function(e) {
-  var folders = document.querySelectorAll('.oneFolder');
-  for (var i = 0; i < folders.length; i++) {
-    if (folders[i] != e.target && !isChild(folders[i], e.target)) {
-      folders[i].setAttribute("focus", "0");
+  var intoDir = false;
+  var dirs = document.querySelectorAll('.oneFolder');
+  for (var i = 0; i < dirs.length; i++) {
+    if (dirs[i] == e.target || isChild(dirs[i], e.target)) {
+      intoDir = true;
+      break;
     }
   }
+  if (document.getElementById('infoChoosenFolder') == e.target || isChild(document.getElementById('infoChoosenFolder'), e.target)) {
+    intoDir = true;
+  }
+  if (!e.shiftKey && !e.ctrlKey && document.getElementById('infoChoosenFolder') != e.target && !isChild(document.getElementById('infoChoosenFolder'), e.target)) {
+    var folders = document.querySelectorAll('.oneFolder');
+    for (var i = 0; i < folders.length; i++) {
+      if (folders[i] != e.target && !isChild(folders[i], e.target)) {
+        folders[i].setAttribute("focus", "0");
+      }
+    }
+  }
+  if (!intoDir) {
+    refreshChoosenFolder(e);
+  }
+
+
 });
 
 function showConfirmDeleteStudioWindow() {
@@ -341,7 +358,7 @@ function addFolderString(type, name, path) {
   oneFolder.setAttribute('class', 'oneFolder');
   oneFolder.setAttribute('path', path);
   oneFolder.setAttribute('typefolder', type);
-  oneFolder.setAttribute('onclick', 'this.setAttribute("focus", "1")');
+  oneFolder.setAttribute('onclick', 'chooseFolder(event, this)');
   oneFolder.style.paddingLeft = paddingLeft+'px';
   if (path.split('/').length == 3) {
     oneFolder.innerHTML = "<div class='imgFolder'></div><div class='titleFolder'>"+name+"</div>";
@@ -350,6 +367,79 @@ function addFolderString(type, name, path) {
   }
 
   document.querySelectorAll('.wrapFolder[path="'+pathPreWrap+'"]')[0].appendChild(oneFolder);
+}
+
+function chooseFolder(event, element) {
+  if (event.ctrlKey) {
+    if (element.getAttribute("focus") == "0") {
+      element.setAttribute("focus", "1");
+    } else if (element.getAttribute("focus") == "1") {
+      element.setAttribute("focus", "0");
+    }
+  } else {
+    element.setAttribute("focus", "1");
+  }
+  refreshChoosenFolder(event);
+}
+
+function refreshChoosenFolder(e) {
+  if (e.shiftKey) {
+    var allFolder = document.querySelectorAll('.oneFolder');
+    var selectedFolders = document.querySelectorAll('.oneFolder[focus="1"]');
+    var upperSelectedFolder = selectedFolders[0];
+    var lowerSelectedFolder = selectedFolders[selectedFolders.length-1];
+    var indexUpper = Array.prototype.indexOf.call(allFolder, upperSelectedFolder);
+    var indexLower = Array.prototype.indexOf.call(allFolder, lowerSelectedFolder);
+    for (var i = indexUpper; i < indexLower; i++) {
+      allFolder[i].setAttribute("focus", "1");
+    }
+    window.getSelection().removeAllRanges();
+  }
+
+  var choosenFolder = document.querySelectorAll('.oneFolder[focus="1"]');
+
+  if (choosenFolder.length == 1) {
+    document.getElementById('pathWayChoosenFolder').innerHTML = choosenFolder[0].getAttribute('path');
+  } else {
+    document.getElementById('pathWayChoosenFolder').innerHTML = '';
+  }
+
+
+  // if (choosenFolder.length == 1 && choosenFolder[0].getAttribute('typefolder') == 'folder') {
+  //   document.getElementById('titleDeleteFolderButton').innerHTML = 'delete folder';
+  //   document.getElementById('titleRenameFolderButton').innerHTML = 'rename folder';
+  // } else if (choosenFolder.length == 1 && choosenFolder[0].getAttribute('typefolder') == 'game') {
+  //   document.getElementById('titleDeleteFolderButton').innerHTML = 'delete game';
+  // } else if (choosenFolder.length == 1 && choosenFolder[0].getAttribute('typefolder') != 'game' && choosenFolder[0].getAttribute('typefolder') != 'folder') {
+  //   document.getElementById('titleDeleteFolderButton').innerHTML = 'delete file';
+  //   document.getElementById('titleRenameFolderButton').innerHTML = 'rename file';
+  // } else if (choosenFolder.length > 1) {
+  //   document.getElementById('titleDeleteFolderButton').innerHTML = 'delete choosen';
+  // }
+
+  if (choosenFolder.length == 1 && choosenFolder[0].getAttribute('typefolder') != 'game') {
+    document.getElementById('renameFolderButton').style.display = 'flex';
+    setTimeout(function() {
+      document.getElementById('renameFolderButton').style.transform = 'scale(1)';
+    }, 10);
+  } else {
+    document.getElementById('renameFolderButton').style.transform = 'scale(0)';
+    setTimeout(function() {
+      document.getElementById('renameFolderButton').style.display = 'none';
+    }, 200);
+  }
+
+  if (choosenFolder.length == 0) {
+    document.getElementById('deleteFolderButton').style.transform = 'scale(0)';
+    setTimeout(function() {
+      document.getElementById('deleteFolderButton').style.display = 'none';
+    }, 200);
+  } else {
+    document.getElementById('deleteFolderButton').style.display = 'flex';
+    setTimeout(function() {
+      document.getElementById('deleteFolderButton').style.transform = 'scale(1)';
+    }, 10);
+  }
 }
 
 function insertFolder(pathFolder, insideFiles) {
@@ -400,11 +490,197 @@ function insertFolder(pathFolder, insideFiles) {
     }
     var regexp = new RegExp("^"+pathFolder, "g");
     if (regexp.test(pathNewFolder) && partsNewFolder.length == pathFolderParts.length+1 && !document.querySelectorAll('.oneFolder[path="'+pathNewFolder+'"]')[0]) {
-      addFolderString('none', partsNewFolder[partsNewFolder.length-1], pathNewFolder);
+      var type = 'none';
+      var getExtension = partsNewFolder[partsNewFolder.length-1].split('.');
+      if (getExtension = getExtension[1]) {
+        if (getExtension == 'png' || getExtension == 'jpg' || getExtension == 'jpeg' || getExtension == 'gif' || getExtension == 'svg' || getExtension == 'mp4' || getExtension == 'glb') {
+          type = 'img';
+        } else if (getExtension == 'txt' || getExtension == 'html' || getExtension == 'css' || getExtension == 'js' || getExtension == 'xml' || getExtension == 'json') {
+          type = 'txt';
+        }
+      }
+      addFolderString(type, partsNewFolder[partsNewFolder.length-1], pathNewFolder);
       insideFiles.splice(i, 1);
       i--;
     }
   }
 
   return insideFiles;
+}
+
+var countConfirmDelete = {mouse: 1, keyboard: 1}
+document.addEventListener('mousemove', function(e) {
+  document.getElementById('labelNearMouse').style.left = e.pageX+15+'px';
+  document.getElementById('labelNearMouse').style.top = e.pageY+15+'px';
+});
+var timeoutConfirmDeleteFolder = setTimeout(function() {}, 1);
+function confirmMouseDeleteFolders() {
+  var choosenFoldres = document.querySelectorAll('.oneFolder[focus="1"]');
+  if (choosenFoldres.length > 0 && countConfirmDelete.mouse == 1) {
+    countConfirmDelete.mouse = 2;
+    document.getElementById('labelNearMouse').innerHTML = 'click one yet to confirm';
+    document.getElementById('labelNearMouse').style.display = 'flex';
+    setTimeout(function() {
+      document.getElementById('labelNearMouse').style.transform = 'scale(1)';
+    }, 10);
+    clearTimeout(timeoutConfirmDeleteFolder);
+    timeoutConfirmDeleteFolder = setTimeout(function() {
+      countConfirmDelete.mouse = 1;
+      countConfirmDelete.keyboard = 1;
+      document.getElementById('labelNearMouse').style.transform = 'scale(0)';
+      setTimeout(function() {
+        document.getElementById('labelNearMouse').innerHTML = '';
+        document.getElementById('labelNearMouse').style.display = 'none';
+      }, 200);
+    }, 2000);
+  } else if (choosenFoldres.length > 0 && countConfirmDelete.mouse == 2) {
+    deleteFolders();
+    countConfirmDelete.mouse = 1;
+    countConfirmDelete.keyboard = 1;
+    document.getElementById('labelNearMouse').style.transform = 'scale(0)';
+    setTimeout(function() {
+      document.getElementById('labelNearMouse').innerHTML = '';
+      document.getElementById('labelNearMouse').style.display = 'none';
+    }, 200);
+  }
+}
+document.addEventListener('keydown', function(e) {
+  if (e.code == 'Delete') {
+    var choosenFoldres = document.querySelectorAll('.oneFolder[focus="1"]');
+    if (choosenFoldres.length > 0 && countConfirmDelete.keyboard == 1) {
+      countConfirmDelete.keyboard = 2;
+      document.getElementById('labelNearMouse').innerHTML = 'press one yet delete to confirm';
+      document.getElementById('labelNearMouse').style.display = 'flex';
+      setTimeout(function() {
+        document.getElementById('labelNearMouse').style.transform = 'scale(1)';
+      }, 10);
+      clearTimeout(timeoutConfirmDeleteFolder);
+      timeoutConfirmDeleteFolder = setTimeout(function() {
+        countConfirmDelete.mouse = 1;
+        countConfirmDelete.keyboard = 1;
+        document.getElementById('labelNearMouse').style.transform = 'scale(0)';
+        setTimeout(function() {
+          document.getElementById('labelNearMouse').innerHTML = '';
+          document.getElementById('labelNearMouse').style.display = 'none';
+        }, 200);
+      }, 2000);
+    } else if (choosenFoldres.length > 0 && countConfirmDelete.keyboard == 2) {
+      deleteFolders();
+      countConfirmDelete.mouse = 1;
+      countConfirmDelete.keyboard = 1;
+      document.getElementById('labelNearMouse').style.transform = 'scale(0)';
+      setTimeout(function() {
+        document.getElementById('labelNearMouse').innerHTML = '';
+        document.getElementById('labelNearMouse').style.display = 'none';
+      }, 200);
+    }
+  }
+
+});
+var pathsGamesToDelete = [];
+var pathsFoldersToDelete = [];
+var pathsFilesToDelete = [];
+function deleteFolders() {
+  var choosenFoldres = document.querySelectorAll('.oneFolder[focus="1"]');
+  var pathsGames = [];
+  var pathsFolders = [];
+  var pathsFiles = [];
+  for (var i = 0; i < choosenFoldres.length; i++) {
+    var type = choosenFoldres[i].getAttribute('typefolder');
+    if (type == 'game') {
+      pathsGames.push(choosenFoldres[i].getAttribute('path'));
+    } else if (type == 'folder') {
+      pathsFolders.push(choosenFoldres[i].getAttribute('path'));
+    } else {
+      pathsFiles.push(choosenFoldres[i].getAttribute('path'));
+    }
+  }
+  //cleaning folders and files inside game
+  for (var i = 0; i < pathsGames.length; i++) {
+    var regexp = new RegExp('^'+pathsGames[i]);
+    for (var j = 0; j < pathsFolders.length; j++) {
+      if (regexp.test(pathsFolders[j]) ) {
+        pathsFolders.splice(j, 1);
+        j--;
+      }
+    }
+    for (var j = 0; j < pathsFiles.length; j++) {
+      if (regexp.test(pathsFiles[j])) {
+        pathsFiles.splice(j, 1);
+        j--;
+      }
+    }
+  }
+  //cleaning folders and files inside folders
+  for (var i = 0; i < pathsFolders.length; i++) {
+    var regexp = new RegExp('^'+pathsFolders[i]);
+    for (var j = 0; j < pathsFolders.length; j++) {
+      if (pathsFolders[j] != pathsFolders[i] && regexp.test(pathsFolders[j]) ) {
+        pathsFolders.splice(j, 1);
+        j--;
+      }
+    }
+    for (var j = 0; j < pathsFiles.length; j++) {
+      if (regexp.test(pathsFiles[j])) {
+        pathsFiles.splice(j, 1);
+        j--;
+      }
+    }
+  }
+
+  pathsGamesToDelete = pathsGames;
+  pathsFoldersToDelete = pathsFolders;
+  pathsFilesToDelete = pathsFiles;
+
+  if (pathsGames.length > 0) {
+    showConfirmDeleteGameWindow();
+  } else {
+    deleteFoldersConfirmed();
+  }
+}
+
+function showConfirmDeleteGameWindow() {
+  document.getElementById('backConfirmDeleteGame').style.display = 'flex';
+  setTimeout(function() {
+    document.getElementById('backConfirmDeleteGame').style.opacity = '1';
+    document.getElementById('blockConfirmDeleteGame').style.transform = 'translateY(0px)';
+    document.getElementById('buttonConfirmDeleteGame').style.transform = 'translateY(0px)';
+  }, 10);
+}
+function hideConfirmDeleteGameWindow() {
+  document.getElementById('backConfirmDeleteGame').style.opacity = '0';
+  document.getElementById('blockConfirmDeleteGame').style.transform = 'translateY(-40px)';
+  document.getElementById('buttonConfirmDeleteGame').style.transform = 'translateY(80px)';
+  setTimeout(function() {
+    document.getElementById('backConfirmDeleteGame').style.display = 'none';
+  }, 200);
+}
+var downPressConfirmDeleteGame = false;
+window.addEventListener("mousedown", function(e) {
+  if (document.getElementById('blockConfirmDeleteGame') != e.target && !isChild(document.getElementById('blockConfirmDeleteGame'), e.target) && document.getElementById('backConfirmDeleteGame').style.display == 'flex') {
+    downPressConfirmDeleteGame = true;
+  } else {
+    downPressConfirmDeleteGame = false;
+  }
+});
+window.addEventListener("mouseup", function(e) {
+  if (document.getElementById('blockConfirmDeleteGame') != e.target && !isChild(document.getElementById('blockConfirmDeleteGame'), e.target) && downPressConfirmDeleteGame) {
+    hideConfirmDeleteGameWindow();
+  } else {
+    downPressConfirmDeleteGame = false;
+  }
+});
+
+function deleteFoldersConfirmed() {
+  // console.log(pathsGamesToDelete);
+  // console.log(pathsFoldersToDelete);
+  // console.log(pathsFilesToDelete);
+  // console.log('--------------');
+
+  for (var i = 0; i < pathsGamesToDelete.length; i++) {
+    console.log(pathsGamesToDelete[i].split('/')[2]);
+  }
+
+  socket.emit('deleteFolders1', dataUser, dataStudio.id, pathsGamesToDelete, pathsFoldersToDelete, pathsFilesToDelete);
+  hideConfirmDeleteGameWindow();
 }
