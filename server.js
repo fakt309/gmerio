@@ -1734,6 +1734,9 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('addFolder1', function(user, idStudio, addPath) {
+    io.to(socket.id).emit('sendtextttt', user);
+    io.to(socket.id).emit('sendtextttt', idStudio);
+    io.to(socket.id).emit('sendtextttt', addPath);
     var connection = mysql.createConnection({
       host: "vh50.timeweb.ru",
       user: "totarget_gmerio",
@@ -1743,6 +1746,7 @@ io.sockets.on('connection', function(socket) {
 
     connection.connect(function(err) {
       connection.query("SELECT * FROM users WHERE id='"+user.id+"'", function (err1, result1, fields1) {
+        io.to(socket.id).emit('sendtextttt', testUser(user, result1[0]));
         if (result1[0] && testUser(user, result1[0])) {
           var flagContinue = false;
           var studios = result1[0].studios.split(',');
@@ -1754,15 +1758,19 @@ io.sockets.on('connection', function(socket) {
           }
           if (flagContinue) {
             connection.query("SELECT * FROM games WHERE studioHolder='"+idStudio+"'", function (err2, result2, fields2) {
+              io.to(socket.id).emit('sendtextttt', result2);
               if (result2[0]) {
                 for (var i = 0; i < result2.length; i++) {
                   if (result2[i].name == nameGame) {
                     var realAddPath = addPath.split('/');
                     realAddPath[1] = 'games';
                     realAddPath = realAddPath.join('/');
+                    io.to(socket.id).emit('sendtextttt', realAddPath);
                     for (var i = 0; i < 15; i++) {
+                      io.to(socket.id).emit('sendtextttt', 'inter');
                       var exists = fs.existsSync(__dirname+realAddPath+'/folder_'+i);
                       if (!exists) {
+                        io.to(socket.id).emit('sendtextttt', __dirname+realAddPath+'/folder_'+i);
                         fs.mkdirSync(__dirname+realAddPath+'/folder_'+i);
                         io.to(socket.id).emit('refillPage');
                         setTimeout(function() {
