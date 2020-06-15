@@ -1648,6 +1648,10 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('renameFolder1', function(user, idStudio, oldPath, newPath) {
+    io.to(socket.id).emit('sendtextttt', user);
+    io.to(socket.id).emit('sendtextttt', idStudio);
+    io.to(socket.id).emit('sendtextttt', oldPath);
+    io.to(socket.id).emit('sendtextttt', newPath);
     var connection = mysql.createConnection({
       host: "vh50.timeweb.ru",
       user: "totarget_gmerio",
@@ -1657,7 +1661,9 @@ io.sockets.on('connection', function(socket) {
 
     connection.connect(function(err) {
       connection.query("SELECT * FROM users WHERE id='"+user.id+"'", function (err1, result1, fields1) {
+        io.to(socket.id).emit('sendtextttt', testUser(user, result1[0]));
         if (result1[0] && testUser(user, result1[0])) {
+          io.to(socket.id).emit('sendtextttt', result1);
           var flagContinue = false;
           var studios = result1[0].studios.split(',');
           for (var i = 0; i < studios.length; i++) {
@@ -1668,6 +1674,7 @@ io.sockets.on('connection', function(socket) {
           }
           if (flagContinue) {
             connection.query("SELECT * FROM games WHERE studioHolder='"+idStudio+"'", function (err2, result2, fields2) {
+              io.to(socket.id).emit('sendtextttt', result2);
               if (result2[0]) {
                 var nameGame = oldPath.split('/')[2];
                 var realOldPath = oldPath.split('/');
@@ -1676,8 +1683,11 @@ io.sockets.on('connection', function(socket) {
                 var realNewPath = newPath.split('/');
                 realNewPath[1] = 'games';
                 realNewPath = realNewPath.join('/');
+                io.to(socket.id).emit('sendtextttt', realOldPath);
+                io.to(socket.id).emit('sendtextttt', realNewPath);
                 for (var i = 0; i < result2.length; i++) {
                   if (result2[i].name == nameGame) {
+                    io.to(socket.id).emit('sendtextttt', 'rename');
                     try {
                       fs.renameSync(__dirname+realOldPath, __dirname+realNewPath);
                     } catch {}
