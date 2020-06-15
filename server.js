@@ -1776,6 +1776,7 @@ io.sockets.on('connection', function(socket) {
                         break;
                       }
                     }
+                    break;
                   }
                 }
               }
