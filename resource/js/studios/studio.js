@@ -163,6 +163,11 @@ window.addEventListener("mousedown", function(e) {
   }
   if (!intoDir) {
     refreshChoosenFolder(e);
+
+    var renamings = document.querySelectorAll('.blockInputChangeNameFolder[active="1"]');
+    for (var i = 0; i < renamings.length; i++) {
+      hideRenameFolder(renamings[i].parentElement);
+    }
   }
 
 

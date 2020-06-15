@@ -247,6 +247,31 @@ var listDir = function(host, dir, filelist) {
   return filelist;
 };
 
+var listDirNew = function(host, dir, filelist, emptyFolders) {
+  var files = fs.readdirSync(dir);
+  filelist = filelist || [];
+  emptyFolders = emptyFolders || [];
+  var insideFiles = false;
+  files.forEach(function(file) {
+    if (fs.statSync(dir+'/'+file).isDirectory()) {
+      var currReturn = listDirNew(host, dir+'/'+file, filelist, emptyFolders);
+      filelist = currReturn.files;
+      emptyFolders = currReturn.emptyFolders;
+    } else {
+      filelist.push('/g'+(dir+'/'+file).replace(host, ''));
+    }
+    insideFiles = true;
+  });
+  if (!insideFiles) {
+    emptyFolders.push('/g'+dir.replace(host, ''));
+  }
+  var varReturn = {
+    files: filelist,
+    emptyFolders: emptyFolders
+  };
+  return varReturn;
+};
+
 function getPstTime() {
   var pstTime = new Date(Date.now()+new Date().getTimezoneOffset()*60*1000+(-7*60*60*1000));
   var mounths = pstTime.getMonth()+1;
@@ -1371,10 +1396,16 @@ io.sockets.on('connection', function(socket) {
       //     var answer = [];
       //     for (var i = 0; i < result3.length; i++) {
       //       var gameName = result3[i].name;
-      //       answer[i] = listDir(__dirname+'/games', __dirname+'/games/'+gameName);
-      //       if (!answer[i][0]) {
-      //         answer[i] = "/g/"+gameName;
+      //       //answer[i] = listDir(__dirname+'/games', __dirname+'/games/'+gameName);
+      //       // if (!answer[i][0]) {
+      //       //   answer[i] = "/g/"+gameName;
+      //       // }
+      //       answer[i] = listDirNew(__dirname+'/games', __dirname+'/games/'+gameName);
+      //       if (!answer[i].files[0]) {
+      //         answer[i].files = ["/g/"+gameName];
+      //         answer[i].emptyFolders = [];
       //       }
+      //       //console.log(listDirNew(__dirname+'/games', __dirname+'/games/'+gameName));
       //     }
       //     io.to(socket.id).emit('getFoldersGames2', answer);
       //   }
@@ -1400,10 +1431,16 @@ io.sockets.on('connection', function(socket) {
                         var answer = [];
                         for (var i = 0; i < result3.length; i++) {
                           var gameName = result3[i].name;
-                          answer[i] = listDir(__dirname+'/games', __dirname+'/games/'+gameName);
-                          if (!answer[i][0]) {
-                            answer[i] = "/g/"+gameName;
+                          //answer[i] = listDir(__dirname+'/games', __dirname+'/games/'+gameName);
+                          // if (!answer[i][0]) {
+                          //   answer[i] = "/g/"+gameName;
+                          // }
+                          answer[i] = listDirNew(__dirname+'/games', __dirname+'/games/'+gameName);
+                          if (!answer[i].files[0]) {
+                            answer[i].files = ["/g/"+gameName];
+                            answer[i].emptyFolders = [];
                           }
+                          //console.log(listDirNew(__dirname+'/games', __dirname+'/games/'+gameName));
                         }
                         io.to(socket.id).emit('getFoldersGames2', answer);
                       }
