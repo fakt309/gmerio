@@ -1679,17 +1679,13 @@ io.sockets.on('connection', function(socket) {
                 realNewPath[1] = 'games';
                 realNewPath = realNewPath.join('/');
                 for (var i = 0; i < result2.length; i++) {
-                  io.to(socket.id).emit('sendtextttt', result2[i]);
-                  io.to(socket.id).emit('sendtextttt', result2[i].name);
-                  io.to(socket.id).emit('sendtextttt', nameGame);
                   if (result2[i].name == nameGame) {
-                    io.to(socket.id).emit('sendtextttt', 'rename');
                     try {
                       fs.renameSync(__dirname+realOldPath, __dirname+realNewPath);
                     } catch {}
                     io.to(socket.id).emit('refillPage');
+                    break;
                   }
-                  break;
                 }
               }
             });
