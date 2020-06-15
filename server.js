@@ -1539,12 +1539,6 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('deleteFolders1', function(user, idStudio, pathsGame, pathsFolder, pathsFile) {
-    io.to(socket.id).emit('sendtextttt', user);
-    io.to(socket.id).emit('sendtextttt', idStudio);
-    io.to(socket.id).emit('sendtextttt', pathsGame);
-    io.to(socket.id).emit('sendtextttt', pathsFolder);
-    io.to(socket.id).emit('sendtextttt', pathsFile);
-
     var connection = mysql.createConnection({
       host: "vh50.timeweb.ru",
       user: "totarget_gmerio",
@@ -1569,10 +1563,8 @@ io.sockets.on('connection', function(socket) {
             if (flagContinue) {
               connection.query("SELECT * FROM games WHERE studioHolder='"+idStudio+"'", function (err2, result2, fields2) {
                 if (result2[0]) {
-                  io.to(socket.id).emit('sendtextttt', result2);
                   connection.query("SELECT * FROM studios WHERE id='"+idStudio+"'", function (err3, result3, fields3) {
                     if (result3[0]) {
-                      io.to(socket.id).emit('sendtextttt', result3);
                       if (pathsGame[0]) {
                         for (var i = 0; i < pathsGame.length; i++) {
                           var paths = pathsGame[i].split('/');
@@ -1608,7 +1600,6 @@ io.sockets.on('connection', function(socket) {
                           }
                         }
                       }
-                      io.to(socket.id).emit('sendtextttt', 'go through games');
                       if (pathsFolder[0]) {
                         for (var i = 0; i < pathsFolder.length; i++) {
                           var paths = pathsFolder[i].split('/');
@@ -1654,6 +1645,55 @@ io.sockets.on('connection', function(socket) {
         }, 3500);
       });
     }
+  });
+
+  socket.on('renameFolder1', function(user, idStudio, oldPath, newPath) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM users WHERE id='"+user.id+"'", function (err1, result1, fields1) {
+        if (result1[0] && testUser(user, result1[0])) {
+          var flagContinue = false;
+          var studios = result1[0].studios.split(',');
+          for (var i = 0; i < studios.length; i++) {
+            if (studios[i] == idStudio) {
+              flagContinue = true;
+              break;
+            }
+          }
+          if (flagContinue) {
+            connection.query("SELECT * FROM games WHERE studioHolder='"+idStudio+"'", function (err2, result2, fields2) {
+              if (result2[0]) {
+                var nameGame = oldPath.split('/')[2];
+                var realOldPath = oldPath.split('/');
+                realOldPath[1] = 'games';
+                realOldPath = realOldPath.join('/');
+                var realNewPath = newPath.split('/');
+                realNewPath[1] = 'games';
+                realNewPath = realNewPath.join('/');
+                for (var i = 0; i < result2.length; i++) {
+                  if (result2[i].name == nameGame) {
+                    try {
+                      fs.renameSync(__dirname+realOldPath, __dirname+realNewPath);
+                    } catch {}
+                    io.to(socket.id).emit('refillPage');
+                  }
+                  break;
+                }
+              }
+            });
+          }
+        }
+      });
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
+    });
   });
 
 	socket.on('requestLink', function(link) {

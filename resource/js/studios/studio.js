@@ -363,7 +363,7 @@ function addFolderString(type, name, path) {
   if (path.split('/').length == 3) {
     oneFolder.innerHTML = "<div class='imgFolder'></div><div class='titleFolder'>"+name+"</div>";
   } else if (path.split('/').length > 3) {
-    oneFolder.innerHTML = "<div class='netFolders'><div class='netFolders1'></div><div class='netFolders2'></div></div><div class='imgFolder'></div><div class='titleFolder'>"+name+"</div>";
+    oneFolder.innerHTML = "<div class='netFolders'><div class='netFolders1'></div><div class='netFolders2'></div></div><div class='imgFolder'></div><div class='titleFolder'>"+name+"</div><div class='blockInputChangeNameFolder' active='0'><div class='titleInputChangeNameFolder'>name</div><input class='inputInputChangeNameFolder' value='"+name+"' oninput='validChangeNameFolder(this)' onfocusin='this.parentElement.setAttribute(\'focuse\', \'1\')' onfocusout='this.parentElement.setAttribute(\'focuse\', \'0\')' type='text' /></div><div disabled='1' onclick='renameFolder(this.parentElement)' class='buttonChangeNameFolder'>save</div><div class='buttonChangeNameFolder' onclick='hideRenameFolder(this.parentElement)' >cancel</div>";
   }
 
   document.querySelectorAll('.wrapFolder[path="'+pathPreWrap+'"]')[0].appendChild(oneFolder);
@@ -672,15 +672,88 @@ window.addEventListener("mouseup", function(e) {
 });
 
 function deleteFoldersConfirmed() {
-  // console.log(pathsGamesToDelete);
-  // console.log(pathsFoldersToDelete);
-  // console.log(pathsFilesToDelete);
-  // console.log('--------------');
-
   for (var i = 0; i < pathsGamesToDelete.length; i++) {
     console.log(pathsGamesToDelete[i].split('/')[2]);
   }
 
   socket.emit('deleteFolders1', dataUser, dataStudio.id, pathsGamesToDelete, pathsFoldersToDelete, pathsFilesToDelete);
   hideConfirmDeleteGameWindow();
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.code == 'KeyN') {
+    var choosenFoldres = document.querySelectorAll('.oneFolder[focus="1"]');
+    if (choosenFoldres.length == 1 && choosenFoldres[0].getAttribute('typefolder') != 'game') {
+      showRenameFolder(choosenFoldres[0]);
+    }
+  }
+});
+
+function showRenameFolder(el) {
+  var blockInput = el.querySelectorAll('.blockInputChangeNameFolder')[0];
+  var buttonOk = el.querySelectorAll('.buttonChangeNameFolder')[0];
+  var buttonCancel = el.querySelectorAll('.buttonChangeNameFolder')[1];
+  var text = el.querySelectorAll('.titleFolder')[0];
+
+  buttonOk.setAttribute('disabled', '1');
+  blockInput.style.display = 'flex';
+  buttonOk.style.display = 'flex';
+  buttonCancel.style.display = 'flex';
+  text.style.transform = 'scale(0)';
+  text.style.marginLeft = '0px';
+  setTimeout(function() {
+    text.style.display = 'none';
+    blockInput.setAttribute('active', '1');
+    buttonOk.style.transform = 'scale(1)';
+    buttonCancel.style.transform = 'scale(1)';
+  }, 200);
+}
+
+function hideRenameFolder(el) {
+  var blockInput = el.querySelectorAll('.blockInputChangeNameFolder')[0];
+  var buttonOk = el.querySelectorAll('.buttonChangeNameFolder')[0];
+  var buttonCancel = el.querySelectorAll('.buttonChangeNameFolder')[1];
+  var text = el.querySelectorAll('.titleFolder')[0];
+
+  blockInput.setAttribute('active', '0');
+  buttonOk.setAttribute('disabled', '1');
+  buttonOk.style.transform = 'scale(0)';
+  buttonCancel.style.transform = 'scale(0)';
+  text.style.display = 'flex';
+  setTimeout(function() {
+    blockInput.style.display = 'none';
+    buttonOk.style.display = 'none';
+    buttonCancel.style.display = 'none';
+    text.style.transform = 'scale(1)';
+    text.style.marginLeft = '10px';
+  }, 200);
+}
+
+function validChangeNameFolder(el) {
+  var button = el.parentElement.parentElement.querySelectorAll('.buttonChangeNameFolder')[0];
+  var title = el.parentElement.querySelectorAll('.titleInputChangeNameFolder')[0];
+  var input = el.parentElement.querySelectorAll('.inputInputChangeNameFolder')[0];
+  if (/^[\.\w]+$/.test(el.value)) {
+    title.innerHTML = 'name = valid';
+    title.style.color = '#1aca00';
+    input.style.border = '1px solid #1aca00';
+    button.setAttribute('disabled', '0');
+  } else {
+    title.innerHTML = 'name = invalid';
+    title.style.color = '#f77171';
+    input.style.border = '1px solid #f77171';
+    button.setAttribute('disabled', '1');
+  }
+}
+
+function renameFolder(el) {
+  var button = el.querySelectorAll('.buttonChangeNameFolder')[0];
+  if (button.getAttribute('disabled') != '1') {
+    var value = el.querySelectorAll('.inputInputChangeNameFolder')[0].value;
+    var oldPath = el.getAttribute('path');
+    var newPath = oldPath.split('/');
+    newPath[newPath.length-1] = value;
+    newPath = newPath.join('/');
+    socket.emit('renameFolder1', dataUser, dataStudio.id, oldPath, newPath);
+  }
 }

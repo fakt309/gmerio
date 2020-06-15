@@ -118,7 +118,7 @@
   align-items: center;
   justify-content: flex-start;
 }
-#blockInputCreateGame, #blockInputInviteUser, #blockInputEditDescription {
+#blockInputCreateGame, #blockInputInviteUser, #blockInputEditDescription, .blockInputChangeNameFolder {
   margin: 10px 20px;
   margin-top: 2px;
   display: none;
@@ -127,12 +127,16 @@
   justify-content: center;
   transition: all ease 0.2s;
 }
-#blockInputCreateGame[active='0'], #blockInputInviteUser[active='0'], #blockInputEditDescription[active='0'] {
+.blockInputChangeNameFolder {
+  margin: 0px 10px;
+  margin-top: -6px;
+}
+#blockInputCreateGame[active='0'], #blockInputInviteUser[active='0'], #blockInputEditDescription[active='0'], .blockInputChangeNameFolder[active='0'] {
   transform: scale(0);
   width: 0px;
   margin: 0px;
 }
-#titleInputCreateGame, #titleInputInviteUser, #titleInputEditDescription {
+#titleInputCreateGame, #titleInputInviteUser, #titleInputEditDescription, .titleInputChangeNameFolder {
   margin-left: 10px;
   padding: 0px 5px;
   font-size: 12px;
@@ -143,13 +147,16 @@
   align-self: flex-start;
   transition: color ease 0.2s;
 }
-#blockInputCreateGame[focuse='0'] #titleInputCreateGame, #blockInputInviteUser[focuse='0'] #titleInputInviteUser, #blockInputEditDescription[focuse='0'] #titleInputEditDescription {
+.titleInputChangeNameFolder {
+  border-radius: 5px;
+}
+#blockInputCreateGame[focuse='0'] #titleInputCreateGame, #blockInputInviteUser[focuse='0'] #titleInputInviteUser, #blockInputEditDescription[focuse='0'] #titleInputEditDescription, .blockInputChangeNameFolder[focuse='0'] .titleInputChangeNameFolder {
   color: #999;
 }
-#blockInputCreateGame[focuse='1'] #titleInputCreateGame, #blockInputInviteUser[focuse='1'] #titleInputInviteUser, #blockInputEditDescription[focuse='1'] #titleInputEditDescription {
+#blockInputCreateGame[focuse='1'] #titleInputCreateGame, #blockInputInviteUser[focuse='1'] #titleInputInviteUser, #blockInputEditDescription[focuse='1'] #titleInputEditDescription, .blockInputChangeNameFolder[focuse='1'] .titleInputChangeNameFolder {
   color: #333;
 }
-#inputInputCreateGame, #inputInputInviteUser, #inputInputEditDescription {
+#inputInputCreateGame, #inputInputInviteUser, #inputInputEditDescription, .inputInputChangeNameFolder {
   font-size: 14px;
   color: #333;
   padding: 10px;
@@ -161,13 +168,18 @@
   position: relative;
   transition: border ease 0.2s;
 }
-#blockInputCreateGame[focuse='0'] #inputInputCreateGame, #blockInputInviteUser[focuse='0'] #inputInputInviteUser, #blockInputEditDescription[focuse='0'] #inputInputEditDescription {
+.inputInputChangeNameFolder {
+  font-size: 12px;
+  padding: 5px 10px;
+  border: none;
+}
+#blockInputCreateGame[focuse='0'] #inputInputCreateGame, #blockInputInviteUser[focuse='0'] #inputInputInviteUser, #blockInputEditDescription[focuse='0'] #inputInputEditDescription, .blockInputChangeNameFolder[focuse='0'] .inputInputChangeNameFolder {
   border: 1px solid #999;
 }
-#blockInputCreateGame[focuse='1'] #inputInputCreateGame, #blockInputInviteUser[focuse='1'] #inputInputInviteUser, #blockInputEditDescription[focuse='1'] #inputInputEditDescription {
+#blockInputCreateGame[focuse='1'] #inputInputCreateGame, #blockInputInviteUser[focuse='1'] #inputInputInviteUser, #blockInputEditDescription[focuse='1'] #inputInputEditDescription, .blockInputChangeNameFolder[focuse='1'] .inputInputChangeNameFolder {
   border: 1px solid #333;
 }
-#buttonCreateGame, #buttonCancelCreateGame, #buttonInviteUser, #buttonCancelInviteUser, #buttonDeleteStudio {
+#buttonCreateGame, #buttonCancelCreateGame, #buttonInviteUser, #buttonCancelInviteUser, #buttonDeleteStudio, .buttonChangeNameFolder {
   margin: 20px;
   padding: 10px;
   font-size: 14px;
@@ -178,7 +190,14 @@
   cursor: pointer;
   transition: all ease 0.2s;
 }
-#buttonCreateGame[disabled='1'], #buttonInviteUser[disabled='1'] {
+.buttonChangeNameFolder {
+  display: none;
+  transform: scale(0);
+  margin: 0px 10px;
+  padding: 5px 10px;
+  margin-top: 3px;
+}
+#buttonCreateGame[disabled='1'], #buttonInviteUser[disabled='1'], .buttonChangeNameFolder[disabled='1'] {
   background-color: #999;
   cursor: default;
 }
@@ -231,7 +250,8 @@
   justify-content: center;
 }
 .oneFolder {
-  padding: 10px 20px;
+  height: 40px;
+  padding: 0px 20px;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -270,6 +290,7 @@
   margin-left: 10px;
   font-size: 14px;
   color: #666;
+  transition: all ease 0.2s;
 }
 .netFolders {
   width: 20px;
