@@ -434,6 +434,18 @@ function refreshChoosenFolder(e) {
     }, 200);
   }
 
+  if (choosenFolder.length == 1 && (choosenFolder[0].getAttribute('typefolder') == 'game' || choosenFolder[0].getAttribute('typefolder') == 'folder')) {
+    document.getElementById('addFolderButton').style.display = 'flex';
+    setTimeout(function() {
+      document.getElementById('addFolderButton').style.transform = 'scale(1)';
+    }, 10);
+  } else {
+    document.getElementById('addFolderButton').style.transform = 'scale(0)';
+    setTimeout(function() {
+      document.getElementById('addFolderButton').style.display = 'none';
+    }, 200);
+  }
+
   if (choosenFolder.length == 0) {
     document.getElementById('deleteFolderButton').style.transform = 'scale(0)';
     setTimeout(function() {
@@ -482,7 +494,8 @@ function insertFolder(pathFolder, insideFiles) {
     for (var j = 1; j < pathFolderParts.length+1; j++) {
       pathNewFolder += '/'+partsNewFolder[j];
     }
-    if (partsNewFolder.length > pathFolderParts.length+1 && !document.querySelectorAll('.oneFolder[path="'+pathNewFolder+'"]')[0]) {
+    var regexp = new RegExp("^"+pathFolder);
+    if (regexp.test(pathNewFolder) && partsNewFolder.length > pathFolderParts.length+1 && !document.querySelectorAll('.oneFolder[path="'+pathNewFolder+'"]')[0]) {
       insideFiles = insertFolder(pathNewFolder, insideFiles);
     }
   }
@@ -493,7 +506,7 @@ function insertFolder(pathFolder, insideFiles) {
     for (var j = 1; j < pathFolderParts.length+1; j++) {
       pathNewFolder += '/'+partsNewFolder[j];
     }
-    var regexp = new RegExp("^"+pathFolder, "g");
+    var regexp = new RegExp("^"+pathFolder);
     if (regexp.test(pathNewFolder) && partsNewFolder.length == pathFolderParts.length+1 && !document.querySelectorAll('.oneFolder[path="'+pathNewFolder+'"]')[0]) {
       var type = 'none';
       var getExtension = partsNewFolder[partsNewFolder.length-1].split('.');
@@ -580,8 +593,8 @@ document.addEventListener('keydown', function(e) {
       }, 200);
     }
   }
-
 });
+
 var pathsGamesToDelete = [];
 var pathsFoldersToDelete = [];
 var pathsFilesToDelete = [];
@@ -691,6 +704,11 @@ document.addEventListener('keydown', function(e) {
     if (choosenFoldres.length == 1 && choosenFoldres[0].getAttribute('typefolder') != 'game') {
       showRenameFolder(choosenFoldres[0]);
     }
+  } else if (e.code == 'KeyA') {
+    var choosenFoldres = document.querySelectorAll('.oneFolder[focus="1"]');
+    if (choosenFoldres.length == 1 && (choosenFoldres[0].getAttribute('typefolder') == 'game' || choosenFoldres[0].getAttribute('typefolder') == 'folder')) {
+      addNewFolder();
+    }
   }
 });
 
@@ -761,4 +779,8 @@ function renameFolder(el) {
     newPath = newPath.join('/');
     socket.emit('renameFolder1', dataUser, dataStudio.id, oldPath, newPath);
   }
+}
+function addNewFolder() {
+  var choosenFoldres = document.querySelectorAll('.oneFolder[focus="1"]')[0];
+  socket.emit('addFolder1', dataUser, dataStudio.id, choosenFoldres.getAttribute('path'));
 }

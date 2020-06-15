@@ -87,6 +87,10 @@
               <div id='infoChoosenFolder'>
                 <div id='fullWayChoosenFolder'><p id='hostWayChoosenFolder'>https://gmer.io</p><p id='pathWayChoosenFolder'></p></div>
                 <div id='panelControl'>
+                  <div id='addFolderButton' onclick="addNewFolder()">
+                    <div id='imgAddFolder'></div>
+                    <div id='titleAddFolderButton'>add folder</div>
+                  </div>
                   <div id='renameFolderButton' onclick="showRenameFolder( document.querySelectorAll('.oneFolder[focus=\'1\']')[0] )">
                     <div id='imgRenameFolder'></div>
                     <div id='titleRenameFolderButton'>rename</div>
@@ -178,7 +182,7 @@
       var dataStudio = null;
       var dataIsMy = false;
       socket.on('getDataStudio2', function(data, isMy) {
-        // isMy = true;
+        //isMy = true;
 
         dataStudio = data;
         dataIsMy = isMy;
@@ -210,11 +214,11 @@
       socket.on('getFoldersGames2', function(listAndEmpty) {
         console.log(listAndEmpty);
 
-        document.getElementById('listFolders').style.transform = 'scale(0)';
+        //document.getElementById('listFolders').style.transform = 'scale(0)';
 
-        setTimeout(function() {
+        //setTimeout(function() {
           document.getElementById('listFolders').innerHTML = '';
-          document.getElementById('listFolders').style.transform = 'scale(1)';
+          //document.getElementById('listFolders').style.transform = 'scale(1)';
 
           for (var i = 0; i < listAndEmpty.length; i++) {
             var files = listAndEmpty[i].files;
@@ -232,13 +236,56 @@
             // }
             insertFolder('/g/'+nameGame, files);
 
-            for (var j = 0; j < listAndEmpty[i].emptyFolders.length; j++) {
+            for (var j = 0; listAndEmpty[i].emptyFolders.length > 0; j++) {
+              //console.log(listAndEmpty[i].emptyFolders);
+              if (listAndEmpty[i].emptyFolders == '/g/'+nameGame) {
+                listAndEmpty[i].emptyFolders.splice(j, 1);
+                j = -1;
+                continue;
+              }
               var empty = listAndEmpty[i].emptyFolders[j];
               var partsEmpty = empty.split("/");
-              addFolderString('folder', partsEmpty[partsEmpty.length-1], empty);
+              var flagAdd = true;
+              for (var k = 0; k < listAndEmpty[i].emptyFolders.length; k++) {
+                if (listAndEmpty[i].emptyFolders[k] != empty) {
+                  var regexp = new RegExp("^"+listAndEmpty[i].emptyFolders[k]);
+                  if (regexp.test(empty)) {
+                    flagAdd = false;
+                    break;
+                  }
+                }
+              }
+              if (flagAdd) {
+                var flagAdd2 = true;
+                for (var k = 3; k < partsEmpty.length-1; k++) {
+                  var currPath = '';
+                  for (var l = 1; l <= k; l++) {
+                    currPath += '/'+partsEmpty[l];
+                  }
+                  if (!document.querySelectorAll('.oneFolder[path="'+currPath+'"]')[0]) {
+                    addFolderString('folder', partsEmpty[k], currPath);
+                    document.querySelectorAll('.oneFolder[path="'+currPath+'"]')[0].setAttribute('ondblclick', 'switchOpenFolder("'+currPath+'", event)');
+
+                    var pathPreWrap = '';
+                    for (var z = 1; z < k; z++) {
+                      pathPreWrap += '/'+partsEmpty[z];
+                    }
+                    var wrapFolder = document.createElement('div');
+                    wrapFolder.setAttribute('class', 'wrapFolder');
+                    wrapFolder.setAttribute('path', currPath);
+                    wrapFolder.style.display = 'none';
+                    wrapFolder.style.transform = 'scale(0)';
+                    wrapFolder.setAttribute('openDir', '1');
+                    document.querySelectorAll('.wrapFolder[path="'+pathPreWrap+'"]')[0].appendChild(wrapFolder);
+                  }
+                }
+                addFolderString('folder', partsEmpty[partsEmpty.length-1], empty);
+                listAndEmpty[i].emptyFolders.splice(j, 1);
+                j = -1;
+              }
             }
           }
-        }, 200);
+        //}, 200);
       });
 
       socket.on('getNameHolder2', function(fullName) {
@@ -274,6 +321,17 @@
           socket.emit('getDataStudio', studioName, dataUser);
         } else {
           socket.emit('getDataStudio', studioName);
+        }
+      });
+
+      socket.on('openDir', function(path) {
+        var partsPath = path.split('/');
+        for (var i = 3; i < partsPath.length; i++) {
+          var currPath = '';
+          for (var j = 1; j <= i; j++) {
+            currPath += '/'+partsPath[j];
+          }
+          showWrapDir(currPath);
         }
       });
 

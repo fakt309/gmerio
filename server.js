@@ -1403,7 +1403,7 @@ io.sockets.on('connection', function(socket) {
       //       answer[i] = listDirNew(__dirname+'/games', __dirname+'/games/'+gameName);
       //       if (!answer[i].files[0]) {
       //         answer[i].files = ["/g/"+gameName];
-      //         answer[i].emptyFolders = [];
+      //         //answer[i].emptyFolders = [];
       //       }
       //       //console.log(listDirNew(__dirname+'/games', __dirname+'/games/'+gameName));
       //     }
@@ -1438,7 +1438,7 @@ io.sockets.on('connection', function(socket) {
                           answer[i] = listDirNew(__dirname+'/games', __dirname+'/games/'+gameName);
                           if (!answer[i].files[0]) {
                             answer[i].files = ["/g/"+gameName];
-                            answer[i].emptyFolders = [];
+                            //answer[i].emptyFolders = [];
                           }
                           //console.log(listDirNew(__dirname+'/games', __dirname+'/games/'+gameName));
                         }
@@ -1694,9 +1694,7 @@ io.sockets.on('connection', function(socket) {
 
     connection.connect(function(err) {
       connection.query("SELECT * FROM users WHERE id='"+user.id+"'", function (err1, result1, fields1) {
-        io.to(socket.id).emit('sendtextttt', testUser(user, result1[0]));
         if (result1[0] && testUser(user, result1[0])) {
-          io.to(socket.id).emit('sendtextttt', result1);
           var flagContinue = false;
           var studios = result1[0].studios.split(',');
           for (var i = 0; i < studios.length; i++) {
@@ -1733,6 +1731,60 @@ io.sockets.on('connection', function(socket) {
           connection.end();
       }, 1500);
     });
+  });
+
+  socket.on('addFolder1', function(user, idStudio, addPath) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM users WHERE id='"+user.id+"'", function (err1, result1, fields1) {
+        if (result1[0] && testUser(user, result1[0])) {
+          var flagContinue = false;
+          var studios = result1[0].studios.split(',');
+          for (var i = 0; i < studios.length; i++) {
+            if (studios[i] == idStudio) {
+              flagContinue = true;
+              break;
+            }
+          }
+          if (flagContinue) {
+            connection.query("SELECT * FROM games WHERE studioHolder='"+idStudio+"'", function (err2, result2, fields2) {
+              if (result2[0]) {
+                for (var i = 0; i < result2.length; i++) {
+                  if (result2[i].name == nameGame) {
+                    var realAddPath = addPath.split('/');
+                    realAddPath[1] = 'games';
+                    realAddPath = realAddPath.join('/');
+                    for (var i = 0; i < 15; i++) {
+                      var exists = fs.existsSync(__dirname+realAddPath+'/folder_'+i);
+                      if (!exists) {
+                        fs.mkdirSync(__dirname+realAddPath+'/folder_'+i);
+                        io.to(socket.id).emit('refillPage');
+                        setTimeout(function() {
+                          io.to(socket.id).emit('openDir', addPath);
+                        }, 500);
+                        break;
+                      }
+                    }
+                  }
+                }
+              }
+            });
+          }
+        }
+      });
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
+    });
+
+
+
   });
 
 	socket.on('requestLink', function(link) {

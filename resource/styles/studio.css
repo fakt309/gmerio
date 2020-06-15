@@ -631,15 +631,16 @@
 }
 #panelControl {
   margin-left: auto;
+  margin-right: 10px;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-around;
 }
-#deleteFolderButton, #renameFolderButton {
+#deleteFolderButton, #renameFolderButton, #addFolderButton {
   display: none;
   transform: scale(0);
-  margin: 20px;
+  margin: 0px 5px;
   padding: 10px;
   color: #fff;
   background-color: #ce0000;
@@ -651,13 +652,13 @@
   justify-content: center;
   transition: all ease 0.2s;
 }
-#titleDeleteFolderButton, #titleRenameFolderButton {
+#titleDeleteFolderButton, #titleRenameFolderButton, #titleAddFolderButton {
   font-size: 14px;
 }
 #subtitleDeleteFolderButton {
   font-size: 10px;
 }
-#imgRenameFolder, #imgDeleteFolder {
+#imgRenameFolder, #imgDeleteFolder, #imgAddFolder {
   width: 20px;
   height: 20px;
   background-position: center;
@@ -670,6 +671,9 @@
 }
 #imgDeleteFolder {
   background-image: url('/resource/img/delKey.png');
+}
+#imgAddFolder {
+  background-image: url('/resource/img/aKey.png');
 }
 #labelNearMouse {
   background-color: #ce0000;
