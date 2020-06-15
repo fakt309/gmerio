@@ -563,7 +563,8 @@ function confirmMouseDeleteFolders() {
   }
 }
 document.addEventListener('keydown', function(e) {
-  if (e.code == 'Delete') {
+  var activeInput = document.querySelectorAll(".blockInputChangeNameFolder[active='1']");
+  if (e.code == 'Delete' && !activeInput[0]) {
     var choosenFoldres = document.querySelectorAll('.oneFolder[focus="1"]');
     if (choosenFoldres.length > 0 && countConfirmDelete.keyboard == 1) {
       countConfirmDelete.keyboard = 2;
@@ -699,12 +700,13 @@ function deleteFoldersConfirmed() {
 }
 
 document.addEventListener('keydown', function(e) {
-  if (e.code == 'KeyN') {
+  var activeInput = document.querySelectorAll(".blockInputChangeNameFolder[active='1']");
+  if (e.code == 'KeyN' && !activeInput[0]) {
     var choosenFoldres = document.querySelectorAll('.oneFolder[focus="1"]');
     if (choosenFoldres.length == 1 && choosenFoldres[0].getAttribute('typefolder') != 'game') {
       showRenameFolder(choosenFoldres[0]);
     }
-  } else if (e.code == 'KeyA') {
+  } else if (e.code == 'KeyA' && !activeInput[0]) {
     var choosenFoldres = document.querySelectorAll('.oneFolder[focus="1"]');
     if (choosenFoldres.length == 1 && (choosenFoldres[0].getAttribute('typefolder') == 'game' || choosenFoldres[0].getAttribute('typefolder') == 'folder')) {
       addNewFolder();

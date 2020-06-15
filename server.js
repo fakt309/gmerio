@@ -1754,7 +1754,6 @@ io.sockets.on('connection', function(socket) {
           }
           if (flagContinue) {
             connection.query("SELECT * FROM games WHERE studioHolder='"+idStudio+"'", function (err2, result2, fields2) {
-              io.to(socket.id).emit('sendtextttt', result2);
               if (result2[0]) {
                 var nameGame = addPath.split('/')[2];
                 for (var i = 0; i < result2.length; i++) {
@@ -1762,12 +1761,9 @@ io.sockets.on('connection', function(socket) {
                     var realAddPath = addPath.split('/');
                     realAddPath[1] = 'games';
                     realAddPath = realAddPath.join('/');
-                    io.to(socket.id).emit('sendtextttt', realAddPath);
                     for (var i = 0; i < 15; i++) {
-                      io.to(socket.id).emit('sendtextttt', 'inter');
                       var exists = fs.existsSync(__dirname+realAddPath+'/folder_'+i);
                       if (!exists) {
-                        io.to(socket.id).emit('sendtextttt', __dirname+realAddPath+'/folder_'+i);
                         fs.mkdirSync(__dirname+realAddPath+'/folder_'+i);
                         io.to(socket.id).emit('refillPage');
                         setTimeout(function() {
