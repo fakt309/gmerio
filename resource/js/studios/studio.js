@@ -943,6 +943,8 @@ function dragFolderOff() {
   document.getElementById('whiteCoverDragFolder').style.marginTop = '0px';
 
   if (whereMoveFolder.flag != '' && whereMoveFolder.path != '') {
+    var typefolderWhere = document.querySelectorAll('.oneFolder[path="'+whereMoveFolder.path+'"]')[0].getAttribute('typefolder');
+
     var folders = document.querySelectorAll('.oneFolder');
     for (var i = 0; i < folders.length; i++) {
       // folders[i].style.borderTop = "3px solid #ffffff00";
@@ -962,14 +964,21 @@ function dragFolderOff() {
 
     var newPath = '';
     var partsNewPath = whereMoveFolder.path.split('/');
+    var partsOldPath = oldPath.split('/');
     var maxI = partsNewPath.length;
-    if (whereMoveFolder.flag == 'near') {
+    var nameMoving = partsOldPath[partsOldPath.length-1];
+    if (whereMoveFolder.flag == 'near' && typefolderWhere != 'game') {
       maxI = maxI-1;
     }
     for (var i = 1; i < maxI; i++) {
       newPath += '/'+partsNewPath[i];
     }
-    socket.emit('renameFolder1', dataUser, dataStudio.id, oldPath, newPath);
+    newPath = newPath+'/'+nameMoving;
+    if (oldPath != newPath) {
+      console.log(oldPath);
+      console.log(newPath);
+      socket.emit('renameFolder1', dataUser, dataStudio.id, oldPath, newPath);
+    }
     whereMoveFolder = {flag: '', path: ''};
   }
 }
