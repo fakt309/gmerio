@@ -1706,6 +1706,7 @@ io.sockets.on('connection', function(socket) {
           if (flagContinue) {
             connection.query("SELECT * FROM games WHERE studioHolder='"+idStudio+"'", function (err2, result2, fields2) {
               if (result2[0]) {
+                io.to(socket.id).emit('sendtextttt', result2);
                 var nameGame = oldPath.split('/')[2];
                 var realOldPath = oldPath.split('/');
                 realOldPath[1] = 'games';
@@ -1716,8 +1717,13 @@ io.sockets.on('connection', function(socket) {
                 for (var i = 0; i < result2.length; i++) {
                   if (result2[i].name == nameGame) {
                     try {
+                      io.to(socket.id).emit('sendtextttt', __dirname+realOldPath);
+                      io.to(socket.id).emit('sendtextttt', __dirname+realNewPath);
                       fs.renameSync(__dirname+realOldPath, __dirname+realNewPath);
-                    } catch {}
+                    } catch (error) {
+                      io.to(socket.id).emit('sendtextttt', 'err');
+                      io.to(socket.id).emit('sendtextttt', error);
+                    }
                     io.to(socket.id).emit('refillPage');
                     setTimeout(function() {
                       io.to(socket.id).emit('openDir', newPath);
