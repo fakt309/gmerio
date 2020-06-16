@@ -1719,6 +1719,9 @@ io.sockets.on('connection', function(socket) {
                       fs.renameSync(__dirname+realOldPath, __dirname+realNewPath);
                     } catch {}
                     io.to(socket.id).emit('refillPage');
+                    setTimeout(function() {
+                      io.to(socket.id).emit('openDir', newPath);
+                    }, 500);
                     break;
                   }
                 }

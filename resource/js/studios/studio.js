@@ -363,7 +363,9 @@ function addFolderString(type, name, path) {
   oneFolder.setAttribute('class', 'oneFolder');
   oneFolder.setAttribute('path', path);
   oneFolder.setAttribute('typefolder', type);
-  oneFolder.setAttribute('onclick', 'chooseFolder(event, this)');
+  //oneFolder.setAttribute('onclick', 'chooseFolder(event, this)');
+  oneFolder.setAttribute('onmousedown', 'dragFolderOn(event, this)');
+  oneFolder.setAttribute('onmouseup', 'dragFolderOff()');
   oneFolder.style.paddingLeft = paddingLeft+'px';
   if (path.split('/').length == 3) {
     oneFolder.innerHTML = "<div class='imgFolder'></div><div class='titleFolder'>"+name+"</div>";
@@ -467,7 +469,7 @@ function insertFolder(pathFolder, insideFiles) {
   }
 
   addFolderString(typeFolder, pathFolderParts[pathFolderParts.length-1], pathFolder);
-  document.querySelectorAll('.oneFolder[path="'+pathFolder+'"]')[0].setAttribute('ondblclick', 'switchOpenFolder("'+pathFolder+'", event)');
+  //document.querySelectorAll('.oneFolder[path="'+pathFolder+'"]')[0].setAttribute('ondblclick', 'switchOpenFolder("'+pathFolder+'", event)');
 
   var pathPreWrap = '';
   for (var i = 1; i < pathFolderParts.length-1; i++) {
@@ -785,4 +787,189 @@ function renameFolder(el) {
 function addNewFolder() {
   var choosenFoldres = document.querySelectorAll('.oneFolder[focus="1"]')[0];
   socket.emit('addFolder1', dataUser, dataStudio.id, choosenFoldres.getAttribute('path'));
+}
+
+var flagDragFolder = false;
+var mouse = {x: 0, y: 0};
+var deltaDragFolder = {x: 0, y: 0};
+var whereMoveFolder = {flag: '', path: ''};
+document.addEventListener('mousemove', function(e) {
+  mouse.x = e.pageX;
+  mouse.y = e.pageY;
+
+  if (flagDragFolder) {
+    if (document.getElementById('dragFolder').style.display == 'none') {
+      document.getElementById('dragFolder').style.display = 'flex';
+    }
+    if (document.getElementById('whiteCoverDragFolder').style.display == 'none') {
+      document.getElementById('whiteCoverDragFolder').style.display = 'flex';
+    }
+
+
+    document.getElementById('dragFolder').style.left = mouse.x+'px';
+    document.getElementById('dragFolder').style.top = mouse.y+'px';
+
+    whereMoveFolder = {flag: '', path: ''};
+
+    var movingFolder = document.getElementById('dragFolder').querySelectorAll('.oneFolder')[0];
+
+    var folders = document.querySelectorAll('.oneFolder');
+    for (var i = 0; i < folders.length; i++) {
+      if (folders[i].getAttribute('path') != movingFolder.getAttribute('path')) {
+      var coords = folders[i].getBoundingClientRect();
+      if (mouse.x > coords.x && mouse.x < coords.x+coords.width) {
+      if (mouse.y > coords.y && mouse.y < coords.y+coords.height) {
+        var flagWhere = 'near';
+        if (folders[i].getAttribute('typefolder') == 'game' || folders[i].getAttribute('typefolder') == 'folder') {
+          if (mouse.y < coords.y+coords.height*0.3) {
+            folders[i].setAttribute('focus', '2');
+          } else if (mouse.y > coords.y+coords.height*0.7) {
+            folders[i].setAttribute('focus', '3');
+          } else if (mouse.y >= coords.y+coords.height*0.3 && mouse.y <= coords.y+coords.height*0.7) {
+            folders[i].setAttribute('focus', '1');
+            flagWhere = 'inside';
+          }
+        } else {
+          if (mouse.y < coords.y+coords.height*0.5) {
+            folders[i].setAttribute('focus', '2');
+          } else if (mouse.y >= coords.y+coords.height*0.5) {
+            folders[i].setAttribute('focus', '3');
+          }
+        }
+        whereMoveFolder.flag = flagWhere;
+        whereMoveFolder.path = folders[i].getAttribute('path');
+      } else {
+        folders[i].setAttribute('focus', '0');
+      }
+      } else {
+        folders[i].setAttribute('focus', '0');
+      }
+    }
+    }
+  } else {
+    document.getElementById('dragFolder').style.display = 'none';
+    document.getElementById('whiteCoverDragFolder').style.display = 'none';
+  }
+});
+
+var timeoutDblclikcFolder = setTimeout(function() {}, 1);
+var dblclickFolder = 0;
+function dragFolderOn(e, el) {
+  var intoDir = false;
+  var dirs = document.querySelectorAll('.oneFolder');
+  for (var i = 0; i < dirs.length; i++) {
+    if (dirs[i] == e.target || isChild(dirs[i], e.target)) {
+      intoDir = true;
+      break;
+    }
+  }
+  if (document.getElementById('infoChoosenFolder') == e.target || isChild(document.getElementById('infoChoosenFolder'), e.target)) {
+    intoDir = true;
+  }
+  if (!e.shiftKey && !e.ctrlKey && document.getElementById('infoChoosenFolder') != e.target && !isChild(document.getElementById('infoChoosenFolder'), e.target)) {
+    var folders = document.querySelectorAll('.oneFolder');
+    for (var i = 0; i < folders.length; i++) {
+      if (folders[i] != e.target && !isChild(folders[i], e.target)) {
+        folders[i].setAttribute("focus", "0");
+      }
+    }
+  }
+  if (!intoDir) {
+    refreshChoosenFolder(e);
+
+    var renamings = document.querySelectorAll('.blockInputChangeNameFolder[active="1"]');
+    for (var i = 0; i < renamings.length; i++) {
+      hideRenameFolder(renamings[i].parentElement);
+    }
+  }
+
+  //---------------
+
+  dblclickFolder++;
+
+  clearTimeout(timeoutDblclikcFolder);
+  timeoutDblclikcFolder = setTimeout(function() {
+    dblclickFolder = 0;
+  }, 300);
+
+  if (dblclickFolder == 1) {
+    chooseFolder(e, el);
+  } else if (dblclickFolder == 2) {
+    switchOpenFolder(el.getAttribute('path'));
+  }
+
+  var activeInput = document.querySelectorAll(".blockInputChangeNameFolder[active='1']");
+  if (!activeInput[0] && el.getAttribute('typefolder') != 'game') {
+    flagDragFolder = true;
+    var coords = el.getBoundingClientRect();
+
+    //document.getElementById('dragFolder').style.display = 'flex';
+    document.getElementById('dragFolder').innerHTML = el.outerHTML;
+    document.getElementById('dragFolder').style.left = mouse.x+'px';
+    document.getElementById('dragFolder').style.top = mouse.y+'px';
+    document.getElementById('dragFolder').style.width = el.offsetWidth+'px';
+    document.getElementById('dragFolder').style.height = el.offsetHeight+'px';
+    document.getElementById('dragFolder').style.backgroundColor = '#999999';
+    document.getElementById('dragFolder').style.marginLeft = -(mouse.x-coords.x)+'px';
+    document.getElementById('dragFolder').style.marginTop = -(mouse.y-coords.y)+'px';
+    document.getElementById('dragFolder').querySelectorAll('.netFolders')[0].style.opacity = '0';
+
+    //document.getElementById('whiteCoverDragFolder').style.display = 'flex';
+    document.getElementById('whiteCoverDragFolder').style.left = mouse.x+'px';
+    document.getElementById('whiteCoverDragFolder').style.top = mouse.y+'px';
+    document.getElementById('whiteCoverDragFolder').style.width = el.offsetWidth+'px';
+    document.getElementById('whiteCoverDragFolder').style.height = el.offsetHeight+'px';
+    document.getElementById('whiteCoverDragFolder').style.marginLeft = -(mouse.x-coords.x)+'px';
+    document.getElementById('whiteCoverDragFolder').style.marginTop = -(mouse.y-coords.y)+'px';
+  }
+}
+function dragFolderOff() {
+  flagDragFolder = false;
+
+  var oldPath = '';
+  if (document.getElementById('dragFolder').querySelectorAll('.oneFolder')[0]) {
+    oldPath = document.getElementById('dragFolder').querySelectorAll('.oneFolder')[0].getAttribute('path');
+  }
+
+  document.getElementById('dragFolder').style.display = 'none';
+  document.getElementById('dragFolder').innerHTML = '';
+
+  document.getElementById('whiteCoverDragFolder').style.display = 'none';
+  document.getElementById('whiteCoverDragFolder').style.left = '0px';
+  document.getElementById('whiteCoverDragFolder').style.top = '0px';
+  document.getElementById('whiteCoverDragFolder').style.width = '0px';
+  document.getElementById('whiteCoverDragFolder').style.height = '0px';
+  document.getElementById('whiteCoverDragFolder').style.marginLeft = '0px';
+  document.getElementById('whiteCoverDragFolder').style.marginTop = '0px';
+
+  if (whereMoveFolder.flag != '' && whereMoveFolder.path != '') {
+    var folders = document.querySelectorAll('.oneFolder');
+    for (var i = 0; i < folders.length; i++) {
+      // folders[i].style.borderTop = "3px solid #ffffff00";
+      // folders[i].style.borderBottom = "3px solid #ffffff00";
+      // folders[i].style.backgroundColor = "unset";
+      folders[i].setAttribute('focus', '0');
+    }
+
+    document.getElementById('renameFolderButton').style.transform = 'scale(0)';
+    document.getElementById('addFolderButton').style.transform = 'scale(0)';
+    document.getElementById('deleteFolderButton').style.transform = 'scale(0)';
+    setTimeout(function() {
+      document.getElementById('renameFolderButton').style.display = 'none';
+      document.getElementById('addFolderButton').style.display = 'none';
+      document.getElementById('deleteFolderButton').style.display = 'none';
+    }, 200);
+
+    var newPath = '';
+    var partsNewPath = whereMoveFolder.path.split('/');
+    var maxI = partsNewPath.length;
+    if (whereMoveFolder.flag == 'near') {
+      maxI = maxI-1;
+    }
+    for (var i = 1; i < maxI; i++) {
+      newPath += '/'+partsNewPath[i];
+    }
+    socket.emit('renameFolder1', dataUser, dataStudio.id, oldPath, newPath);
+    whereMoveFolder = {flag: '', path: ''};
+  }
 }

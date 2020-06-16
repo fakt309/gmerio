@@ -11,6 +11,9 @@
   <body>
     <div id='labelNearMouse'></div>
 
+    <div id='dragFolder' onmouseup='dragFolderOff()'></div>
+    <div id='whiteCoverDragFolder'></div>
+
     <section id='backConfirmDeleteGame'>
       <div id='blockConfirmDeleteGame'>
         <div id='labelConfirmDeleteGame'>Are you sure you want to delete game from gmerio? Maybe you want to transit this game to us?  You can write to us by form on this site. We will answer you in short terms. We would glad to take it and maybe even pay you money.</div>
@@ -264,7 +267,7 @@
                   }
                   if (!document.querySelectorAll('.oneFolder[path="'+currPath+'"]')[0]) {
                     addFolderString('folder', partsEmpty[k], currPath);
-                    document.querySelectorAll('.oneFolder[path="'+currPath+'"]')[0].setAttribute('ondblclick', 'switchOpenFolder("'+currPath+'", event)');
+                    //document.querySelectorAll('.oneFolder[path="'+currPath+'"]')[0].setAttribute('ondblclick', 'switchOpenFolder("'+currPath+'", event)');
 
                     var pathPreWrap = '';
                     for (var z = 1; z < k; z++) {
