@@ -247,17 +247,25 @@ var listDir = function(host, dir, filelist) {
   return filelist;
 };
 
-var listDirNew = function(host, dir, filelist, emptyFolders) {
+var listDirNew = function(host, dir, filelist, emptyFolders, totalSize) {
   var files = fs.readdirSync(dir);
   filelist = filelist || [];
   emptyFolders = emptyFolders || [];
+  totalSize = totalSize || 0;
   var insideFiles = false;
   files.forEach(function(file) {
-    if (fs.statSync(dir+'/'+file).isDirectory()) {
-      var currReturn = listDirNew(host, dir+'/'+file, filelist, emptyFolders);
+    var currStats = fs.statSync(dir+'/'+file);
+    if (currStats.isDirectory()) {
+      var currReturn = listDirNew(host, dir+'/'+file, filelist, emptyFolders, totalSize);
       filelist = currReturn.files;
       emptyFolders = currReturn.emptyFolders;
+      totalSize += currReturn.totalSize;
     } else {
+      // console.log( parseInt((currStats.size/Math.pow(1024, 2))*100)/100 +'MB');
+      // console.log(file);
+      // console.log('-------');
+      totalSize += Math.round((currStats.size/Math.pow(1024, 2))*100)/100;
+      //totalSize += currStats.size;
       filelist.push('/g'+(dir+'/'+file).replace(host, ''));
     }
     insideFiles = true;
@@ -267,7 +275,8 @@ var listDirNew = function(host, dir, filelist, emptyFolders) {
   }
   var varReturn = {
     files: filelist,
-    emptyFolders: emptyFolders
+    emptyFolders: emptyFolders,
+    totalSize: totalSize
   };
   return varReturn;
 };
@@ -1394,6 +1403,7 @@ io.sockets.on('connection', function(socket) {
       // connection.query("SELECT * FROM games WHERE studioHolder = '1'", function (err3, result3, fields3) {
       //   if (result3[0]) {
       //     var answer = [];
+      //     var totalSize = 0;
       //     for (var i = 0; i < result3.length; i++) {
       //       var gameName = result3[i].name;
       //       //answer[i] = listDir(__dirname+'/games', __dirname+'/games/'+gameName);
@@ -1401,6 +1411,7 @@ io.sockets.on('connection', function(socket) {
       //       //   answer[i] = "/g/"+gameName;
       //       // }
       //       answer[i] = listDirNew(__dirname+'/games', __dirname+'/games/'+gameName);
+      //       totalSize += Math.round(answer[i].totalSize);
       //       if (!answer[i].files[0]) {
       //         answer[i].files = ["/g/"+gameName];
       //         //answer[i].emptyFolders = [];
@@ -1408,6 +1419,7 @@ io.sockets.on('connection', function(socket) {
       //       //console.log(listDirNew(__dirname+'/games', __dirname+'/games/'+gameName));
       //     }
       //     io.to(socket.id).emit('getFoldersGames2', answer);
+      //     io.to(socket.id).emit('getFoldersGamesSize2', totalSize);
       //   }
       // });
       // setTimeout(function() {
@@ -1429,6 +1441,7 @@ io.sockets.on('connection', function(socket) {
                     connection.query("SELECT * FROM games WHERE studioHolder='"+studios[i]+"'", function (err3, result3, fields3) {
                       if (result3[0]) {
                         var answer = [];
+                        var totalSize = 0;
                         for (var i = 0; i < result3.length; i++) {
                           var gameName = result3[i].name;
                           //answer[i] = listDir(__dirname+'/games', __dirname+'/games/'+gameName);
@@ -1436,6 +1449,7 @@ io.sockets.on('connection', function(socket) {
                           //   answer[i] = "/g/"+gameName;
                           // }
                           answer[i] = listDirNew(__dirname+'/games', __dirname+'/games/'+gameName);
+                          totalSize += Math.round(answer[i].totalSize);
                           if (!answer[i].files[0]) {
                             answer[i].files = ["/g/"+gameName];
                             //answer[i].emptyFolders = [];
@@ -1443,6 +1457,7 @@ io.sockets.on('connection', function(socket) {
                           //console.log(listDirNew(__dirname+'/games', __dirname+'/games/'+gameName));
                         }
                         io.to(socket.id).emit('getFoldersGames2', answer);
+                        io.to(socket.id).emit('getFoldersGamesSize2', totalSize);
                       }
                     });
                 //   }
@@ -1793,9 +1808,81 @@ io.sockets.on('connection', function(socket) {
           connection.end();
       }, 1500);
     });
+  });
 
+  socket.on('uploadFiles', function(user, idStudio, uploadPath, items) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
 
-
+    var alternative = false;
+    if (alternative) {
+      // var partsUploadPath = uploadPath.split('/');
+      // partsUploadPath[1] = 'games';
+      // var realUploadPath = partsUploadPath.join('/');
+      // for (var i = 0; i < items.length; i++) {
+      //   if (items[i].type == 'folder') {
+      //     if (!fs.existsSync(__dirname+realUploadPath+'/'+items[i].path)) {
+      //       fs.mkdirSync(__dirname+realUploadPath+'/'+items[i].path);
+      //     }
+      //   } else if (items[i].type == 'file') {
+      //     fs.writeFileSync(__dirname+realUploadPath+'/'+items[i].path, items[i].value);
+      //   }
+      // }
+      // io.to(socket.id).emit('refillPage');
+      // setTimeout(function() {
+      //   io.to(socket.id).emit('openDir', uploadPath);
+      // }, 500);
+    } else {
+      connection.connect(function(err) {
+        connection.query("SELECT * FROM users WHERE id='"+user.id+"'", function (err1, result1, fields1) {
+          if (result1[0] && testUser(user, result1[0])) {
+            var flagContinue = false;
+            var studios = result1[0].studios.split(',');
+            for (var i = 0; i < studios.length; i++) {
+              if (studios[i] == idStudio) {
+                flagContinue = true;
+                break;
+              }
+            }
+            if (flagContinue) {
+              connection.query("SELECT * FROM games WHERE studioHolder='"+idStudio+"'", function (err2, result2, fields2) {
+                if (result2[0]) {
+                  var nameGame = uploadPath.split('/')[2];
+                  for (var i = 0; i < result2.length; i++) {
+                    if (result2[i].name == nameGame) {
+                      var partsUploadPath = uploadPath.split('/');
+                      partsUploadPath[1] = 'games';
+                      var realUploadPath = partsUploadPath.join('/');
+                      for (var i = 0; i < items.length; i++) {
+                        if (items[i].type == 'folder') {
+                          if (!fs.existsSync(__dirname+realUploadPath+'/'+items[i].path)) {
+                            fs.mkdirSync(__dirname+realUploadPath+'/'+items[i].path);
+                          }
+                        } else if (items[i].type == 'file') {
+                          fs.writeFileSync(__dirname+realUploadPath+'/'+items[i].path, items[i].value);
+                        }
+                      }
+                      io.to(socket.id).emit('refillPage');
+                      setTimeout(function() {
+                        io.to(socket.id).emit('openDir', uploadPath);
+                      }, 500);
+                      break;
+                    }
+                  }
+                }
+              });
+            }
+          }
+        });
+        setTimeout(function() {
+            connection.end();
+        }, 1500);
+      });
+    }
   });
 
 	socket.on('requestLink', function(link) {

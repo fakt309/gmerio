@@ -9,14 +9,69 @@
     <link rel="stylesheet" href="/resource/styles/studio.css" />
   </head>
   <body>
+    <div id='dragFile'></div>
+    <div id='coverListFoldersOutDrag'>drag into this area</div>
+
     <div id='labelNearMouse'></div>
 
     <div id='dragFolder' onmouseup='dragFolderOff()'></div>
     <div id='whiteCoverDragFolder'></div>
 
+    <section id='backLoading'>
+      <div id='blockLoading'>
+        <svg id='loader' width="50" height="50" viewBox="0 0 38 38" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient x1="8.042%" y1="0%" x2="65.682%" y2="23.865%" id="a1">
+                    <stop stop-color="#999" stop-opacity="0" offset="0%"/>
+                    <stop stop-color="#999" stop-opacity=".631" offset="63.146%"/>
+                    <stop stop-color="#999" offset="100%"/>
+                </linearGradient>
+            </defs>
+            <g fill="none" fill-rule="evenodd">
+                <g transform="translate(1 1)">
+                    <path d="M36 18c0-9.94-8.06-18-18-18" id="Oval-21" stroke="url(#a1)" stroke-width="2">
+                        <animateTransform
+                            attributeName="transform"
+                            type="rotate"
+                            from="0 18 18"
+                            to="360 18 18"
+                            dur="1s"
+                            repeatCount="indefinite" />
+                    </path>
+                    <circle fill="#fff" cx="36" cy="18" r="1">
+                        <animateTransform
+                            attributeName="transform"
+                            type="rotate"
+                            from="0 18 18"
+                            to="360 18 18"
+                            dur="1s"
+                            repeatCount="indefinite" />
+                    </circle>
+                </g>
+            </g>
+        </svg>
+      </div>
+    </section>
+
+    <section id='backConfirmOverwriteUpload'>
+      <div id='blockConfirmOverwriteUpload'>
+        <div id='labelConfirmOverwriteUpload'>some files will overwrite</div>
+        <div id='strokeConfirmOverwriteUpload'>
+          <div id='buttonCancelOverwriteUpload' onclick='hideConfirmOverwriteUploadWindow()'>cancel</div>
+          <div id='buttonAgreeOverwriteUpload' onclick=''>overwrite</div>
+        </div>
+      </div>
+    </section>
+
+    <section id='backBigSizeUpload'>
+      <div id='blockBigSizeUpload'>
+        <div id='labelBigSizeUpload'>you cannot exceed the storage size of more than 200 mb. We are so sorry, if you really need so much. You can feedback to us and we will try to help you</div>
+      </div>
+    </section>
+
     <section id='backConfirmDeleteGame'>
       <div id='blockConfirmDeleteGame'>
-        <div id='labelConfirmDeleteGame'>Are you sure you want to delete game from gmerio? Maybe you want to transit this game to us?  You can write to us by form on this site. We will answer you in short terms. We would glad to take it and maybe even pay you money.</div>
+        <div id='labelConfirmDeleteGame'>are you sure you want to delete game from gmerio? Maybe you want to transit this game to us?  You can write to us by form on this site. We will answer you in short terms. We would glad to take it and maybe even pay you money</div>
         <div id='buttonConfirmDeleteGame' onclick='deleteFoldersConfirmed()'>anyway delete game permanently</div>
       </div>
     </section>
@@ -41,7 +96,7 @@
       <div id='mainBlock'>
         <div id='leftMenu'>
           <div class='linkMenu' onclick='showBlock(0, this)'>GMERIO</div>
-          <div class='linkMenu' onclick='showBlock(1, this)'>games</div>
+          <div class='linkMenu' id='linkMenuGames' onclick='showBlock(1, this)'>games</div>
           <div class='linkMenu' onclick='showBlock(2, this)'>staff</div>
         </div>
         <div id='rightContent'>
@@ -314,6 +369,11 @@
         }
       });
 
+      var currentTotalSizeFiles = 0;
+      socket.on('getFoldersGamesSize2', function(size) {
+        currentTotalSizeFiles = size;
+      });
+
       socket.on('errCreateGmae', function(text) {
         document.getElementById('errorTextCreateGame').innerHTML = text;
         document.getElementById('errorTextCreateGame').style.display = 'flex';
@@ -325,6 +385,8 @@
         } else {
           socket.emit('getDataStudio', studioName);
         }
+
+        hideLoading();
       });
 
       socket.on('openDir', function(path) {
