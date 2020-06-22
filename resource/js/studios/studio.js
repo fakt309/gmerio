@@ -296,6 +296,7 @@ function splitDate(date) {
 
 function fillStudioPage(data) {
   document.getElementById('titleStudio').innerHTML = data.name;
+  document.getElementById('linkMenuFace').innerHTML = data.name;
   document.getElementById('strokeDescriptionStudio').innerHTML = data.description;
   document.getElementById('inputInputEditDescription').innerHTML = data.description;
   document.getElementById('labelConfirmDeleteStudio').innerHTML = "enter name studio <b>"+data.name+"</b> to confirm it";

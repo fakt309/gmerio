@@ -95,9 +95,9 @@
       </div>
       <div id='mainBlock'>
         <div id='leftMenu'>
-          <div class='linkMenu' onclick='showBlock(0, this)'>GMERIO</div>
+          <div class='linkMenu' id='linkMenuFace' onclick='showBlock(0, this)'></div>
           <div class='linkMenu' id='linkMenuGames' onclick='showBlock(1, this)'>games</div>
-          <div class='linkMenu' onclick='showBlock(2, this)'>staff</div>
+          <!-- <div class='linkMenu' onclick='showBlock(2, this)'>staff</div> -->
         </div>
         <div id='rightContent'>
           <div class='blockContent'>
@@ -118,7 +118,7 @@
                   <div class='titleStatsStudio'>games created</div>
                   <div class='valueStatsStudio' id='valueStatsStudioGames'></div>
                 </div>
-                <div class='blockStatsStudio'>
+                <div class='blockStatsStudio' style='display:none;'>
                   <div class='titleStatsStudio'>number of staff</div>
                   <div class='valueStatsStudio' id='valueStatsStudioStaff'></div>
                 </div>
@@ -173,7 +173,7 @@
           </div>
           <div class='blockContent'>
             <div id='wrapTableStaff'>
-              <table id='tableStaff'>
+              <!-- <table id='tableStaff'>
                 <tr>
                   <td><div class='editUser'>&#8226;&#8226;&#8226;</div></td>
                   <td><div class='wrapTdTableStaff'><div class='key'></div><a class='linkUser' href='/u/44'>Vladimir G. (id:44)</a></div></td>
@@ -195,7 +195,7 @@
                   <td>sound producer</td>
                 </tr>
               </table>
-            </div>
+            </div> -->
 
             <div id='stringInviteUser'>
               <div id='blockInputInviteUser' active='0'>
@@ -270,8 +270,6 @@
       });
 
       socket.on('getFoldersGames2', function(listAndEmpty) {
-        console.log(listAndEmpty);
-
         //document.getElementById('listFolders').style.transform = 'scale(0)';
 
         //setTimeout(function() {
