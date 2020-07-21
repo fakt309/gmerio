@@ -49,7 +49,7 @@ function showBlock(indexLink, e) {
   }
 }
 
-function clickCreateGame() {
+function clickCreateGame() {//this place
   var input = document.getElementById('blockInputCreateGame');
   var inputInput = document.getElementById('inputInputCreateGame');
   var button = document.getElementById('buttonCreateGame');
@@ -66,6 +66,7 @@ function clickCreateGame() {
       button.innerHTML = 'create';
     }, 10);
   } else if (input.getAttribute('active') == '1' && button.getAttribute('disabled') != '1') {
+    nameGameToTurnOnOffIframe = inputInput.value;
     socket.emit('createGame1', dataUser, dataStudio.id, inputInput.value);
     input.setAttribute('active', '0');
     buttonCancel.setAttribute('active', '0');
@@ -277,6 +278,45 @@ window.addEventListener("mouseup", function(e) {
   }
 });
 
+function goToConfirmTurnOnIframe() {
+  hideConfirmCreateGameIframe();
+  setTimeout(function() {
+    showConfirmTurnOnIframeWindow();
+  }, 20);
+}
+
+function showConfirmCreateGameIframe() {
+  document.getElementById('backConfirmCreateGameIframe').style.display = 'flex';
+  setTimeout(function() {
+    document.getElementById('backConfirmCreateGameIframe').style.opacity = '1';
+    document.getElementById('blockConfirmCreateGameIframe').style.transform = 'translateY(0px)';
+    document.getElementById('strokeConfirmCreateGameIframe').style.transform = 'translateY(0px)';
+  }, 10);
+}
+function hideConfirmCreateGameIframe() {
+  document.getElementById('backConfirmCreateGameIframe').style.opacity = '0';
+  document.getElementById('blockConfirmCreateGameIframe').style.transform = 'translateY(-40px)';
+  document.getElementById('strokeConfirmCreateGameIframe').style.transform = 'translateY(80px)';
+  setTimeout(function() {
+    document.getElementById('backConfirmCreateGameIframe').style.display = 'none';
+  }, 200);
+}
+var downPressConfirmCreateGameIframe = false;
+window.addEventListener("mousedown", function(e) {
+  if (document.getElementById('blockConfirmCreateGameIframe') != e.target && !isChild(document.getElementById('blockConfirmCreateGameIframe'), e.target) && document.getElementById('backConfirmCreateGameIframe').style.display == 'flex') {
+    downPressConfirmCreateGameIframe = true;
+  } else {
+    downPressConfirmCreateGameIframe = false;
+  }
+});
+window.addEventListener("mouseup", function(e) {
+  if (document.getElementById('blockConfirmCreateGameIframe') != e.target && !isChild(document.getElementById('blockConfirmCreateGameIframe'), e.target) && downPressConfirmCreateGameIframe) {
+    hideConfirmCreateGameIframe();
+  } else {
+    downPressConfirmCreateGameIframe = false;
+  }
+});
+
 function splitDate(date) {
   var partsDate = date.split('.')[0].split('T');
   var daysPart = partsDate[0].split('-');
@@ -440,7 +480,9 @@ function addFolderString(type, name, path) {
   oneFolder.setAttribute('onmousedown', 'dragFolderOn(event, this)');
   oneFolder.setAttribute('onmouseup', 'dragFolderOff()');
   oneFolder.style.paddingLeft = paddingLeft+'px';
-  if (path.split('/').length == 3) {
+  if (type == 'iframe') {
+    oneFolder.innerHTML = "<div class='netFolders'><div class='netFolders1'></div><div class='netFolders2'></div></div><div class='imgFolder'></div><div class='titleFolder'>"+name+"</div>";
+  } else if (path.split('/').length == 3) {
     oneFolder.innerHTML = "<div class='imgFolder'></div><div class='titleFolder'>"+name+"</div>";
   } else if (path.split('/').length > 3) {
     oneFolder.innerHTML = "<div class='netFolders'><div class='netFolders1'></div><div class='netFolders2'></div></div><div class='imgFolder'></div><div class='titleFolder'>"+name+"</div><div class='blockInputChangeNameFolder' active='0'><div class='titleInputChangeNameFolder'>name</div><input class='inputInputChangeNameFolder' value='"+name+"' oninput='validChangeNameFolder(this)' onfocusin='this.parentElement.setAttribute(\'focuse\', \'1\')' onfocusout='this.parentElement.setAttribute(\'focuse\', \'0\')' type='text' /></div><div disabled='1' onclick='renameFolder(this.parentElement)' class='buttonChangeNameFolder'>save</div><div class='buttonChangeNameFolder' onclick='hideRenameFolder(this.parentElement)' >cancel</div>";
@@ -497,11 +539,12 @@ function refreshChoosenFolder(e) {
   //   document.getElementById('titleDeleteFolderButton').innerHTML = 'delete choosen';
   // }
 
-  if (choosenFolder.length == 1 && choosenFolder[0].getAttribute('typefolder') != 'game') {
+  if (choosenFolder.length == 1 && choosenFolder[0].getAttribute('typefolder') != 'game' && choosenFolder[0].getAttribute('typefolder') != 'iframe') {
     document.getElementById('renameFolderButton').style.display = 'flex';
     setTimeout(function() {
       document.getElementById('renameFolderButton').style.transform = 'scale(1)';
     }, 10);
+
   } else {
     document.getElementById('renameFolderButton').style.transform = 'scale(0)';
     setTimeout(function() {
@@ -509,7 +552,7 @@ function refreshChoosenFolder(e) {
     }, 200);
   }
 
-  if (choosenFolder.length == 1 && (choosenFolder[0].getAttribute('typefolder') == 'game' || choosenFolder[0].getAttribute('typefolder') == 'folder')) {
+  if (choosenFolder.length == 1 && ((choosenFolder[0].getAttribute('typefolder') == 'game' && choosenFolder[0].getAttribute('iframe') == 'null') || choosenFolder[0].getAttribute('typefolder') == 'folder')) {
     document.getElementById('addFolderButton').style.display = 'flex';
     setTimeout(function() {
       document.getElementById('addFolderButton').style.transform = 'scale(1)';
@@ -521,7 +564,25 @@ function refreshChoosenFolder(e) {
     }, 200);
   }
 
-  if (choosenFolder.length == 0) {
+  if (choosenFolder.length == 1 && choosenFolder[0].getAttribute('typefolder') == 'game') {
+    if (choosenFolder[0].getAttribute('iframe') == 'null') {
+      document.getElementById('titleSwitchIframeFolderButton').innerHTML = 'turn on iframe';
+    } else {
+      document.getElementById('titleSwitchIframeFolderButton').innerHTML = 'turn off iframe';
+    }
+    document.getElementById('switchIframeFolderButton').style.display = 'flex';
+    setTimeout(function() {
+      document.getElementById('switchIframeFolderButton').style.transform = 'scale(1)';
+    }, 10);
+  } else {
+    document.getElementById('titleSwitchIframeFolderButton').innerHTML = '';
+    document.getElementById('switchIframeFolderButton').style.transform = 'scale(0)';
+    setTimeout(function() {
+      document.getElementById('switchIframeFolderButton').style.display = 'none';
+    }, 200);
+  }
+
+  if (choosenFolder.length == 0 || (choosenFolder.length == 1 && choosenFolder[0].getAttribute('typefolder') == 'iframe')) {
     document.getElementById('deleteFolderButton').style.transform = 'scale(0)';
     setTimeout(function() {
       document.getElementById('deleteFolderButton').style.display = 'none';
@@ -531,6 +592,18 @@ function refreshChoosenFolder(e) {
     setTimeout(function() {
       document.getElementById('deleteFolderButton').style.transform = 'scale(1)';
     }, 10);
+  }
+
+  if (choosenFolder.length == 1 && choosenFolder[0].getAttribute('typefolder') == 'iframe') {
+    document.getElementById('chageLinkIframeFolderButton').style.display = 'flex';
+    setTimeout(function() {
+      document.getElementById('chageLinkIframeFolderButton').style.transform = 'scale(1)';
+    }, 10);
+  } else {
+    document.getElementById('chageLinkIframeFolderButton').style.transform = 'scale(0)';
+    setTimeout(function() {
+      document.getElementById('chageLinkIframeFolderButton').style.display = 'none';
+    }, 200);
   }
 }
 
@@ -601,6 +674,62 @@ function insertFolder(pathFolder, insideFiles) {
   return insideFiles;
 }
 
+var nameGameToTurnOnOffIframe = '';//this place
+function switchIframeGame() {
+  var choosenFoldres = document.querySelectorAll('.oneFolder[focus="1"]')[0];
+  if (choosenFoldres.getAttribute('iframe') == 'null') {
+    nameGameToTurnOnOffIframe = choosenFoldres.getAttribute('path').split('/')[2];
+    showConfirmTurnOnIframeWindow();
+    // document.getElementById('backConfirmTurnOnIframe').style.display = 'flex';
+    // setTimeout(function() {
+    //   document.getElementById('backConfirmTurnOnIframe').style.opacity = '1';
+    //   document.getElementById('blockConfirmTurnOnIframe').style.transform = 'translateY(0px)';
+    //   document.getElementById('buttonConfirmTurnOnIframe').style.transform = 'translateY(0px)';
+    // }, 10);
+  } else {
+    nameGameToTurnOnOffIframe = choosenFoldres.getAttribute('path').split('/')[2];
+    showConfirmTurnOffIframeWindow();
+    // document.getElementById('backConfirmTurnOffIframe').style.display = 'flex';
+    // setTimeout(function() {
+    //   document.getElementById('backConfirmTurnOffIframe').style.opacity = '1';
+    //   document.getElementById('blockConfirmTurnOffIframe').style.transform = 'translateY(0px)';
+    //   document.getElementById('buttonConfirmTurnOffIframe').style.transform = 'translateY(0px)';
+    // }, 10);
+  }
+}
+
+function confirmTurnOnIframe() {
+  var choosenFoldres = document.querySelectorAll('.oneFolder[focus="1"]')[0];
+  var linkIframe = document.getElementById('inputConfirmTurnOnIframe').value;
+
+  if (/^https:\/\/.+$/.test(linkIframe)) {
+    document.getElementById('errorConfirmTurnOnIframe').style.width = '0%';
+    socket.emit('switchIframe', dataUser, 'on', nameGameToTurnOnOffIframe, linkIframe);
+    hideConfirmTurnOnIframeWindow();
+  } else {
+    document.getElementById('errorConfirmTurnOnIframe').style.width = '80%';
+  }
+}
+
+function confirmChangeLinkIframe() {
+  var choosenFoldres = document.querySelectorAll('.oneFolder[focus="1"]')[0];
+  var linkIframe = document.getElementById('inputConfirmTurnOnIframe2').value;
+
+  if (/^https:\/\/.+$/.test(linkIframe)) {
+    document.getElementById('errorConfirmTurnOnIframe2').style.width = '0%';
+    //console.log(nameGameToTurnOnOffIframe);
+    socket.emit('switchIframe', dataUser, 'on', nameGameToTurnOnOffIframe, linkIframe);
+    hideConfirmTurnOnIframe2Window();
+  } else {
+    document.getElementById('errorConfirmTurnOnIframe2').style.width = '80%';
+  }
+}
+
+function confirmTurnOffIframe() {
+  socket.emit('switchIframe', dataUser, 'off', nameGameToTurnOnOffIframe);
+  hideConfirmTurnOffIframeWindow();
+}
+
 var countConfirmDelete = {mouse: 1, keyboard: 1}
 document.addEventListener('mousemove', function(e) {
   document.getElementById('labelNearMouse').style.left = e.pageX+15+'px';
@@ -643,7 +772,7 @@ document.addEventListener('keydown', function(e) {
     var choosenFoldres = document.querySelectorAll('.oneFolder[focus="1"]');
     if (choosenFoldres.length > 0 && countConfirmDelete.keyboard == 1) {
       countConfirmDelete.keyboard = 2;
-      document.getElementById('labelNearMouse').innerHTML = 'press one yet delete to confirm';
+      document.getElementById('labelNearMouse').innerHTML = 'press delete one more to confirm';
       document.getElementById('labelNearMouse').style.display = 'flex';
       setTimeout(function() {
         document.getElementById('labelNearMouse').style.transform = 'scale(1)';
@@ -774,16 +903,117 @@ function deleteFoldersConfirmed() {
   hideConfirmDeleteGameWindow();
 }
 
+function showConfirmTurnOnIframeWindow() {
+  document.getElementById('backConfirmTurnOnIframe').style.display = 'flex';
+  setTimeout(function() {
+    document.getElementById('backConfirmTurnOnIframe').style.opacity = '1';
+    document.getElementById('blockConfirmTurnOnIframe').style.transform = 'translateY(0px)';
+    document.getElementById('buttonConfirmTurnOnIframe').style.transform = 'translateY(0px)';
+  }, 10);
+}
+function hideConfirmTurnOnIframeWindow() {
+  document.getElementById('backConfirmTurnOnIframe').style.opacity = '0';
+  document.getElementById('blockConfirmTurnOnIframe').style.transform = 'translateY(-40px)';
+  document.getElementById('buttonConfirmTurnOnIframe').style.transform = 'translateY(80px)';
+  setTimeout(function() {
+    document.getElementById('backConfirmTurnOnIframe').style.display = 'none';
+  }, 200);
+}
+var downPressConfirmTurnOnIframe = false;
+window.addEventListener("mousedown", function(e) {
+  if (document.getElementById('blockConfirmTurnOnIframe') != e.target && !isChild(document.getElementById('blockConfirmTurnOnIframe'), e.target) && document.getElementById('backConfirmTurnOnIframe').style.display == 'flex') {
+    downPressConfirmTurnOnIframe = true;
+  } else {
+    downPressConfirmTurnOnIframe = false;
+  }
+});
+window.addEventListener("mouseup", function(e) {
+  if (document.getElementById('blockConfirmTurnOnIframe') != e.target && !isChild(document.getElementById('blockConfirmTurnOnIframe'), e.target) && downPressConfirmTurnOnIframe) {
+    hideConfirmTurnOnIframeWindow();
+  } else {
+    downPressConfirmTurnOnIframe = false;
+  }
+});
+
+function showConfirmTurnOffIframeWindow() {
+  document.getElementById('backConfirmTurnOffIframe').style.display = 'flex';
+  setTimeout(function() {
+    document.getElementById('backConfirmTurnOffIframe').style.opacity = '1';
+    document.getElementById('blockConfirmTurnOffIframe').style.transform = 'translateY(0px)';
+    document.getElementById('buttonConfirmTurnOffIframe').style.transform = 'translateY(0px)';
+  }, 10);
+}
+function hideConfirmTurnOffIframeWindow() {
+  document.getElementById('backConfirmTurnOffIframe').style.opacity = '0';
+  document.getElementById('blockConfirmTurnOffIframe').style.transform = 'translateY(-40px)';
+  document.getElementById('buttonConfirmTurnOffIframe').style.transform = 'translateY(80px)';
+  setTimeout(function() {
+    document.getElementById('backConfirmTurnOffIframe').style.display = 'none';
+  }, 200);
+}
+var downPressConfirmTurnOffIframe = false;
+window.addEventListener("mousedown", function(e) {
+  if (document.getElementById('blockConfirmTurnOffIframe') != e.target && !isChild(document.getElementById('blockConfirmTurnOffIframe'), e.target) && document.getElementById('backConfirmTurnOffIframe').style.display == 'flex') {
+    downPressConfirmTurnOffIframe = true;
+  } else {
+    downPressConfirmTurnOffIframe = false;
+  }
+});
+window.addEventListener("mouseup", function(e) {
+  if (document.getElementById('blockConfirmTurnOffIframe') != e.target && !isChild(document.getElementById('blockConfirmTurnOffIframe'), e.target) && downPressConfirmTurnOffIframe) {
+    hideConfirmTurnOffIframeWindow();
+  } else {
+    downPressConfirmTurnOffIframe = false;
+  }
+});
+
+function showConfirmTurnOnIframe2Window() {
+  var activeFolder = document.querySelectorAll('.oneFolder[focus="1"]')[0];
+  nameGameToTurnOnOffIframe = activeFolder.getAttribute('path').split('/')[2];
+  var pathParent = activeFolder.parentElement.getAttribute('path');
+  document.getElementById('inputConfirmTurnOnIframe2').value = document.querySelectorAll('.oneFolder[path="'+pathParent+'"]')[0].getAttribute('iframe');
+  document.getElementById('backConfirmTurnOnIframe2').style.display = 'flex';
+  setTimeout(function() {
+    document.getElementById('backConfirmTurnOnIframe2').style.opacity = '1';
+    document.getElementById('blockConfirmTurnOnIframe2').style.transform = 'translateY(0px)';
+    document.getElementById('buttonConfirmTurnOnIframe2').style.transform = 'translateY(0px)';
+  }, 10);
+}
+function hideConfirmTurnOnIframe2Window() {
+  document.getElementById('backConfirmTurnOnIframe2').style.opacity = '0';
+  document.getElementById('blockConfirmTurnOnIframe2').style.transform = 'translateY(-40px)';
+  document.getElementById('buttonConfirmTurnOnIframe2').style.transform = 'translateY(80px)';
+  setTimeout(function() {
+    document.getElementById('backConfirmTurnOnIframe2').style.display = 'none';
+  }, 200);
+}
+var downPressConfirmTurnOnIframe2 = false;
+window.addEventListener("mousedown", function(e) {
+  if (document.getElementById('blockConfirmTurnOnIframe2') != e.target && !isChild(document.getElementById('blockConfirmTurnOnIframe2'), e.target) && document.getElementById('backConfirmTurnOnIframe2').style.display == 'flex') {
+    downPressConfirmTurnOnIframe2 = true;
+  } else {
+    downPressConfirmTurnOnIframe2 = false;
+  }
+});
+window.addEventListener("mouseup", function(e) {
+  if (document.getElementById('blockConfirmTurnOnIframe2') != e.target && !isChild(document.getElementById('blockConfirmTurnOnIframe2'), e.target) && downPressConfirmTurnOnIframe2) {
+    hideConfirmTurnOnIframe2Window();
+  } else {
+    downPressConfirmTurnOnIframe2 = false;
+  }
+});
+
 document.addEventListener('keydown', function(e) {
   var activeInput = document.querySelectorAll(".blockInputChangeNameFolder[active='1']");
   if (e.code == 'KeyN' && !activeInput[0]) {
     var choosenFoldres = document.querySelectorAll('.oneFolder[focus="1"]');
-    if (choosenFoldres.length == 1 && choosenFoldres[0].getAttribute('typefolder') != 'game') {
+    if (choosenFoldres.length == 1 && choosenFoldres[0].getAttribute('typefolder') != 'game' && choosenFoldres[0].getAttribute('typefolder') != 'iframe') {
       showRenameFolder(choosenFoldres[0]);
     }
   } else if (e.code == 'KeyA' && !activeInput[0]) {
     var choosenFoldres = document.querySelectorAll('.oneFolder[focus="1"]');
-    if (choosenFoldres.length == 1 && (choosenFoldres[0].getAttribute('typefolder') == 'game' || choosenFoldres[0].getAttribute('typefolder') == 'folder')) {
+    //choosenFolder[0].getAttribute('typefolder') == 'game' && choosenFolder[0].getAttribute('iframe') == 'null'
+    if (choosenFoldres.length == 1 && ((choosenFoldres[0].getAttribute('typefolder') == 'game' && choosenFoldres[0].getAttribute('iframe') == 'null') || choosenFoldres[0].getAttribute('typefolder') == 'folder')) {
       addNewFolder();
     }
   }
@@ -888,7 +1118,7 @@ document.addEventListener('mousemove', function(e) {
 
     var folders = document.querySelectorAll('.oneFolder');
     for (var i = 0; i < folders.length; i++) {
-      if (folders[i].getAttribute('path') != movingFolder.getAttribute('path')) {
+      if (folders[i].getAttribute('path') != movingFolder.getAttribute('path') && folders[i].getAttribute('typefolder') != 'iframe' && (folders[i].getAttribute('typefolder') != 'game' || folders[i].getAttribute('iframe') == 'null')) {
       var coords = folders[i].getBoundingClientRect();
       if (mouse.x > coords.x && mouse.x < coords.x+coords.width) {
       if (mouse.y > (getScrollTop()+coords.y) && mouse.y < (getScrollTop()+coords.y)+coords.height) {
@@ -972,7 +1202,7 @@ function dragFolderOn(e, el) {
   }
 
   var activeInput = document.querySelectorAll(".blockInputChangeNameFolder[active='1']");
-  if (!activeInput[0] && el.getAttribute('typefolder') != 'game') {
+  if (!activeInput[0] && el.getAttribute('typefolder') != 'game' && el.getAttribute('typefolder') != 'iframe') {
     flagDragFolder = true;
     var coords = el.getBoundingClientRect();
 
@@ -1023,10 +1253,14 @@ function dragFolderOff() {
       folders[i].setAttribute('focus', '0');
     }
 
+    document.getElementById('chageLinkIframeFolderButton').style.transform = 'scale(0)';
+    document.getElementById('switchIframeFolderButton').style.transform = 'scale(0)';
     document.getElementById('renameFolderButton').style.transform = 'scale(0)';
     document.getElementById('addFolderButton').style.transform = 'scale(0)';
     document.getElementById('deleteFolderButton').style.transform = 'scale(0)';
     setTimeout(function() {
+      document.getElementById('chageLinkIframeFolderButton').style.display = 'none';
+      document.getElementById('switchIframeFolderButton').style.display = 'none';
       document.getElementById('renameFolderButton').style.display = 'none';
       document.getElementById('addFolderButton').style.display = 'none';
       document.getElementById('deleteFolderButton').style.display = 'none';
@@ -1043,8 +1277,19 @@ function dragFolderOff() {
     for (var i = 1; i < maxI; i++) {
       newPath += '/'+partsNewPath[i];
     }
+
+    //console.log(newPath);
+    var typeFolderDrop = document.querySelectorAll('.oneFolder[path="'+newPath+'"]')[0].getAttribute('typefolder');
+    var iframeFolderDrop = '';
+    if (typeFolderDrop == 'game') {
+      iframeFolderDrop = document.querySelectorAll('.oneFolder[path="'+newPath+'"]')[0].getAttribute('iframe');
+    }
+    // console.log('~~'+typeFolderDrop);
+    // console.log('~~'+iframeFolderDrop);
+
     newPath = newPath+'/'+nameMoving;
-    if (oldPath != newPath) {
+
+    if (oldPath != newPath && typeFolderDrop != 'iframe' && (typeFolderDrop != 'game' || iframeFolderDrop == 'null')) {
       console.log(oldPath);
       console.log(newPath);
       socket.emit('renameFolder1', dataUser, dataStudio.id, oldPath, newPath);
@@ -1118,21 +1363,29 @@ document.getElementById('dragFile').addEventListener('drop', function(e) {
   document.addEventListener('dragenter', dragFileTurn);
   document.getElementById('dragFile').style.display = 'none';
 
-    var path = '';
-    if (flagsDrag.path.split('/').length > 3) {
-      if (flagsDrag.where == 'near') {
-        var partsPathWhere = flagsDrag.path.split('/');
-        for (var i = 1; i < partsPathWhere.length-1; i++) {
-          path += '/'+partsPathWhere[i];
-        }
-      } else {
-        path = flagsDrag.path;
+  var path = '';
+  if (flagsDrag.path.split('/').length > 3) {
+    if (flagsDrag.where == 'near') {
+      var partsPathWhere = flagsDrag.path.split('/');
+      for (var i = 1; i < partsPathWhere.length-1; i++) {
+        path += '/'+partsPathWhere[i];
       }
     } else {
       path = flagsDrag.path;
     }
+  } else {
+    path = flagsDrag.path;
+  }
 
-  if (document.getElementById('coverListFoldersOutDrag').style.display == 'none' && path.split('/').length > 2) {
+  var typeFolderDrop = document.querySelectorAll('.oneFolder[path="'+path+'"]')[0].getAttribute('typefolder');
+  var iframeFolderDrop = '';
+  if (typeFolderDrop == 'game') {
+    iframeFolderDrop = document.querySelectorAll('.oneFolder[path="'+path+'"]')[0].getAttribute('iframe');
+  }
+  console.log('~~'+typeFolderDrop);
+  console.log('~~'+iframeFolderDrop);
+
+  if (document.getElementById('coverListFoldersOutDrag').style.display == 'none' && path.split('/').length > 2 && typeFolderDrop != 'iframe' && (typeFolderDrop != 'game' || iframeFolderDrop == 'null')) {
 
     uploadItems = [];
     var items = e.dataTransfer.items;
@@ -1258,6 +1511,9 @@ function indicateFoldersDrag() {
   flagsDrag.path = '';
   var folders = document.querySelectorAll('.oneFolder');
   for (var i = 0; i < folders.length; i++) {
+    if ((folders[i].getAttribute('typefolder') == 'game' && folders[i].getAttribute('iframe') != 'null') || folders[i].getAttribute('typefolder') == 'iframe') {
+      continue;
+    }
     var coords = folders[i].getBoundingClientRect();
     if (mouse.x > coords.x && mouse.x < coords.x+coords.width) {
     if (mouse.y > (getScrollTop()+coords.y) && mouse.y < (getScrollTop()+coords.y)+coords.height) {

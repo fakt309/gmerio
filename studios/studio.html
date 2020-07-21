@@ -53,6 +53,41 @@
       </div>
     </section>
 
+    <section id='backConfirmCreateGameIframe'>
+      <div id='blockConfirmCreateGameIframe'>
+        <div id='labelConfirmCreateGameIframe'>You can use iframe window to connect external link to your game, if you don't want to use our directory.</div>
+        <div id='strokeConfirmCreateGameIframe'>
+          <div id='buttonCancelCreateGameIframe' onclick='hideConfirmCreateGameIframe()'>Remain gmer.io repository</div>
+          <div id='buttonAgreeCreateGameIframe' onclick='goToConfirmTurnOnIframe()'>Use iframe link</div>
+        </div>
+      </div>
+    </section>
+
+    <section id='backConfirmTurnOnIframe2'>
+      <div id='blockConfirmTurnOnIframe2'>
+        <div id='labelConfirmTurnOnIframe2'>Enter link site what you want change.</div>
+        <div id='errorConfirmTurnOnIframe2'>Link must has https protocol.</div>
+        <input id='inputConfirmTurnOnIframe2' type='text' />
+        <div id='buttonConfirmTurnOnIframe2' onclick='confirmChangeLinkIframe()'>change link</div>
+      </div>
+    </section>
+
+    <section id='backConfirmTurnOnIframe'>
+      <div id='blockConfirmTurnOnIframe'>
+        <div id='labelConfirmTurnOnIframe'>If you turn on iframe all files this game will be deleted. Enter link site what you want insert.</div>
+        <div id='errorConfirmTurnOnIframe'>Link must has https protocol.</div>
+        <input id='inputConfirmTurnOnIframe' type='text' />
+        <div id='buttonConfirmTurnOnIframe' onclick='confirmTurnOnIframe()'>turn on iframe</div>
+      </div>
+    </section>
+
+    <section id='backConfirmTurnOffIframe'>
+      <div id='blockConfirmTurnOffIframe'>
+        <div id='labelConfirmTurnOffIframe'>Are you sure you want to turn off iframe?</div>
+        <div id='buttonConfirmTurnOffIframe' onclick='confirmTurnOffIframe()'>turn off iframe</div>
+      </div>
+    </section>
+
     <section id='backConfirmOverwriteUpload'>
       <div id='blockConfirmOverwriteUpload'>
         <div id='labelConfirmOverwriteUpload'>some files will overwrite</div>
@@ -145,6 +180,12 @@
               <div id='infoChoosenFolder'>
                 <div id='fullWayChoosenFolder'><p id='hostWayChoosenFolder'>https://gmer.io</p><p id='pathWayChoosenFolder'></p></div>
                 <div id='panelControl'>
+                  <div id='chageLinkIframeFolderButton' onclick="showConfirmTurnOnIframe2Window()">
+                    <div id='titleChageLinkIframeFolderButton'>change link</div>
+                  </div>
+                  <div id='switchIframeFolderButton' onclick='switchIframeGame()'>
+                    <div id='titleSwitchIframeFolderButton'></div>
+                  </div>
                   <div id='addFolderButton' onclick="addNewFolder()">
                     <div id='imgAddFolder'></div>
                     <div id='titleAddFolderButton'>add folder</div>
@@ -272,6 +313,8 @@
       socket.on('getFoldersGames2', function(listAndEmpty) {
         //document.getElementById('listFolders').style.transform = 'scale(0)';
 
+        var namesGames = [];
+
         //setTimeout(function() {
           document.getElementById('listFolders').innerHTML = '';
           //document.getElementById('listFolders').style.transform = 'scale(1)';
@@ -291,6 +334,8 @@
             //   insertFolder('/g/'+nameGame, list[i]);
             // }
             insertFolder('/g/'+nameGame, files);
+
+            namesGames.push(nameGame);
 
             for (var j = 0; listAndEmpty[i].emptyFolders.length > 0; j++) {
               //console.log(listAndEmpty[i].emptyFolders);
@@ -341,7 +386,34 @@
               }
             }
           }
+
+          socket.emit('getTagIframes1', namesGames);
         //}, 200);
+      });
+
+      socket.on('getTagIframes2', function(dataGames) {
+        for (var i = 0; i < dataGames.length; i++) {
+          document.querySelectorAll('.oneFolder[path="/g/'+dataGames[i].name+'"]')[0].setAttribute('iframe', dataGames[i].iframe);
+
+          if (dataGames[i].iframe != null) {
+            document.querySelectorAll('.wrapFolder[path="/g/'+dataGames[i].name+'"]')[0].innerHTML = '';
+            addFolderString('iframe', dataGames[i].iframe, '/g/'+dataGames[i].name+'/');
+
+            // var oneFolder = document.createElement('div');
+            // var paddingLeft = (path.split('/').length-3)*20;
+            // if (path.split('/').length == 3) {
+            //   paddingLeft = 20;
+            // }
+            // oneFolder.setAttribute('class', 'oneFolder');
+            // oneFolder.setAttribute('path', path);
+            // oneFolder.setAttribute('typefolder', type);
+            // oneFolder.style.paddingLeft = paddingLeft+'px';
+            // oneFolder.innerHTML = "<div class='imgFolder'></div><div class='titleFolder'>"+name+"</div>";
+            // //document.querySelectorAll('.wrapFolder[path="/g/'+dataGames[i].name+'"]')[0].innerHTML = '';
+            // document.querySelectorAll('.wrapFolder[path="/g/'+dataGames[i].name+'"]')[0].appendChild(oneFolder);
+          }
+
+        }
       });
 
       socket.on('getNameHolder2', function(fullName) {
@@ -385,6 +457,10 @@
         }
 
         hideLoading();
+      });
+
+      socket.on('openPopupCreateGameIframe', function() {
+        showConfirmCreateGameIframe();
       });
 
       socket.on('openDir', function(path) {

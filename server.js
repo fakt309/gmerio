@@ -727,7 +727,7 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('mailSign', function(mail, recaptcha) {
-    var flagRecaptcha = true;
+    //var flagRecaptcha = true;
     var flagRecaptcha = false;
     var secretRecaptcha = "6Ld-_NEUAAAAALkRGwYLKttHeWZ51FkZHafMhGXS";
     server.get('https://www.google.com'+'/recaptcha/api/siteverify?secret='+secretRecaptcha+'&response='+recaptcha, (res) => {
@@ -1554,6 +1554,7 @@ io.sockets.on('connection', function(socket) {
                                       answer[0] = listDir(__dirname+'/games', __dirname+'/games/'+name);
                                       //io.to(socket.id).emit('getFoldersGames2', answer);
                                       io.to(socket.id).emit('refillPage');
+                                      io.to(socket.id).emit('openPopupCreateGameIframe');
                                     }
                                   });
                                 } else {
@@ -1563,6 +1564,7 @@ io.sockets.on('connection', function(socket) {
                                       answer[0] = listDir(__dirname+'/games', __dirname+'/games/'+name);
                                       //io.to(socket.id).emit('getFoldersGames2', answer);
                                       io.to(socket.id).emit('refillPage');
+                                      io.to(socket.id).emit('openPopupCreateGameIframe');
                                     }
                                   });
                                 }
@@ -1883,6 +1885,86 @@ io.sockets.on('connection', function(socket) {
         }, 1500);
       });
     }
+  });
+
+  socket.on('getTagIframes1', function(namesGames) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+
+    var regexp = '';
+    for (var i = 0; i < namesGames.length; i++) {
+      if (i == 0) {
+        regexp += namesGames[i];
+        continue;
+      }
+      regexp += '|'+namesGames[i];
+    }
+    connection.query("SELECT * FROM games WHERE name REGEXP '("+regexp+")'", function (err1, result1, fields1) {
+      if (result1[0]) {
+        var answer = [];
+        for (var i = 0; i < result1.length; i++) {
+          answer[i] = {};
+          answer[i].name = result1[i].name;
+          answer[i].iframe = result1[i].iframe;
+        }
+        io.to(socket.id).emit('getTagIframes2', answer);
+      }
+    });
+    setTimeout(function() {
+        connection.end();
+    }, 1500);
+  });
+
+  socket.on('switchIframe', function(user, flag, nameGame, link) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM users WHERE id='"+user.id+"'", function (err1, result1, fields1) {
+        if (result1[0] && testUser(user, result1[0])) {
+          var sqlQuery = "";
+          if (flag == 'on') {
+            sqlQuery = "UPDATE games SET `iframe` = '"+link+"' WHERE name = '"+nameGame+"'";
+          } else if (flag == 'off') {
+            sqlQuery = "UPDATE games SET `iframe` = NULL WHERE name = '"+nameGame+"'";
+          }
+
+          connection.query(sqlQuery, function (err2, result2, fields2) {
+            if (!err2) {
+              if (flag == 'on') {
+                fs.readFile('code/pageGame/iframe.html', {encoding: 'utf-8'}, function(err, data) {
+      						var content = data;
+      						content = content.replace('~~LINK~~', link).replace('~~LINK~~', link);
+
+                  fs.rmdirSync(__dirname+'/games/'+nameGame, { recursive: true });
+                  fs.mkdirSync(__dirname+'/games/'+nameGame);
+                  fs.appendFileSync(__dirname+'/games/'+nameGame+'/index.html', content);
+
+                  io.to(socket.id).emit('refillPage');
+                });
+              } else if (flag == 'off') {
+                fs.rmdirSync(__dirname+'/games/'+nameGame, { recursive: true });
+                fs.mkdirSync(__dirname+'/games/'+nameGame);
+                fs.appendFileSync(__dirname+'/games/'+nameGame+'/index.html', 'Here should be code your game.');
+
+                io.to(socket.id).emit('refillPage');
+              }
+            }
+          });
+        }
+      });
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
+    });
   });
 
 	socket.on('requestLink', function(link) {
