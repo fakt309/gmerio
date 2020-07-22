@@ -213,7 +213,7 @@
   margin-bottom: -40px;
   margin-right: -50px;
 }
-.errorTextFeedback {
+#errorTextFeedback {
   margin-top: 20px;
   overflow: hidden;
   max-width: 0%;
