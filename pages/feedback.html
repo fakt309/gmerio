@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Your studio</title>
+
+    <link rel="stylesheet" href="/resource/styles/feedback.css" />
+  </head>
+  <body>
+    <section class='wrapLinkTop'>
+      <a class='linkTop' href='/'>gmer.io</a>
+    </section>
+
+    <section class='wrapFeedback' id='IDwrapFeedback'>
+      <div class='formFeedback'>
+        <div class='errorTextFeedback'>Something goes wrong in the sending mail, please try again later.</div>
+        <div class='strokeFormFeedback'>
+          <div class='blockInput'>
+            <div class='titleInput'>your contact</div>
+            <div class="custom-select" onclick='refreshContactStroke()'>
+              <select id='selectTypeContact'>
+                <option value="email">email</option>
+                <option value="email">email</option>
+                <option value="other">other</option>
+              </select>
+            </div>
+          </div>
+          <div class='blockInput' id='emailBlockInput'>
+            <div class='titleInput'>your email</div>
+            <input id='inputContact2' class='inputInput' onfocusin='this.parentElement.setAttribute("focuse", "1")' onfocusout='this.parentElement.setAttribute("focuse", "0")' type='text' />
+          </div>
+          <div class='blockInput' id='identiferBlockInput'>
+            <div class='titleInput'>your identifier</div>
+            <input id='inputContact3' class='inputInput' onfocusin='this.parentElement.setAttribute("focuse", "1")' onfocusout='this.parentElement.setAttribute("focuse", "0")' type='text' />
+          </div>
+        </div>
+        <div class='blockInput'>
+          <div class='titleInput'>reason</div>
+          <div class="custom-select" style="width:100%;">
+            <select id='selectReason'>
+              <option value="question">I have question</option>
+              <option value="question">I have question</option>
+              <option value="problem">I have problem</option>
+              <option value="idea">I have idea</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class='blockInput'>
+          <div class='titleInput'>text of your appeal</div>
+          <textarea id='textareaTextAppeal' class='textareaText' rows='12' onfocusin='this.parentElement.setAttribute("focuse", "1")' onfocusout='this.parentElement.setAttribute("focuse", "0")'></textarea>
+        </div>
+        <div class='lastStrokeFormFeedback'>
+          <div id='recaptcha1'></div>
+          <div class='submitFormFeed' onclick='submitFeedback()'>submit</div>
+        </div>
+      </div>
+    </section>
+
+    <section class='wrapFeedbackSuccess' id='IDwrapFeedbackSuccess'>
+      Mail has been sent. We will consider your request as soon as possible. Thank you for making our project better.
+    </section>
+
+    <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" async defer></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src='/resource/js/feedback/feedback.js'></script>
+    <script type="text/javascript">
+      var socket = io();
+
+      var widgetRecaptcha1;
+      var onloadCallback = function() {
+        widgetRecaptcha1 = grecaptcha.render('recaptcha1', { 'sitekey': '6Ld-_NEUAAAAAIcro-nuBeDeMigbdDBoxVt6jw9h' });
+      };
+
+      socket.on('sendFeedback2', function(res) {
+        var response = res.split(":");
+        if (response[0] == 'err') {
+          document.getElementById('errorTextFeedback').innerHTML = response[1];
+          setTimeout(function() {
+            document.getElementById('errorTextFeedback').style.maxWidth = '100%';
+          }, 10);
+        } else if (response[0] == 'ok') {
+          document.getElementById('IDwrapFeedbackSuccess').innerHTML = response[1];
+          showSuccess();
+        }
+      });
+
+      function showSuccess() {
+        document.getElementById('IDwrapFeedback').style.transform = 'scale(0)';
+        document.getElementById('IDwrapFeedbackSuccess').style.display = 'block';
+        setTimeout(function() {
+          document.getElementById('IDwrapFeedback').style.display = 'none';
+          document.getElementById('IDwrapFeedbackSuccess').style.transform = 'scale(1)';
+        }, 200);
+      }
+    </script>
+  </body>
+</html>

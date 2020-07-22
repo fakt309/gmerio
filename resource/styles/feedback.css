@@ -1,0 +1,253 @@
+.wrapLinkTop {
+  width: 90%;
+  max-width: 1000px;
+  margin: 20px auto;
+  font-family: Arial;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+}
+.linkTop {
+  margin-left: 10px;
+  color: #005fc3;
+  text-decoration: none;
+  transition: all ease 0.2s;
+}
+.linkTop:hover {
+  color: #5aaaff;
+}
+.wrapFeedback {
+  margin: 20px auto;
+  width: 90%;
+  max-width: 1000px;
+  font-family: Arial;
+  transition: transform ease 0.2s;
+}
+.formFeedback {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #999;
+  border-radius: 20px;
+}
+.strokeFormFeedback {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+}
+.blockInput {
+  flex: 1;
+  margin: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  transition: all ease 0.2s;
+}
+.titleInput {
+  margin-left: 10px;
+  padding: 0px 5px;
+  font-size: 12px;
+  color: #999;
+  z-index: 10;
+  position: relative;
+  background-color: #fff;
+  align-self: flex-start;
+  transition: color ease 0.2s;
+}
+.blockInput[focuse='0'] #titleInput {
+  color: #999;
+}
+.blockInput[focuse='1'] #titleInput {
+  color: #333;
+}
+.inputInput {
+  font-size: 14px;
+  color: #333;
+  padding: 10px;
+  outline: none;
+  border: 1px solid #999;
+  border-radius: 5px;
+  margin-top: -5px;
+  z-index: 0;
+  position: relative;
+  transition: border ease 0.2s;
+}
+.blockInput[focuse='0'] .inputInput {
+  border: 1px solid #999;
+}
+.blockInput[focuse='1'] .inputInput {
+  border: 1px solid #333;
+}
+
+/* start custom select */
+.custom-select {
+  position: relative;
+  font-family: Arial;
+  margin-top: -4px;
+}
+.custom-select select {
+  display: none; /*hide original SELECT element: */
+}
+.select-selected {
+  background-color: unset;
+}
+/* Style the arrow inside the select element: */
+.select-selected:after {
+  position: absolute;
+  content: "";
+  top: 15px;
+  right: 10px;
+  width: 0;
+  height: 0;
+  border: 4px solid transparent;
+  border-color: #333 transparent transparent transparent;
+}
+/* Point the arrow upwards when the select box is open (active): */
+.select-selected.select-arrow-active:after {
+  border-color: transparent transparent #333 transparent;
+  top: 10px;
+}
+/* style the items (options), including the selected item: */
+.select-items div, .select-selected {
+  font-size: 14px;
+  color: #333;
+  padding: 10px;
+  cursor: pointer;
+  border: none;
+}
+.select-selected {
+  border: 1px solid #999;
+  border-radius: 5px;
+}
+/* Style items (options): */
+.select-items {
+  position: absolute;
+  /* background-color: #eee; */
+  border-radius: 5px;
+  margin-top: 2px;
+  overflow: hidden;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 99;
+}
+/* Hide the items when the select box is closed: */
+.select-hide {
+  display: none;
+}
+.select-items div {
+  /* margin: 2px 0px; */
+  /* border-radius: 5px; */
+  color: #666;
+  background-color: #eee;
+  transition: all ease 0.2s;
+}
+.select-items div:hover, .same-as-selected {
+  background-color: #ccc;
+}
+/* end custom select */
+
+.textareaText {
+  margin-top: -4px;
+  border-radius: 5px;
+  border: 1px solid #999;
+  padding: 10px;
+  font-size: 14px;
+  color: #333;
+  resize: none;
+  outline: none;
+  font-family: Arial;
+  transition: all ease 0.2s;
+}
+.blockInput[focuse='0'] .textareaText {
+  border: 1px solid #999;
+}
+.blockInput[focuse='1'] .textareaText {
+  border: 1px solid #333;
+}
+.textareaText::-webkit-scrollbar {
+  width: 8px;
+  border-radius: 5px;
+}
+.textareaText::-webkit-scrollbar-track {
+  background: #eee;
+  border-radius: 5px;
+}
+.textareaText::-webkit-scrollbar-thumb {
+  background: #999;
+  border-radius: 5px;
+}
+.textareaText::-webkit-scrollbar-thumb:hover {
+  background: #666;
+  border-radius: 5px;
+}
+#emailBlockInput {
+  margin-left: 20px;
+}
+#identiferBlockInput {
+  display: none;
+  transform: scale(0);
+  transition: all ease 0.2s;
+}
+.lastStrokeFormFeedback {
+  margin: 20px;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+#recaptcha1 {
+  margin: 0px;
+  margin-right: auto;
+}
+.submitFormFeed {
+  padding: 20px 50px;
+  font-size: 14px;
+  color: #fff;
+  background-color: #ce0000;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all ease 0.2s;
+  margin-bottom: -40px;
+  margin-right: -50px;
+}
+.errorTextFeedback {
+  margin-top: 20px;
+  overflow: hidden;
+  max-width: 0%;
+  color: #f77171;
+  font-size: 14px;
+  text-align: center;
+  white-space: nowrap;
+  align-self: center;
+  transition: all ease 0.2s;
+}
+.wrapFeedbackSuccess {
+  font-family: Arial;
+  font-size: 14px;
+  color: #1aca00;
+  border: 1px solid #999;
+  border-radius: 20px;
+  text-align: center;
+  padding: 20px;
+  margin: 20px auto;
+  max-width: 400px;
+  transform: scale(0);
+  transition: transform ease 0.2s;
+}
+@media screen and (max-width: 500px) {
+    .strokeFormFeedback {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .lastStrokeFormFeedback {
+      flex-direction: column;
+    }
+    #recaptcha1 {
+      align-self: center;
+      margin: 0px;
+      margin-bottom: 40px;
+    }
+}

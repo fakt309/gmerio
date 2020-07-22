@@ -78,6 +78,20 @@ app.get('/query*', function(request, respons) {
     respons.status(404).send();
   }
 });
+app.get('/feedback*', function(request, respons) {
+  urlRequest = request.originalUrl;
+  var url = request.originalUrl.split("?")[0];
+  url = url.split("/");
+  if (url[1] == 'feedback') {
+    if (url.length == 2) {
+      respons.sendFile(__dirname+'/pages/feedback.html');
+    } else if (url.length > 2) {
+      respons.status(404).send();
+    }
+  } else {
+    respons.status(404).send();
+  }
+});
 app.get('/g/*', function(request, respons) {
   urlRequest = request.originalUrl;
   var url = request.originalUrl.split("?")[0];
@@ -761,6 +775,58 @@ io.sockets.on('connection', function(socket) {
 
       });
     }).on('error', (e) => {});
+  });
+
+  socket.on('sendFeedback', function(recaptcha, contact1, contact2, contact3, theme, text) {
+    //var flagRecaptcha = true;
+    var flagRecaptcha = false;
+    var secretRecaptcha = "6Ld-_NEUAAAAALkRGwYLKttHeWZ51FkZHafMhGXS";
+    server.get('https://www.google.com'+'/recaptcha/api/siteverify?secret='+secretRecaptcha+'&response='+recaptcha, (res) => {
+      res.on('data', (d) => {
+        var answer = JSON.parse(''+d);
+        flagRecaptcha = answer.success;
+
+        if (flagRecaptcha) {
+          var textForMail = '';
+
+          if (contact1 == 'email') {
+            textForMail += 'email: '+contact2+'\r\n';
+          } else if (contact1 == 'other') {
+            textForMail += contact2+': '+contact3+'\r\n';
+          }
+          textForMail += '\r\n';
+          textForMail += 'Theme: '+theme+'\r\n';
+          textForMail += '\r\n';
+          textForMail += text+'\r\n';
+
+          var transporter = nodemailer.createTransport({
+            host: "smtp.timeweb.ru",
+            port: 2525,
+            secure: false,
+            auth: {
+              user: 'admin@gmer.io',
+              pass: 'XPgfR7A8'
+            }
+          });
+          var mailOptions = {
+					  from: 'admin@gmer.io',
+					  to: 'playawra@gmail.com',
+					  subject: 'feedback gmerio',
+					  html: textForMail
+					};
+					transporter.sendMail(mailOptions, function(error, info) {
+					  if (error) {
+              io.to(socket.id).emit('sendFeedback2', 'err:Something goes wrong in the sending mail, please try again later.');
+					  } else {
+              io.to(socket.id).emit('sendFeedback2', 'ok:Mail has been sent. We will consider your request as soon as possible. Thank you for making our project better.');
+						}
+					});
+        } else if (!flagRecaptcha) {
+          io.to(socket.id).emit('sendFeedback2', 'err:recaptcha invalid');
+        }
+
+      });
+    }).on('error', (e) => { io.to(socket.id).emit('sendFeedback2', 'err:Something goes wrong in the checking captcha, please, try again later.'); });
   });
 
   socket.on('mailSign3', function(mail, condition, holder) {
