@@ -77,6 +77,7 @@
       socket.on('sendFeedback2', function(res) {
         var response = res.split(":");
         if (response[0] == 'err') {
+          grecaptcha.reset(widgetRecaptcha1);
           document.getElementById('errorTextFeedback').innerHTML = response[1];
           setTimeout(function() {
             document.getElementById('errorTextFeedback').style.maxWidth = '100%';

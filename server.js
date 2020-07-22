@@ -790,14 +790,14 @@ io.sockets.on('connection', function(socket) {
           var textForMail = '';
 
           if (contact1 == 'email') {
-            textForMail += 'email: '+contact2+'\r\n';
+            textForMail += 'email: '+contact2+'<br>';
           } else if (contact1 == 'other') {
-            textForMail += contact2+': '+contact3+'\r\n';
+            textForMail += contact2+': '+contact3+'<br>';
           }
-          textForMail += '\r\n';
-          textForMail += 'Theme: '+theme+'\r\n';
-          textForMail += '\r\n';
-          textForMail += text+'\r\n';
+          textForMail += '<br>';
+          textForMail += 'Theme: '+theme+'<br>';
+          textForMail += '<br>';
+          textForMail += text+'<br>';
 
           var transporter = nodemailer.createTransport({
             host: "smtp.timeweb.ru",
