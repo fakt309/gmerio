@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>GMERIO documentation</title>
+
+    <link rel="icon" type="image/png" href="/resource/img/ico.png">
+    <link rel="stylesheet" href="/resource/styles/documentation.css" />
+  </head>
+  <body>
+
+    <section class='navigation' id='IDnavigation'>
+      <div class='navigationButton' condition='2' onclick='switchMenu(this)' id='IDnavigationButton'></div>
+      <div class='listLinksNavigation' id='IDlistLinksNavigation'></div>
+    </section>
+
+    <section class='wrapLinksTop'>
+      <a class='linksHorMenu' href='/'>gmer.io</a>
+    </section>
+
+    <section class='contentPage' id='IDcontentPage'></section>
+
+    <section class='wrapLinksBottom' id='IDwrapLinksBottom'>
+      <a class='linksHorMenu' href='/feedback'>feedback</a>
+    </section>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript">
+      var socket = io();
+    </script>
+    <script src='/resource/js/documentation/documentation.js'></script>
+  </body>
+</html>

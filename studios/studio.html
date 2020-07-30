@@ -6,6 +6,7 @@
 
     <title>Your studio</title>
 
+    <link rel="icon" type="image/png" href="/resource/img/ico.png">
     <link rel="stylesheet" href="/resource/styles/studio.css" />
   </head>
   <body>
@@ -210,6 +211,7 @@
               <div id='buttonCreateGame' onclick='clickCreateGame()'>+ create new game</div>
               <div id='buttonCancelCreateGame' onclick='clickCancelCreateGame()' active='0'>cancel</div>
               <div id='errorTextCreateGame'></div>
+              <a id='linkToFoldersDocs' target='_blank' href='/d/how_directories_work_at_gmerio'>Learn how directories work in gmerio</a>
             </div>
           </div>
           <div class='blockContent'>
@@ -250,6 +252,9 @@
 
         </div>
       </div>
+    </div>
+    <div id='bottomStringStudio'>
+      <a id="linkFeedback" href="/feedback" target="_blank">feedback</a>
     </div>
     </div>
     </section>
@@ -308,6 +313,13 @@
         } else if (!data) {
           animationNoMainBlock();
         }
+
+        document.getElementById('wrapLinkHome').style.display = 'flex';
+        document.getElementById('bottomStringStudio').style.display = 'flex';
+        setTimeout(function() {
+          document.getElementById('wrapLinkHome').style.opacity = '1';
+          document.getElementById('bottomStringStudio').style.opacity = '1';
+        }, 220);
       });
 
       socket.on('getFoldersGames2', function(listAndEmpty) {

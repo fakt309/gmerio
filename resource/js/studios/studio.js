@@ -49,7 +49,7 @@ function showBlock(indexLink, e) {
   }
 }
 
-function clickCreateGame() {//this place
+function clickCreateGame() {
   var input = document.getElementById('blockInputCreateGame');
   var inputInput = document.getElementById('inputInputCreateGame');
   var button = document.getElementById('buttonCreateGame');

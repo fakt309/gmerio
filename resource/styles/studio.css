@@ -87,7 +87,7 @@ body {
   z-index: 10;
 }
 .blockContent {
-  margin: 0px 20px;
+  margin-left: 40px;
   border: 1px solid #999;
   border-radius: 15px;
   display: none;
@@ -545,20 +545,38 @@ body {
   transform: translateY(80px);
   transition: all ease 0.2s;
 }
-#wrapLinkHome {
+#wrapLinkHome, #bottomStringStudio {
   width: 90%;
   max-width: 1000px;
   margin: 0px 10px;
   font-family: Arial;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  opacity: 0;
+  transition: opacity ease 0.2s;
 }
-#linkHome {
+#bottomStringStudio {
+  justify-content: flex-end;
+}
+#linkHome, #linkFeedback, #linkToFoldersDocs {
   margin-left: 10px;
   color: #005fc3;
   text-decoration: none;
   transition: all ease 0.2s;
 }
-#linkHome:hover {
+#linkFeedback {
+  margin-right: 10px;
+}
+#linkHome:hover, #linkFeedback:hover, #linkToFoldersDocs:hover {
   color: #5aaaff;
+}
+#linkToFoldersDocs {
+  margin: 20px;
+  margin-left: auto;
+  font-size: 12px;
+  font-style: italic;
 }
 #linkHolderUser {
   opacity: 0;

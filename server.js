@@ -167,6 +167,20 @@ app.get('/s*', function(request, respons) {
     respons.status(404).send();
   }
 });
+app.get('/d*', function(request, respons) {
+  urlRequest = request.originalUrl;
+  var url = request.originalUrl.split("?")[0];
+  url = url.split("/");
+  if (url[1] == 'd') {
+    if (url.length == 2 || url.length == 3) {
+      respons.sendFile(__dirname+'/documentation/index.html');
+    } else if (url.length > 3) {
+      respons.status(404).send();
+    }
+  } else {
+    respons.status(404).send();
+  }
+});
 
 // app.use('/img', express.static('img'));
 // app.use('/resource', express.static('resource'));
@@ -827,6 +841,159 @@ io.sockets.on('connection', function(socket) {
 
       });
     }).on('error', (e) => { io.to(socket.id).emit('sendFeedback2', 'err:Something goes wrong in the checking captcha, please, try again later.'); });
+  });
+
+  socket.on('getListNotArchivedArticles1', function() {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM articleDocs WHERE archive='0'", function (err, result, fields) {
+        if (result[0]) {
+          io.to(socket.id).emit('getListNotArchivedArticles2', result);
+        }
+      });
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
+    });
+  });
+
+  socket.on('getDataArticle1', function(url, idArchive) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+    var mainPage, archivePages;
+
+    connection.connect(function(err) {
+      if (idArchive == '0') {
+      connection.query("SELECT * FROM articleDocs WHERE url='"+url+"' AND archive='0' ORDER BY dateUpdate DESC", function (err1, result1, fields1) {
+        if (result1[0]) {
+          mainPage = result1[0];
+          var pressHelp = false;
+          if (mainPage.banHelper && mainPage.banHelper != '') {
+            var banedList = mainPage.banHelper.split('!');
+            for (var i = 0; i < banedList.length; i++) {
+              if (banedList[i].split('~')[0] == myip) {
+                pressHelp = true;
+              }
+            }
+          }
+          connection.query("SELECT * FROM articleDocs WHERE url='"+url+"' AND archive='1' ORDER BY dateUpdate DESC", function (err2, result2, fields2) {
+            archivePages = result2;
+            io.to(socket.id).emit('getDataArticle2', mainPage, archivePages, pressHelp);
+          });
+        } else {
+          io.to(socket.id).emit('redirect', '/d');
+        }
+      });
+      } else {
+        connection.query("SELECT * FROM articleDocs WHERE id='"+idArchive+"' AND url='"+url+"' ORDER BY dateUpdate DESC", function (err1, result1, fields1) {
+          if (result1[0]) {
+            mainPage = result1[0];
+            var pressHelp = false;
+            if (mainPage.banHelper && mainPage.banHelper != '') {
+              var banedList = mainPage.banHelper.split('!');
+              for (var i = 0; i < banedList.length; i++) {
+                if (banedList[i].split('~')[0] == myip) {
+                  pressHelp = true;
+                }
+              }
+            }
+            connection.query("SELECT * FROM articleDocs WHERE url='"+url+"' AND archive='1' ORDER BY dateUpdate DESC", function (err2, result2, fields2) {
+              archivePages = result2;
+              io.to(socket.id).emit('getDataArticle2', mainPage, archivePages, pressHelp);
+            });
+          } else {
+            io.to(socket.id).emit('redirect', '/d/'+url);
+          }
+        });
+      }
+
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
+    });
+  });
+
+  socket.on('clearBanListDocs', function(url, idArchive) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM articleDocs WHERE url='"+url+"'", function (err1, result1, fields1) {
+        if (result1[0]) {
+          var nowtime = new Date();
+          var nowyear = nowtime.getFullYear();
+          var nowmounth = nowtime.getMonth()+1;
+          for (var i = 0; i < result1.length; i++) {
+            if (result1[i].banHelper && result1[i].banHelper != '') {
+              var currArticle = result1[i].banHelper.split('!');
+              for (var j = 0; j < currArticle.length; j++) {
+                var currHelper = currArticle[j].split('~');
+                var thisDate = currHelper[1].split('-');
+                if (Math.abs(parseInt(thisDate[0])-nowyear) > 0 || Math.abs(parseInt(thisDate[1])-nowmounth) > 0) {
+                  currArticle.splice(j, 1);
+                  j--;
+                }
+              }
+              currArticle = currArticle.join('!');
+              if (currArticle != result1[i].banHelper) {
+                connection.query("UPDATE articleDocs SET `banHelper`='"+currArticle+"' WHERE id='"+result1[i].id+"'", function (err2, result2, fields2) {});
+              }
+            }
+          }
+        }
+      });
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
+    });
+  });
+
+  socket.on('addHelpedDocs', function(idArticle) {
+    var nowtime = new Date();
+    var nowyear = nowtime.getFullYear();
+    var nowmounth = nowtime.getMonth()+1;
+    var nowday = nowtime.getDate();
+    if (nowmounth < 10) {
+      nowmounth = '0'+nowmounth;
+    }
+    if (nowday < 10) {
+      nowday = '0'+nowday;
+    }
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM articleDocs WHERE id='"+idArticle+"'", function (err1, result1, fields1) {
+        if (result1[0]) {
+          var updateBanHelper = result1[0].banHelper;
+          if (!updateBanHelper || updateBanHelper == '') {
+            updateBanHelper = myip+'~'+nowyear+'-'+nowmounth+'-'+nowday;
+          } else {
+            updateBanHelper += '!'+myip+'~'+nowyear+'-'+nowmounth+'-'+nowday;
+          }
+          var count = parseInt(result1[0].counterHelper)+1;
+          connection.query("UPDATE articleDocs SET `banHelper`='"+updateBanHelper+"', `counterHelper`='"+count+"' WHERE id='"+idArticle+"'", function (err2, result2, fields2) {});
+        }
+      });
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
+    });
   });
 
   socket.on('mailSign3', function(mail, condition, holder) {
