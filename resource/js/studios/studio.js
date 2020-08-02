@@ -1404,9 +1404,9 @@ document.getElementById('dragFile').addEventListener('drop', function(e) {
         }
       }
       totalSizeUpload = Math.round((totalSizeUpload/Math.pow(1024, 2))*100)/100;
-      if (currentTotalSizeFiles+totalSizeUpload > 200) {
+      if (currentTotalSizeFiles+totalSizeUpload > 300) {
         showBigSizeUploadWindow();
-      } else if (currentTotalSizeFiles+totalSizeUpload <= 200) {
+      } else if (currentTotalSizeFiles+totalSizeUpload <= 300) {
         var flagOverwrite = false;
         var wrapFoldersWhereInsert = document.querySelectorAll('.wrapFolder[path="'+path+'"]')[0];
         if (wrapFoldersWhereInsert) {

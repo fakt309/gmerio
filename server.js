@@ -1380,7 +1380,8 @@ io.sockets.on('connection', function(socket) {
         if (result[0].studios != null && result[0].studios != '' && typeof result[0].studios != 'undefined' && result[0].studios) {
           var studios = result[0].studios.split(',');
           studios = studios.join('|');
-          connection.query("SELECT * FROM studios WHERE id REGEXP '("+studios+")'", function (err2, result2, fields2) {
+          //not corrected stroke== connection.query("SELECT * FROM studios WHERE id REGEXP '("+studios+")'", function (err2, result2, fields2) {
+          connection.query("SELECT * FROM studios WHERE id REGEXP '^("+studios+")$'", function (err2, result2, fields2) {
             if (result2[0]) {
               io.to(socket.id).emit('haveIStudio2', result2);
             }
