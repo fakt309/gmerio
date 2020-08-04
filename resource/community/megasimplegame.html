@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Mega simple game</title>
+  </head>
+  <body>
+    <canvas id="mycanvas" width="500px" height="500px" style='border: 1px solid #999;'></canvas>
+
+    <script>
+      var canvas = document.getElementById("mycanvas");
+      var ctx = canvas.getContext("2d");
+
+      var player = {x: 250, y: 250};
+      var point = {x: 0, y: 0};
+      var score = 0;
+
+      function isPointIntoPlayer() {
+        if (player.x+25 >= point.x-10 && player.x-25 <= point.x+10 && player.y+25 >= point.y-10 && player.y-25 <= point.y+10) {
+          return true;
+        }
+        return false;
+      }
+
+      function respawnPoint() {
+        do {
+          point = {x: canvas.offsetWidth*Math.random(), y: canvas.offsetHeight*Math.random()};
+        } while (isPointIntoPlayer());
+      }
+
+      function loop() {
+        //clear all canvas
+        ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
+
+        //draw player
+        ctx.fillStyle = '#87d688';
+        ctx.fillRect(player.x-25, player.y-25, 50, 50);
+
+        //draw point
+        ctx.fillStyle = '#878bd6';
+        ctx.fillRect(point.x-10, point.y-10, 20, 20);
+
+        //draw gui
+        ctx.fillStyle = '#878bd6';
+        ctx.fillRect(point.x-10, point.y-10, 20, 20);
+
+        //if player score point then add score and respawn new one
+        if (isPointIntoPlayer()) {
+          score++;
+          respawnPoint();
+        }
+
+        //draw gui
+        ctx.fillStyle = '#00000077';
+        ctx.fillRect(10, 5, 150, 30);
+
+        ctx.font = '26px Arial';
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'center';
+        ctx.fillText('Points: '+score, 85, 30, 150);
+
+        requestAnimationFrame(loop);
+      }
+
+      window.addEventListener('load', function() {
+        respawnPoint();
+        loop();
+      });
+
+      //move player
+      window.addEventListener('keydown', function(e) {
+        switch (e.code) {
+          case 'ArrowLeft':
+            player.x -= 20;
+            break;
+          case 'ArrowUp':
+            player.y -= 20;
+            break;
+          case 'ArrowRight':
+            player.x += 20;
+            break;
+          case 'ArrowDown':
+            player.y += 20;
+            break;
+        }
+      });
+    </script>
+  </body>
+</html>
