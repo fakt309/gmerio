@@ -1,0 +1,89 @@
+.wrapLinksTop, .wrapLinksBottom {
+  width: 90%;
+  max-width: 1000px;
+  margin: 20px auto;
+  font-family: Arial;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  opacity: 0;
+  transition: opacity ease 0.2s;
+}
+.wrapLinksBottom {
+  justify-content: flex-end;
+}
+.linksHorMenu {
+  margin-left: 10px;
+  font-size: 16px;
+  color: #005fc3;
+  text-decoration: none;
+  transition: all ease 0.2s;
+}
+.linksHorMenu:hover {
+  color: #5aaaff;
+}
+.contentPage {
+  width: 90%;
+  max-width: 1000px;
+  margin: 0px auto;
+  border: 1px solid #999;
+  border-radius: 15px;
+  font-family: Arial;
+  word-break: break-word;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  opacity: 0;
+  transition: opacity ease 0.2s;
+}
+.topStroke {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.rightTopStroke {
+  margin: 0px 20px;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+.titlePage {
+  font-size: 18px;
+  font-weight: bold;
+  color: #666;
+  margin: 20px;
+}
+#IDupdateStroke, #IDauthorStroke, #IDauthorStroke a {
+  margin: 0px;
+  padding: 2px 0px;
+  font-size: 14px;
+  font-weight: 100;
+  color: #999;
+}
+#IDauthorStroke {
+  margin-bottom: 5px;
+  margin-right: 20px;
+}
+#IDauthorStroke a {
+  margin: 0px;
+  padding: 0px;
+  text-decoration: none;
+  color: #005fc3;
+  transition: color ease 0.2s;
+}
+#IDauthorStroke a:hover {
+  color: #5aaaff;
+}
+.bodyContent {
+  margin: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+}
