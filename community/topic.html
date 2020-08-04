@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="description" content="We love web games. Development and playing.">
+    <meta name="keywords" content="web,game,play,develop,html,javascript,nodejs,websocket">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Web game developers community</title>
+
+    <link rel="icon" type="image/png" href="/resource/img/ico.png">
+    <link rel="stylesheet" href="/resource/styles/topic.css" />
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-161435685-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-161435685-1');
+    </script>
+    <!-- end Global site tag (gtag.js) - Google Analytics -->
+  </head>
+  <body>
+
+    <section class='wrapLinksTop'>
+      <a class='linksHorMenu' href='/'>gmer.io</a>
+    </section>
+
+    <section class='contentPage' id='IDcontentPage'></section>
+
+    <!-- <section class='relatedTopics'>
+    related topics</section>
+
+    <section class='subscribe'>
+    subscribes</section>
+
+    <section class='comments'>
+    comments</section> -->
+
+    <section class='wrapLinksBottom'>
+      <a class='linksHorMenu' href='/feedback'>feedback</a>
+    </section>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript">
+      var socket = io();
+    </script>
+    <script src='/resource/js/community/topic.js'></script>
+  </body>
+</html>

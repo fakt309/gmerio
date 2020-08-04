@@ -181,6 +181,24 @@ app.get('/d*', function(request, respons) {
     respons.status(404).send();
   }
 });
+app.get('/c*', function(request, respons) {
+  urlRequest = request.originalUrl;
+  var url = request.originalUrl.split("?")[0];
+  url = url.split("/");
+  if (url[1] == 'c') {
+    if (url.length == 2) {
+      respons.sendFile(__dirname+'/community/index.html');
+    } else if (url.length == 3 && url[2] == 'newtopic') {
+      respons.sendFile(__dirname+'/community/newtopic.html');
+    } else if (url.length == 4 && url[2] == 't') {
+      respons.sendFile(__dirname+'/community/topic.html');
+    } else {
+      respons.status(404).send();
+    }
+  } else {
+    respons.status(404).send();
+  }
+});
 
 // app.use('/img', express.static('img'));
 // app.use('/resource', express.static('resource'));
@@ -990,6 +1008,35 @@ io.sockets.on('connection', function(socket) {
           connection.query("UPDATE articleDocs SET `banHelper`='"+updateBanHelper+"', `counterHelper`='"+count+"' WHERE id='"+idArticle+"'", function (err2, result2, fields2) {});
         }
       });
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
+    });
+  });
+
+  socket.on('getDataArticleCommunity1', function(url) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM articleCommunity WHERE url='"+url+"'", function (err1, result1, fields1) {
+        if (result1[0]) {
+          connection.query("SELECT * FROM users WHERE id='"+result1[0].author+"'", function (err2, result2, fields2) {
+            var userAuthor = 'none';
+            if (result2[0]) {
+              userAuthor = {id: result2[0].id, name: result2[0].fullName};
+            }
+            io.to(socket.id).emit('getDataArticleCommunity2', result1[0], userAuthor);
+          });
+        } else {
+          io.to(socket.id).emit('getDataArticleCommunity2', 'none');
+        }
+      });
+
       setTimeout(function() {
           connection.end();
       }, 1500);
