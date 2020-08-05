@@ -32,13 +32,13 @@
         var w = window.innerWidth;
         var h = window.innerHeight;
 
-        //relative sizes and coordinates
-        ctx.fillStyle = '#87d688';
-        ctx.fillRect(w/2-(0.2*w)/2, h/2-(0.2*h)/2, 0.2*w, 0.2*h);
-
         //absolute dimensions and coordinates
         ctx.fillStyle = '#878bd6';
         ctx.fillRect(20, 20, 200, 300);
+
+        //relative sizes and coordinates
+        ctx.fillStyle = '#87d688';
+        ctx.fillRect(w/2-(0.2*w)/2, h/2-(0.2*h)/2, 0.2*w, 0.2*h);
 
         requestAnimationFrame(loop);
       }
@@ -48,8 +48,6 @@
         refreshCanvas();
         loop();
       });
-
-
     </script>
   </body>
 </html>
