@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+  </head>
+  <body>
+    <style>
+      body {
+        margin: 0px;
+      }
+      #mycanvas {
+        background-image: url('/resource/community/backgroundCanvas.png');
+      }
+    </style>
+    <canvas id="mycanvas"></canvas>
+
+    <script type="text/javascript">
+      var canvas = document.getElementById("mycanvas");
+      var ctx = canvas.getContext("2d");
+
+      function refreshCanvas() {
+        document.body.style.width = window.innerWidth+'px';
+        document.body.style.height = window.innerHeight+'px';
+        canvas.setAttribute('width', window.innerWidth+'px');
+        canvas.setAttribute('height', window.innerHeight+'px');
+      }
+
+      function loop() {
+
+        var w = window.innerWidth;
+        var h = window.innerHeight;
+
+        //relative sizes and coordinates
+        ctx.fillStyle = '#87d688';
+        ctx.fillRect(w/2-(0.2*w)/2, h/2-(0.2*h)/2, 0.2*w, 0.2*h);
+
+        //absolute dimensions and coordinates
+        ctx.fillStyle = '#878bd6';
+        ctx.fillRect(20, 20, 200, 300);
+
+        requestAnimationFrame(loop);
+      }
+
+      window.addEventListener('resize', refreshCanvas);
+      window.addEventListener('load', function functionName() {
+        refreshCanvas();
+        loop();
+      });
+
+
+    </script>
+  </body>
+</html>
