@@ -33,6 +33,10 @@ socket.on('getDataArticleCommunity2', function(dataPage, author) {
 
 function fillTopicPage() {
 
+  document.title = currPage.title;
+  document.querySelector('meta[name="Keywords"]').setAttribute('content', currPage.keywords);
+  document.querySelector('meta[name="Description"]').setAttribute('content', currPage.description);
+
   var contentHTMLobject = document.getElementById('IDcontentPage');
 
   var topStroke = document.createElement('div');
