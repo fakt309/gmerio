@@ -88,7 +88,8 @@
   justify-content: flex-start;
 }
 .bodyContent h2 {
-  margin: 10px 0px;
+  margin: 5px 0px;
+  margin-top: 20px;
   font-size: 16px;
   font-weight: bold;
   color: #999;
@@ -97,4 +98,16 @@
   margin: 5px 0px;
   font-size: 14px;
   color: #666;
+}
+.bodyContent a {
+  font-size: 14px;
+  color: #005fc3;
+  text-decoration: none;
+  transition: all ease 0.2s;
+}
+.bodyContent a:hover {
+  color: #5aaaff;
+}
+.bodyContent img {
+  align-self: center;
 }
