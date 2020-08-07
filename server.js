@@ -46,6 +46,7 @@ http.createServer(function (req, res) {
 var io = require('socket.io').listen(serverIO);
 //end https connect --------------
 
+var urlRequest;
 var myip = 'n/a';
 app.get('*', function(request, respons, next) {
   myip = request.headers['x-forwarded-for'] || request.connection.remoteAddress || request.socket.remoteAddress || (request.connection.socket ? request.connection.socket.remoteAddress : null);
@@ -612,10 +613,90 @@ setInterval(function() {
 }, 5000);
 //end code stealth ----------------
 
-
+var gmerMultiplayer = {};
 
 io.sockets.on('connection', function(socket) {
 
+  //++multiplayer gmer
+  var game = '';
+  var currLink = socket.request.headers.referer.replace('http://', '').replace('https://', '').split('?')[0].split('/');
+  if (currLink.length > 2 && currLink[1] == 'g') {
+    game = currLink[2];
+  }
+  if (!gmerMultiplayer[game]) {
+    gmerMultiplayer[game] = [];
+  }
+  gmerMultiplayer[game].push(socket.id);
+
+  for (var i = 0; i < gmerMultiplayer[game].length; i++) {
+    io.to(gmerMultiplayer[game][i]).emit('fromGmerConnect', socket.id);
+  }
+
+  socket.on('toGmerAllSockets', function(index) {
+    var packSize = 5;
+    if (typeof index == 'undefined') {
+      io.to(socket.id).emit('fromGmerAllSockets', gmerMultiplayer[game].slice(0, packSize));
+    } else if (typeof index == 'number') {
+      index = parseInt(index);
+      if (gmerMultiplayer[game].length >= (index+1)*packSize) {
+        io.to(socket.id).emit('fromGmerAllSockets', gmerMultiplayer[game].slice(index*packSize, (index+1)*packSize));
+      } else if (gmerMultiplayer[game].length > index*packSize && gmerMultiplayer[game].length <= (index+1)*packSize) {
+        io.to(socket.id).emit('fromGmerAllSockets', gmerMultiplayer[game].slice(index*packSize, gmerMultiplayer[game].length));
+      } else if (gmerMultiplayer[game].length <= index*packSize) {
+        io.to(socket.id).emit('fromGmerAllSockets', false);
+      }
+    } else {
+      io.to(socket.id).emit('fromGmerAllSockets', false);
+    }
+  });
+
+  socket.on('toGmerDataExchange', function(idSocket, data) {
+    if (typeof idSocket == 'string') {
+      var indexSockedArray = gmerMultiplayer[game].indexOf(idSocket);
+      if (indexSockedArray > -1) {
+        io.to(idSocket).emit('fromGmerDataExchange', false, data);
+        io.to(socket.id).emit('fromGmerDataExchange', true, {success: true, type: 'success', idSocket: idSocket, data: data});
+      } else {
+        io.to(socket.id).emit('fromGmerDataExchange', true, {success: false, type: 'error', idSocket: idSocket, data: data, text: '`'+idSocket+'` socket id was not found.'});
+      }
+    } else if (Array.isArray(idSocket)) {
+      var errors = [];
+      for (var i = 0; i < idSocket.length; i++) {
+        var indexSockedArray = gmerMultiplayer[game].indexOf(idSocket[i]);
+        if (indexSockedArray > -1) {
+          io.to(idSocket[i]).emit('fromGmerDataExchange', false, data);
+        } else {
+          errors.push(idSocket[i]);
+        }
+      }
+      var answerError = '';
+      if (errors.length > 0 && errors.length < 5) {
+        answerError = errors.join(',');
+      } else if (errors.length > 5) {
+        for (var i = 0; i < 5; i++) {
+          if (i == 0) {
+            answerError += errors[i];
+            continue;
+          }
+          answerError += ','+errors[i];
+        }
+        answerError += '...';
+      }
+      if (answerError == '') {
+        io.to(socket.id).emit('fromGmerDataExchange', true, {success: true, type: 'success', idSocket: idSocket, data: data});
+      } else {
+        var text = '`'+answerError+'` were not found.';
+        if (errors.length == 1) {
+          text = '`'+answerError+'` was not found.';
+        }
+        io.to(socket.id).emit('fromGmerDataExchange', true, {success: false, type: 'error', idSocket: idSocket, data: data, text: text});
+      }
+    } else {
+      io.to(socket.id).emit('fromGmerDataExchange', true, {success: false, type: 'error', idSocket: idSocket, data: data, text: 'Variable socket id is of incorrect type. It must be either a string or an array.'});
+    }
+  });
+
+  //--multiplayer gmer
 
   //start code fortress into socket ----------------
   socket.on('updateMe', function(player) {
@@ -2916,6 +2997,27 @@ io.sockets.on('connection', function(socket) {
   //end code stealth into socket ----------------
 
   socket.on('disconnect', function() {
+
+    //++multiplayer gmer
+    var game = '';
+    var currLink = socket.request.headers.referer.replace('http://', '').replace('https://', '').split('?')[0].split('/');
+    if (currLink.length > 2 && currLink[1] == 'g') {
+      game = currLink[2];
+    }
+    if (!gmerMultiplayer[game]) {
+      gmerMultiplayer[game] = [];
+    }
+
+    for (var i = 0; i < gmerMultiplayer[game].length; i++) {
+      io.to(gmerMultiplayer[game][i]).emit('fromGmerDisconnect', socket.id);
+    }
+
+    var indexSockedArray = gmerMultiplayer[game].indexOf(socket.id);
+    if (indexSockedArray > -1) {
+      gmerMultiplayer[game].splice(indexSockedArray, 1);
+    }
+    //--multiplayer gmer
+
 		if (players[socket.id]) {
 	    if (players[socket.id].status == 2 || players[socket.id].status == 3) {
 	      for (var i in rooms) {
