@@ -965,7 +965,7 @@ io.sockets.on('connection', function(socket) {
       database: "totarget_gmerio"
     });
     connection.connect(function(err) {
-      connection.query("SELECT * FROM articleDocs WHERE archive='0' ORDER BY 'sort'", function (err, result, fields) {
+      connection.query("SELECT * FROM articleDocs WHERE archive='0' ORDER BY sort", function (err, result, fields) {
         if (result[0]) {
           io.to(socket.id).emit('getListNotArchivedArticles2', result);
         }
