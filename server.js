@@ -11,40 +11,40 @@ const nodemailer = require('nodemailer');
 const cryptoJS = require("crypto-js");
 //cryptoJS---
 
-// //http connect ------------------
-// const express = require('express');
-// var app = express();
-// const http = require('http');
-// var server = http.createServer(app);
-// const io = require('socket.io').listen(server);
-//
-// var port = 80;
-// server.listen(port);
-// //end http connect --------------
-
-//https connect ------------------
-const server = require('https');
+//http connect ------------------
 const express = require('express');
-const app = express();
+var app = express();
+const http = require('http');
+var server = http.createServer(app);
+const io = require('socket.io').listen(server);
 
-const options = {
-    cert: fs.readFileSync('/etc/letsencrypt/live/gmer.io/fullchain.pem'),
-    key: fs.readFileSync('/etc/letsencrypt/live/gmer.io/privkey.pem')
-};
-//express.listen(80);
-var port = 443;
-var serverIO = server.createServer(options, app);
-serverIO.listen(port);
+var port = 80;
+server.listen(port);
+//end http connect --------------
 
-//redirect to https
-var http = require('http');
-http.createServer(function (req, res) {
-    res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
-    res.end();
-}).listen(80);
-
-var io = require('socket.io').listen(serverIO);
-//end https connect --------------
+// //https connect ------------------
+// const server = require('https');
+// const express = require('express');
+// const app = express();
+//
+// const options = {
+//     cert: fs.readFileSync('/etc/letsencrypt/live/gmer.io/fullchain.pem'),
+//     key: fs.readFileSync('/etc/letsencrypt/live/gmer.io/privkey.pem')
+// };
+// //express.listen(80);
+// var port = 443;
+// var serverIO = server.createServer(options, app);
+// serverIO.listen(port);
+//
+// //redirect to https
+// var http = require('http');
+// http.createServer(function (req, res) {
+//     res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
+//     res.end();
+// }).listen(80);
+//
+// var io = require('socket.io').listen(serverIO);
+// //end https connect --------------
 
 var urlRequest;
 var myip = 'n/a';
@@ -638,12 +638,27 @@ io.sockets.on('connection', function(socket) {
       io.to(socket.id).emit('fromGmerAllSockets', gmerMultiplayer[game].slice(0, packSize));
     } else if (typeof index == 'number') {
       index = parseInt(index);
-      if (gmerMultiplayer[game].length >= (index+1)*packSize) {
-        io.to(socket.id).emit('fromGmerAllSockets', gmerMultiplayer[game].slice(index*packSize, (index+1)*packSize));
-      } else if (gmerMultiplayer[game].length > index*packSize && gmerMultiplayer[game].length <= (index+1)*packSize) {
-        io.to(socket.id).emit('fromGmerAllSockets', gmerMultiplayer[game].slice(index*packSize, gmerMultiplayer[game].length));
-      } else if (gmerMultiplayer[game].length <= index*packSize) {
+      var from = 0;
+      var to = 0;
+      if (index < 0) {
+        to = gmerMultiplayer[game].length-(-1*index-1)*packSize;
+        from = gmerMultiplayer[game].length-(-1*index-1+1)*packSize;
+        if (to < 0) {
+          to = 0;
+        }
+        if (from < 0) {
+          from = 0;
+        }
+      } else {
+        from = index*packSize;
+        to = (index+1)*packSize;
+      }
+      if ((from == 0 && to == 0) || gmerMultiplayer[game].length <= from) {
         io.to(socket.id).emit('fromGmerAllSockets', false);
+      } else if (gmerMultiplayer[game].length >= to) {
+        io.to(socket.id).emit('fromGmerAllSockets', gmerMultiplayer[game].slice(from, to));
+      } else if (gmerMultiplayer[game].length > from && gmerMultiplayer[game].length <= to) {
+        io.to(socket.id).emit('fromGmerAllSockets', gmerMultiplayer[game].slice(from, gmerMultiplayer[game].length));
       }
     } else {
       io.to(socket.id).emit('fromGmerAllSockets', false);
@@ -950,7 +965,7 @@ io.sockets.on('connection', function(socket) {
       database: "totarget_gmerio"
     });
     connection.connect(function(err) {
-      connection.query("SELECT * FROM articleDocs WHERE archive='0'", function (err, result, fields) {
+      connection.query("SELECT * FROM articleDocs WHERE archive='0' ORDER BY 'sort'", function (err, result, fields) {
         if (result[0]) {
           io.to(socket.id).emit('getListNotArchivedArticles2', result);
         }
