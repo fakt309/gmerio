@@ -280,3 +280,18 @@
   white-space: break-spaces;
   word-break: break-all;
 }
+.bodyContent a {
+  font-size: 14px;
+  color: #005fc3;
+  text-decoration: none;
+  transition: all ease 0.2s;
+}
+.bodyContent a:hover {
+  color: #5aaaff;
+}
+.paragraphProperties {
+  padding-left: 20px;
+}
+.paragraphProperties i {
+  background-color: #eee;
+}
