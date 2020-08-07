@@ -11,40 +11,40 @@ const nodemailer = require('nodemailer');
 const cryptoJS = require("crypto-js");
 //cryptoJS---
 
-//http connect ------------------
-const express = require('express');
-var app = express();
-const http = require('http');
-var server = http.createServer(app);
-const io = require('socket.io').listen(server);
-
-var port = 80;
-server.listen(port);
-//end http connect --------------
-
-// //https connect ------------------
-// const server = require('https');
+// //http connect ------------------
 // const express = require('express');
-// const app = express();
+// var app = express();
+// const http = require('http');
+// var server = http.createServer(app);
+// const io = require('socket.io').listen(server);
 //
-// const options = {
-//     cert: fs.readFileSync('/etc/letsencrypt/live/gmer.io/fullchain.pem'),
-//     key: fs.readFileSync('/etc/letsencrypt/live/gmer.io/privkey.pem')
-// };
-// //express.listen(80);
-// var port = 443;
-// var serverIO = server.createServer(options, app);
-// serverIO.listen(port);
-//
-// //redirect to https
-// var http = require('http');
-// http.createServer(function (req, res) {
-//     res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
-//     res.end();
-// }).listen(80);
-//
-// var io = require('socket.io').listen(serverIO);
-// //end https connect --------------
+// var port = 80;
+// server.listen(port);
+// //end http connect --------------
+
+//https connect ------------------
+const server = require('https');
+const express = require('express');
+const app = express();
+
+const options = {
+    cert: fs.readFileSync('/etc/letsencrypt/live/gmer.io/fullchain.pem'),
+    key: fs.readFileSync('/etc/letsencrypt/live/gmer.io/privkey.pem')
+};
+//express.listen(80);
+var port = 443;
+var serverIO = server.createServer(options, app);
+serverIO.listen(port);
+
+//redirect to https
+var http = require('http');
+http.createServer(function (req, res) {
+    res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
+    res.end();
+}).listen(80);
+
+var io = require('socket.io').listen(serverIO);
+//end https connect --------------
 
 var urlRequest;
 var myip = 'n/a';
