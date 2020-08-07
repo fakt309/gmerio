@@ -235,3 +235,47 @@
   border-radius: 15px;
   margin: 10px 20px;
 }
+.codeBlock {
+  max-height: 500px;
+  overflow: auto;
+  border: 1px solid #999;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+}
+.langCode {
+  margin: 5px;
+  padding: 5px 10px;
+  font-size: 12px;
+  background-color: #999;
+  border-radius: 15px;
+  color: #fff;
+  align-self: flex-start;
+}
+.bodyCode {
+  margin: 10px 5px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+}
+.codeBlock::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+  border-radius: 5px;
+}
+.codeBlock::-webkit-scrollbar-track {
+  background: #eee;
+  border-radius: 5px;
+}
+.codeBlock::-webkit-scrollbar-thumb {
+  background: #999;
+  border-radius: 5px;
+}
+.codeBlock::-webkit-scrollbar-thumb:hover {
+  background: #666;
+  border-radius: 5px;
+}
+.preCode {
+  white-space: break-spaces;
+  word-break: break-all;
+}
