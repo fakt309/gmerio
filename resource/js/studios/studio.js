@@ -431,7 +431,13 @@ function showEditDescInput(e) {
 function deleteStudio() {
   var value = document.getElementById('inputConfirmDeleteStudio').value;
   if (dataStudio.name.toLowerCase() == value.toLowerCase()) {
-    socket.emit('deleteStudio', dataUser, dataStudio.id);
+    if (dataStudio.games == '' || !dataStudio.games || dataStudio.games == null) {
+      socket.emit('deleteStudio', dataUser, dataStudio.id);
+    } else {
+      document.getElementById('errorConfirmDeleteStudio').style.display = 'flex';
+    }
+    //this place
+    //socket.emit('deleteStudio', dataUser, dataStudio.id);
   }
 }
 function switchOpenFolder(path, e) {

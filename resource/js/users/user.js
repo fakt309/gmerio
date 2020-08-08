@@ -44,7 +44,12 @@ function deleteDevice(idUser, indexDevice) {
 }
 function deleteAccount(idUser) {
   if (document.getElementById('buttonConfirmDelete').getAttribute('confirmEmail') == document.getElementById('inputConfirmDelete').value) {
-    socket.emit('deleteAccount', idUser);
+    if (fullUserData.studios == '' || !fullUserData.studios || fullUserData.studios == null) {
+      socket.emit('deleteAccount', dataUser, idUser);
+    } else {
+      document.getElementById('errorConfirmDelete').style.display = 'flex';
+    }
+
   }
 }
 function showConfirmSignout() {
@@ -84,4 +89,40 @@ function signout() {
 }
 function removeCookie(name) {
   document.cookie = name+"=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+}
+
+function showEditName() {
+  document.getElementById('icoEditName').setAttribute('active', '0');
+  document.getElementById('textNameStrokeInfo').setAttribute('active', '0');
+  document.getElementById('blockInputEditName').style.display = 'flex';
+  document.getElementById('saveButtonEditName').style.display = 'flex';
+  document.getElementById('cancelButtonEditName').style.display = 'flex';
+  setTimeout(function() {
+    document.getElementById('blockInputEditName').setAttribute('active', '1');
+    document.getElementById('saveButtonEditName').setAttribute('active', '1');
+    document.getElementById('cancelButtonEditName').setAttribute('active', '1');
+  }, 10);
+  setTimeout(function() {
+    document.getElementById('icoEditName').style.display = 'none';
+    document.getElementById('textNameStrokeInfo').style.display = 'none';
+  }, 200);
+}
+function hideEditName() {
+  document.getElementById('icoEditName').style.display = 'flex';
+  document.getElementById('textNameStrokeInfo').style.display = 'flex';
+  document.getElementById('blockInputEditName').setAttribute('active', '0');
+  document.getElementById('saveButtonEditName').setAttribute('active', '0');
+  document.getElementById('cancelButtonEditName').setAttribute('active', '0');
+  setTimeout(function() {
+    document.getElementById('icoEditName').setAttribute('active', '1');
+    document.getElementById('textNameStrokeInfo').setAttribute('active', '1');
+  }, 10);
+  setTimeout(function() {
+    document.getElementById('blockInputEditName').style.display = 'none';
+    document.getElementById('saveButtonEditName').style.display = 'none';
+    document.getElementById('cancelButtonEditName').style.display = 'none';
+  }, 200);
+}
+function saveFullName() {
+  socket.emit('saveFullName1', dataUser, document.getElementById('inputInputEditName').value);
 }

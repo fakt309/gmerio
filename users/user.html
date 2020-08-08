@@ -13,6 +13,7 @@
     <section id='backConfirmDelete'>
       <div id='blockConfirmDelete'>
         <div id='labelConfirmDelete'>enter your email to confirm it</div>
+        <div id='errorConfirmDelete'>First you need to delete all your studios or transfer them to another user.</div>
         <input id='inputConfirmDelete' type='text' />
         <div id='buttonConfirmDelete'>delete all my data permanently</div>
       </div>
@@ -33,43 +34,24 @@
     </section>
 
     <section id='accessdenied'>
-      <div id='textAccessdenied'>This account not found or access to this account is denied for other users.</div>
+      <div id='textAccessdenied'>This account not found.</div>
     </section>
 
     <section id='userBlock'>
+      <div id='info'>
+        <div id='titleInfo'>Information</div>
+      </div>
+
+      <div id='studio'>
+        <div id='titleStudio'>Studio</div>
+      </div>
+
       <div id='contacts'>
         <div id='titleContacts'>Contacts</div>
-
-        <!-- <div class='blockContact' typecontact='mail'>
-          <div class='imgBlockContact'><div class='imgCheckMark'></div></div>
-          <div class='rightBlockContact'>
-            <div class='valueBlockContact'>playawra@gmail.com</div>
-            <div class='descriptionBlockContact'>email = <span class='confirmedTextBlockContact'>confirmed</span></div>
-          </div>
-        </div> -->
-
       </div>
 
       <div id='devices'>
         <div id='titleDevices'>Devices</div>
-
-        <!-- <div class='blockDevice'>
-          <div class='imgBlockDevice' type='desktop'></div>
-          <div class='rightBlockDevice'>
-            <div class='valueBlockDevice'>::ffff:5.44.128.65 = Opera</div>
-            <div class='descriptionBlockDevice'>desktop = Windows 10</div>
-          </div>
-          <div class="deleteDevice"></div>
-        </div>
-        <div class='blockDevice'>
-          <div class='imgBlockDevice' type='phone'></div>
-          <div class='rightBlockDevice'>
-            <div class='valueBlockDevice'>::ffff:5.44.128.65 = Chrome</div>
-            <div class='descriptionBlockDevice'>mobile = Android 6.2</div>
-          </div>
-          <div class="deleteDevice"></div>
-        </div> -->
-
       </div>
 
       <div id='control'>
@@ -87,18 +69,177 @@
     <script type="text/javascript">
       var socket = io();
 
+      function splitDate(date) {
+        var partsDate = date.split('.')[0].split('T');
+        var daysPart = partsDate[0].split('-');
+        var timesPart = partsDate[1].split(':');
+
+        var answer = {
+          year: daysPart[0],
+          mounth: daysPart[1],
+          day: daysPart[2],
+          hour: timesPart[0],
+          minute: timesPart[1],
+          second: timesPart[2],
+        };
+
+        return answer;
+      }
+
+      // var signinMail = getCookie('signinMail');
+      // if (typeof signinMail != 'undefined' || signinMail != '') {
+      //   socket.emit('authorization', signinMail, getDeviceData());
+      // }
+      // var dataUser = null;
+      // socket.on('authorization2', function(user) {
+      //   if (user) {
+      //     dataUser = user;
+      //   }
+      //
+      // });
+      // setTimeout(function() {console.log(dataUser);}, 5000);
+
       var id = Number(window.location.pathname.split('/')[2]);
 
       var signinMail = getCookie('signinMail');
-      if (typeof signinMail != 'undefined' || signinMail != '') {
-        socket.emit('authorization', signinMail, getDeviceData());
-      } else {
-        document.getElementById('accessdenied').style.display = 'flex';
-      }
 
-      socket.on('authorization2', function(user) {
-        if (user && id == user.id) {
+      var guestUserData = '';
+      var guestStudioData = 'none';
+      socket.emit('getGuestUserData1', id);
+      socket.on('getGuestUserData2', function(user, studio) {
+        if (user == 'none') {
+
+        document.getElementById('accessdenied').style.display = 'flex';
+
+        } else {
+
+        document.getElementById('userBlock').style.display = 'flex';
+
+        guestUserData = user;
+        guestStudioData = studio;
+
+        var strokeInfo = document.createElement('div');
+        strokeInfo.setAttribute('class', 'strokeInfo');
+        strokeInfo.setAttribute('id', 'IDstrokeInfoName');
+        var nameStrokeInfo = document.createElement('div');
+        nameStrokeInfo.setAttribute('class', 'nameStrokeInfo');
+        nameStrokeInfo.innerHTML = 'name';
+        strokeInfo.appendChild(nameStrokeInfo);
+        var valueStrokeInfo = document.createElement('div');
+        valueStrokeInfo.setAttribute('class', 'valueStrokeInfo');
+        valueStrokeInfo.setAttribute('id', 'IDvalueStrokeInfoName');
+        valueStrokeInfo.innerHTML = '<span id="textNameStrokeInfo" active="1">'+guestUserData.fullName+' (id: '+guestUserData.id+')</span>';
+        strokeInfo.appendChild(valueStrokeInfo);
+        document.getElementById('info').appendChild(strokeInfo);
+
+        var strokeInfo = document.createElement('div');
+        strokeInfo.setAttribute('class', 'strokeInfo');
+        var nameStrokeInfo = document.createElement('div');
+        nameStrokeInfo.setAttribute('class', 'nameStrokeInfo');
+        nameStrokeInfo.innerHTML = 'date';
+        strokeInfo.appendChild(nameStrokeInfo);
+        var valueStrokeInfo = document.createElement('div');
+        valueStrokeInfo.setAttribute('class', 'valueStrokeInfo');
+
+        var partsDate = splitDate(guestUserData.dateSignup);
+        var dateFound = new Date(guestUserData.dateSignup).getTime();
+        var dateNow = new Date().getTime();
+        var daysFound = Math.floor((dateNow-dateFound)/(24*60*60*1000));
+        if (daysFound >= 365) {
+          var labelYear = 'year';
+          if (Math.floor(daysFound/365) > 1) {
+            labelYear = 'years';
+          }
+          var labelDay = 'days';
+          if (daysFound%365 == 1) {
+            labelDay = 'day';
+          }
+          valueStrokeInfo.innerHTML = partsDate.day+'.'+partsDate.mounth+'.'+partsDate.year+' ('+Math.floor(daysFound/365)+' '+labelYear+' '+(daysFound%365)+' '+labelDay+')';
+        } else {
+          valueStrokeInfo.innerHTML = partsDate.day+'.'+partsDate.mounth+'.'+partsDate.year+' ('+daysFound+' days)';
+        }
+
+        //valueStrokeInfo.innerHTML = guestUserData.dateSignup;
+        strokeInfo.appendChild(valueStrokeInfo);
+        document.getElementById('info').appendChild(strokeInfo);
+
+        var studioStroke = document.createElement('div');
+        studioStroke.setAttribute('id', 'studioStroke');
+        if (guestStudioData == 'none') {
+          studioStroke.innerHTML = 'This account doesn\'t have studio.';
+        } else if (guestStudioData != 'none') {
+          studioStroke.innerHTML = '<a href="/s/'+guestStudioData.name+'">'+guestStudioData.name+' (id: '+guestStudioData.id+')</a>';
+        }
+        document.getElementById('studio').appendChild(studioStroke);
+
+        if (typeof signinMail != 'undefined' || signinMail != '') {
+          socket.emit('authorization', signinMail, getDeviceData());
           document.getElementById('userBlock').style.display = 'flex';
+        }
+        }
+      });
+
+      var dataUser = null;
+      var fullUserData = '';
+      socket.on('getFullUserData2', function(user) {
+        console.log(user);
+        fullUserData = user;
+      });
+      socket.on('authorization2', function(user) {
+        dataUser = user;
+        socket.emit('getFullUserData1', user);
+        if (user && id == user.id) {
+
+          var icoEditName = document.createElement('div');
+          icoEditName.setAttribute('id', 'icoEditName');
+          icoEditName.setAttribute('onclick', 'showEditName()');
+          document.getElementById('IDvalueStrokeInfoName').appendChild(icoEditName);
+
+          var blockInputEditName = document.createElement('div');
+          blockInputEditName.setAttribute('id', 'blockInputEditName');
+          blockInputEditName.setAttribute('active', '0');
+          blockInputEditName.setAttribute('focuse', '0');
+          var titleInputEditName = document.createElement('div');
+          titleInputEditName.innerHTML = 'full name';
+          titleInputEditName.setAttribute('id', 'titleInputEditName');
+          blockInputEditName.appendChild(titleInputEditName);
+          var inputInputEditName = document.createElement('input');
+          var name = guestUserData.fullName;
+          if (name == null) {
+            name = '';
+          }
+          inputInputEditName.value = name;
+          inputInputEditName.setAttribute('id', 'inputInputEditName');
+          inputInputEditName.setAttribute('onfocusin', 'this.parentElement.setAttribute("focuse", "1")');
+          inputInputEditName.setAttribute('onfocusout', 'this.parentElement.setAttribute("focuse", "0")');
+          inputInputEditName.setAttribute('type', 'text');
+          blockInputEditName.appendChild(inputInputEditName);
+          document.getElementById('IDvalueStrokeInfoName').appendChild(blockInputEditName);
+
+          var saveButtonEditName = document.createElement('div');
+          saveButtonEditName.setAttribute('id', 'saveButtonEditName');
+          saveButtonEditName.setAttribute('active', '0');
+          saveButtonEditName.setAttribute('onclick', 'saveFullName()');
+          saveButtonEditName.innerHTML = 'save';
+          document.getElementById('IDvalueStrokeInfoName').appendChild(saveButtonEditName);
+
+          var cancelButtonEditName = document.createElement('div');
+          cancelButtonEditName.setAttribute('id', 'cancelButtonEditName');
+          cancelButtonEditName.setAttribute('active', '0');
+          cancelButtonEditName.setAttribute('onclick', 'hideEditName()');
+          cancelButtonEditName.innerHTML = 'cancel';
+          document.getElementById('IDvalueStrokeInfoName').appendChild(cancelButtonEditName);
+
+          if (guestStudioData == 'none') {
+            document.getElementById('studioStroke').innerHTML = '<a href="/s">Create studio +</a>';
+          }
+
+          // <div id="blockInputCreateGame" active="1" focuse="0" style="display: flex;">
+          //       <div id="titleInputCreateGame">name game</div>
+          //       <input id="inputInputCreateGame" oninput="validGameName(this)" onfocusin="this.parentElement.setAttribute(&quot;focuse&quot;, &quot;1&quot;)" onfocusout="this.parentElement.setAttribute(&quot;focuse&quot;, &quot;0&quot;)" type="text">
+          //     </div>
+
+          document.getElementById('studio').style.borderBottom = '1px solid #999';
 
           var blockContactMail = document.createElement('div');
           blockContactMail.setAttribute('id', 'blockContact1');
@@ -106,6 +247,7 @@
           blockContactMail.setAttribute('typecontact', 'mail');
           blockContactMail.innerHTML = "<div class='imgBlockContact'><div class='imgCheckMark'></div></div><div class='rightBlockContact'><div class='valueBlockContact'>"+user.email+"</div><div class='descriptionBlockContact'>email = <span class='confirmedTextBlockContact'>confirmed</span></div></div>";
           document.getElementById('contacts').appendChild(blockContactMail);
+          document.getElementById('contacts').style.display = 'block';
 
           var holders = user.holders;
           for (var i = 0; i < holders.length; i++) {
@@ -121,13 +263,16 @@
             blockDevice.setAttribute('indexHolder', i);
             blockDevice.innerHTML = "<div class='imgBlockDevice' type='"+typeDevice+"'></div><div class='rightBlockDevice'><div class='valueBlockDevice'>"+holders[i].ip+" = "+holders[i].browser+"</div><div class='descriptionBlockDevice'>"+typeDevice+" = "+holders[i].os+" "+holders[i].osVersion+"</div></div><div onclick='deleteDevice("+user.id+", "+i+")' class='deleteDevice'></div>";
             document.getElementById('devices').appendChild(blockDevice);
+            document.getElementById('devices').style.display = 'block';
           }
+
+          document.getElementById('control').style.display = 'block';
 
           document.getElementById('labelConfirmDelete').innerHTML = 'enter your email <b>'+user.email+'</b> to confirm deleting';
           document.getElementById('buttonConfirmDelete').setAttribute('confirmEmail', user.email);
           document.getElementById('buttonConfirmDelete').setAttribute('onclick', 'deleteAccount('+user.id+')');
         } else {
-          document.getElementById('accessdenied').style.display = 'flex';
+          //document.getElementById('accessdenied').style.display = 'flex';
         }
       });
 
@@ -137,6 +282,11 @@
 
       socket.on('sendtextttt', function(text) {
         console.log(text);
+      });
+
+      socket.on('saveFullName2', function() {
+        document.getElementById('textNameStrokeInfo').innerHTML = document.getElementById('inputInputEditName').value;
+        hideEditName();
       });
 
       function getCookie(cname) {

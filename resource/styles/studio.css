@@ -803,7 +803,7 @@ body {
 #loader {
   margin: 20px;
 }
-#errorConfirmTurnOnIframe, #errorConfirmTurnOnIframe2 {
+#errorConfirmTurnOnIframe, #errorConfirmTurnOnIframe2, #errorConfirmDeleteStudio {
   font-size: 12px;
   margin-bottom: 15px;
   color: #ff7373;
@@ -812,4 +812,11 @@ body {
   text-align: center;
   transition: all ease 0.2s;
   white-space: nowrap;
+}
+#errorConfirmDeleteStudio {
+  margin: 0px 20px;
+  margin-bottom: 15px;
+  display: none;
+  width: auto;
+  white-space: break-spaces;
 }

@@ -1496,7 +1496,7 @@ io.sockets.on('connection', function(socket) {
     });
   });
 
-  socket.on('deleteAccount', function(idUser) {
+  socket.on('deleteAccount', function(user, idUser) {//this place
     var connection = mysql.createConnection({
       host: "vh50.timeweb.ru",
       user: "totarget_gmerio",
@@ -1504,10 +1504,89 @@ io.sockets.on('connection', function(socket) {
       database: "totarget_gmerio"
     });
     connection.connect(function(err) {
-      connection.query("DELETE FROM users WHERE id='"+idUser+"'", function (err, result, fields) {
-        // io.to(socket.id).emit('refreshPage');
-        // connection.end();
+      connection.query("SELECT * FROM users WHERE id='"+user.id+"'", function (err1, result1, fields1) {
+        if (result1[0] && testUser(user, result1[0])) {
+          connection.query("DELETE FROM users WHERE id='"+idUser+"'", function (err2, result2, fields2) {
+            // io.to(socket.id).emit('refreshPage');
+            // connection.end();
+          });
+        }
       });
+    });
+  });
+
+  socket.on('getFullUserData1', function(user) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM users WHERE id='"+user.id+"'", function (err1, result1, fields1) {
+        if (result1[0] && testUser(user, result1[0])) {
+          io.to(socket.id).emit('getFullUserData2', result1[0]);
+        }
+      });
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
+    });
+  });
+
+  socket.on('getGuestUserData1', function(id) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM users WHERE id='"+id+"'", function (err1, result1, fields1) {
+        if (result1[0]) {
+          if (!result1[0].studios || result1[0].studios == '' || result1[0].studios == null) {
+            io.to(socket.id).emit('getGuestUserData2', {id: result1[0].id, fullName: result1[0].fullName, studios: result1[0].studios, dateSignup: result1[0].dateSignup}, 'none');
+          } else {
+            connection.query("SELECT * FROM studios WHERE keyHolder='"+id+"'", function (err2, result2, fields2) {
+              if (result2[0]) {
+                io.to(socket.id).emit('getGuestUserData2', {id: result1[0].id, fullName: result1[0].fullName, studios: result1[0].studios, dateSignup: result1[0].dateSignup}, {id: result2[0].id, name: result2[0].name});
+              } else {
+                io.to(socket.id).emit('getGuestUserData2', {id: result1[0].id, fullName: result1[0].fullName, studios: result1[0].studios, dateSignup: result1[0].dateSignup}, 'none');
+              }
+            });
+          }
+        } else {
+          io.to(socket.id).emit('getGuestUserData2', 'none', 'none');
+        }
+      });
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
+    });
+  });
+
+  socket.on('saveFullName1', function(user, name) {
+    console.log(user);
+    console.log(name);
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM users WHERE id='"+user.id+"'", function (err1, result1, fields1) {
+        if (result1[0] && testUser(user, result1[0])) {
+          connection.query("UPDATE users SET `fullName`='"+name+"' WHERE id='"+user.id+"'", function (err2, result2, fields2) {
+            if (!err2) {
+              io.to(socket.id).emit('saveFullName2');
+            }
+          });
+        }
+      });
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
     });
   });
 
