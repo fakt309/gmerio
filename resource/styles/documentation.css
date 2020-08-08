@@ -151,7 +151,7 @@
 .h4Page {
   margin: 20px;
   font-size: 14px;
-  font-weight: 100;
+  font-weight: normal;
   color: #999;
 }
 .archiveStroke {
@@ -240,6 +240,8 @@
   border: 1px solid #999;
   border-radius: 15px;
   margin: 10px 20px;
+  align-self: center;
+  max-width: 80%;
 }
 .codeBlock {
   margin: 0px 20px;
