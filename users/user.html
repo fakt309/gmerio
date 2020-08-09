@@ -285,7 +285,7 @@
       });
 
       socket.on('saveFullName2', function() {
-        document.getElementById('textNameStrokeInfo').innerHTML = document.getElementById('inputInputEditName').value;
+        document.getElementById('textNameStrokeInfo').innerHTML = document.getElementById('inputInputEditName').value+' (id: '+dataUser.id+')';
         hideEditName();
       });
 
