@@ -633,7 +633,7 @@ io.sockets.on('connection', function(socket) {
   }
 
   socket.on('toGmerAllSockets', function(index) {
-    var packSize = 5;
+    var packSize = 50;
     if (typeof index == 'undefined') {
       io.to(socket.id).emit('fromGmerAllSockets', gmerMultiplayer[game].slice(0, packSize));
     } else if (typeof index == 'number') {
@@ -1130,6 +1130,32 @@ io.sockets.on('connection', function(socket) {
           });
         } else {
           io.to(socket.id).emit('getDataArticleCommunity2', 'none');
+        }
+      });
+
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
+    });
+  });
+
+  socket.on('getListOfCommTopics1', function(nPackage) {
+    if (!nPackage || nPackage == '' || nPackage == null) {
+      nPackage = 0;
+    }
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM articleCommunity ORDER BY dateUpdate DESC LIMIT 20 OFFSET "+(nPackage*20), function (err1, result1, fields1) {
+        if (result1[0]) {
+          io.to(socket.id).emit('getListOfCommTopics2', result1);
+        } else {
+          io.to(socket.id).emit('getListOfCommTopics2', 'none');
         }
       });
 

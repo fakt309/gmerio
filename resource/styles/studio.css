@@ -560,7 +560,7 @@ body {
 #bottomStringStudio {
   justify-content: flex-end;
 }
-#linkHome, #linkFeedback, #linkToFoldersDocs {
+#linkHome, #linkFeedback, #linkToFoldersDocs, .linksHorMenu {
   margin-left: 10px;
   color: #005fc3;
   text-decoration: none;
@@ -569,8 +569,11 @@ body {
 #linkFeedback {
   margin-right: 10px;
 }
-#linkHome:hover, #linkFeedback:hover, #linkToFoldersDocs:hover {
+#linkHome:hover, #linkFeedback:hover, #linkToFoldersDocs:hover, .linksHorMenu:hover {
   color: #5aaaff;
+}
+.linksHorMenu {
+  margin-left: 20px;
 }
 #linkToFoldersDocs {
   margin: 20px;

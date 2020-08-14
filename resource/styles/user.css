@@ -24,16 +24,19 @@
   font-size: 14px;
   color: #999;
 }
-#textAccessdenied a, #linkHome {
+#textAccessdenied a, #linkHome, .linksHorMenu {
   color: #005fc3;
   text-decoration: none;
   transition: all ease 0.2s;
 }
-#textAccessdenied a:hover, #linkHome:hover {
+#textAccessdenied a:hover, #linkHome:hover, .linksHorMenu:hover {
   color: #5aaaff;
 }
 #linkHome {
   margin-left: 10px;
+}
+.linksHorMenu {
+  margin-left: 20px;
 }
 #contacts, #devices, #control {
   display: none;

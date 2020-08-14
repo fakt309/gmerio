@@ -9,14 +9,17 @@ body {
   opacity: 0;
   font-family: Arial;
 }
-#linkHome {
+#linkHome, .subLink {
   margin: 0px 10px;
   color: #005fc3;
   text-decoration: none;
   transition: all ease 0.2s;
 }
-#linkHome:hover {
+#linkHome:hover, .subLink:hover {
   color: #5aaaff;
+}
+.subLink {
+  margin: 5px 10px;
 }
 #registrationSection {
   height: 100vh;
@@ -170,7 +173,7 @@ body {
 #mainTitle {
   width: 70%;
   max-width: 700px;
-  margin-top: 30vh;
+  margin-top: 10vh;
   text-align: center;
   font-size: 18px;
   color: #999;
