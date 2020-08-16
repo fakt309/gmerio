@@ -77,17 +77,17 @@ socket.on('getListOfCommTopics2', function(list) {
         var wraplastBlock = document.createElement('div');
         wraplastBlock.setAttribute('class', 'wraplastBlock');
 
-        var lastBlock = document.createElement('div');
-        lastBlock.setAttribute('class', 'lastBlockArticle');
-        var numberLastBlock = document.createElement('div');
-        numberLastBlock.setAttribute('class', 'numberLastBlockArticle');
-        numberLastBlock.innerHTML = list[i].comments;
-        lastBlock.appendChild(numberLastBlock);
-        var lablelLastBlock = document.createElement('div');
-        lablelLastBlock.setAttribute('class', 'labelLastBlockArticle');
-        lablelLastBlock.innerHTML = 'comments';
-        lastBlock.appendChild(lablelLastBlock);
-        wraplastBlock.appendChild(lastBlock);
+        // var lastBlock = document.createElement('div');
+        // lastBlock.setAttribute('class', 'lastBlockArticle');
+        // var numberLastBlock = document.createElement('div');
+        // numberLastBlock.setAttribute('class', 'numberLastBlockArticle');
+        // numberLastBlock.innerHTML = list[i].comments;
+        // lastBlock.appendChild(numberLastBlock);
+        // var lablelLastBlock = document.createElement('div');
+        // lablelLastBlock.setAttribute('class', 'labelLastBlockArticle');
+        // lablelLastBlock.innerHTML = 'comments';
+        // lastBlock.appendChild(lablelLastBlock);
+        // wraplastBlock.appendChild(lastBlock);
 
         var lastBlock = document.createElement('div');
         lastBlock.setAttribute('class', 'lastBlockArticle');
@@ -111,8 +111,8 @@ socket.on('getListOfCommTopics2', function(list) {
         blockRelease.setAttribute('class', 'blockRelease');
 
         blockRelease.style.margin = '25px 0px';
-        var sourceResource = list[i].content.split(';')[1].split(':');
-        var sourceAnnounce = list[i].content.split(';')[0].split(':');
+        var sourceResource = list[i].content.split('~~')[1].split('$$');
+        var sourceAnnounce = list[i].content.split('~~')[0].split('$$');
         if (sourceResource[0] == 'image') {
           var imageRelease = document.createElement('div');
           imageRelease.setAttribute('class', 'imageRelease');
@@ -148,17 +148,17 @@ socket.on('getListOfCommTopics2', function(list) {
         var wraplastBlock = document.createElement('div');
         wraplastBlock.setAttribute('class', 'wraplastBlock');
 
-        var lastBlock = document.createElement('div');
-        lastBlock.setAttribute('class', 'lastBlockArticle');
-        var numberLastBlock = document.createElement('div');
-        numberLastBlock.setAttribute('class', 'numberLastBlockArticle');
-        numberLastBlock.innerHTML = list[i].comments;
-        lastBlock.appendChild(numberLastBlock);
-        var lablelLastBlock = document.createElement('div');
-        lablelLastBlock.setAttribute('class', 'labelLastBlockArticle');
-        lablelLastBlock.innerHTML = 'comments';
-        lastBlock.appendChild(lablelLastBlock);
-        wraplastBlock.appendChild(lastBlock);
+        // var lastBlock = document.createElement('div');
+        // lastBlock.setAttribute('class', 'lastBlockArticle');
+        // var numberLastBlock = document.createElement('div');
+        // numberLastBlock.setAttribute('class', 'numberLastBlockArticle');
+        // numberLastBlock.innerHTML = list[i].comments;
+        // lastBlock.appendChild(numberLastBlock);
+        // var lablelLastBlock = document.createElement('div');
+        // lablelLastBlock.setAttribute('class', 'labelLastBlockArticle');
+        // lablelLastBlock.innerHTML = 'comments';
+        // lastBlock.appendChild(lablelLastBlock);
+        // wraplastBlock.appendChild(lastBlock);
 
         var lastBlock = document.createElement('div');
         lastBlock.setAttribute('class', 'lastBlockArticle');
@@ -180,8 +180,6 @@ socket.on('getListOfCommTopics2', function(list) {
       case 'question':
         var blockQuestion = document.createElement('div');
         blockQuestion.setAttribute('class', 'blockQuestion');
-
-        blockQuestion.style.margin = '25px 0px';
 
         var resolvedQuestion = list[i].content.split('~~')[0].split('$$');
 

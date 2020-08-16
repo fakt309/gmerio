@@ -32,7 +32,6 @@ socket.on('getDataArticleCommunity2', function(dataPage, author) {
 });
 
 function fillTopicPage() {
-
   document.title = currPage.title;
   document.querySelector('meta[name="Keywords"]').setAttribute('content', currPage.keywords);
   document.querySelector('meta[name="Description"]').setAttribute('content', currPage.description);
@@ -64,10 +63,106 @@ function fillTopicPage() {
   updateStroke.innerHTML = 'last update: '+datetimeFromMysqlToPST(currPage.dateUpdate);
   rightTopStroke.appendChild(updateStroke);
 
-  var contentPage = document.createElement('div');
-  contentPage.setAttribute('class', 'bodyContent');
-  contentPage.innerHTML = currPage.content;
-  contentHTMLobject.appendChild(contentPage);
+  if (currPage.type == 'article') {
+    var contentPage = document.createElement('div');
+    contentPage.setAttribute('class', 'bodyContent');
+    contentPage.innerHTML = currPage.content;
+    contentHTMLobject.appendChild(contentPage);
+  } else if (currPage.type == 'release') {
+    var currentData = currPage.content.split("~~");
+    var currentImage = '';
+    var annonRelease = {};
+    var linkGameVal = '';
+    for (var i = 0; i < currentData.length; i++) {
+      if (currentData[i].split("$$")[0] == 'image') {
+        currentImage = currentData[i].split("$$")[1];
+      } else if (currentData[i].split("$$")[0] == 'announcement') {
+        annonRelease.value = currentData[i].split("$$")[0];
+        annonRelease.date = currentData[i].split("$$")[1];
+      } else if (currentData[i].split("$$")[0] == 'release') {
+        annonRelease.value = currentData[i].split("$$")[0];
+        annonRelease.date = 'Available now';
+      } else if (currentData[i].split("$$")[0] == 'link') {
+        linkGameVal = currentData[i].split("$$")[1];
+      }
+    }
+
+    var contentPage = document.createElement('div');
+    contentPage.setAttribute('class', 'bodyContent');
+
+    var imageGame = document.createElement('img');
+    imageGame.setAttribute('class', 'imageGame');
+    imageGame.setAttribute('src', currentImage);
+    imageGame.setAttribute('alt', currPage.title);
+    contentPage.appendChild(imageGame);
+
+    var announceRelDate = document.createElement('p');
+    if (annonRelease.value == 'announcement') {
+      announceRelDate.innerHTML = 'Date reveal: '+annonRelease.date;
+    } else if (annonRelease.value == 'release') {
+      announceRelDate.innerHTML = 'Available now';
+    }
+    announceRelDate.setAttribute('id', 'announceRelDate');
+    contentPage.appendChild(announceRelDate);
+
+    var descrGame = document.createElement('p');
+    descrGame.setAttribute('class', 'descriptionGame');
+    descrGame.innerHTML = currPage.description;
+    contentPage.appendChild(descrGame);
+
+    if (linkGameVal != '' && linkGameVal) {
+    var linkGame = document.createElement('div');
+      linkGame.setAttribute('class', 'buttonArticle');
+      linkGame.setAttribute('onclick', 'window.location.href = "'+linkGameVal+'"');
+      linkGame.style.alignSelf = 'center';
+      linkGame.style.marginBottom = '5px';
+      if (annonRelease.value == 'announcement') {
+        linkGame.innerHTML = 'Demo';
+      } else if (annonRelease.value == 'release') {
+        linkGame.innerHTML = 'Play now';
+      }
+      contentPage.appendChild(linkGame);
+
+      var textLinkGame = document.createElement('a');
+      textLinkGame.setAttribute('href', linkGameVal);
+      textLinkGame.setAttribute('id', 'textLinkGame');
+      textLinkGame.innerHTML = linkGameVal;
+      contentPage.appendChild(textLinkGame);
+    }
+
+    contentHTMLobject.appendChild(contentPage);
+  } else if (currPage.type == 'question') {
+    var currentData = currPage.content.split("~~");
+    var resolved = '';
+    var bodyQuestion = '';
+    for (var i = 0; i < currentData.length; i++) {
+      if (currentData[i].split("$$")[0] == 'resolved') {
+        resolved = currentData[i].split("$$")[1];
+      } else if (currentData[i].split("$$")[0] == 'html') {
+        bodyQuestion = currentData[i].split("$$")[1];
+      }
+    }
+
+    var contentPage = document.createElement('div');
+    contentPage.setAttribute('class', 'bodyContent');
+
+    var blockResolved = document.createElement('div');
+    blockResolved.setAttribute('class', 'blockResolved');
+    blockResolved.setAttribute('resolved', resolved);
+    if (resolved == 'not') {
+      blockResolved.innerHTML = 'not resolved';
+    } else if (resolved == 'yes') {
+      blockResolved.innerHTML = 'resolved';
+    }
+    contentPage.appendChild(blockResolved);
+
+    var blockBodyQuestion = document.createElement('p');
+    blockBodyQuestion.innerHTML = bodyQuestion;
+    contentPage.appendChild(blockBodyQuestion);
+
+
+    contentHTMLobject.appendChild(contentPage);
+  }
 
   var linksStrokes = document.querySelectorAll('.wrapLinksTop, .contentPage, .wrapLinksBottom');
   for (var i = 0; i < linksStrokes.length; i++) {

@@ -156,3 +156,50 @@
   white-space: break-spaces;
   word-break: break-all;
 }
+.imageGame {
+  margin-bottom: 20px;
+}
+.descriptionGame {
+  text-align: center;
+  align-self: center;
+}
+.buttonArticle {
+  margin: 20px;
+  padding: 10px;
+  font-size: 14px;
+  color: #fff;
+  background-color: #ce0000;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all ease 0.2s;
+}
+#textLinkGame, #announceRelDate {
+  font-size: 10px;
+  color: #ce0000;
+  text-align: center;
+  align-self: center;
+  margin: 5px 0px;
+  text-decoration: none;
+}
+#announceRelDate {
+  margin: 20px 0px;
+  font-size: 14px;
+}
+.blockResolved {
+    padding: 10px;
+    margin: 20px 0px;
+    margin-top: 0px;
+    background: #ce0000;
+    font-size: 14px;
+    color: #fff;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    align-self: flex-start;
+}
+.blockResolved[resolved='yes'] {
+  background-color: #999;
+  color: #333;
+}
