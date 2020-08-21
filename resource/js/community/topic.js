@@ -142,7 +142,7 @@ function fillTopicPage() {
         bodyQuestion = currentData[i].split("$$")[1];
       }
     }
-
+    //resolved$$not~~html$$
     var contentPage = document.createElement('div');
     contentPage.setAttribute('class', 'bodyContent');
 

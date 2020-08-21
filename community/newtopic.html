@@ -1,1 +1,200 @@
-newtopic
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <title>Web game developers community</title>
+    <meta charset="utf-8">
+    <meta name="Keywords" content="web,game,create,new,topic,html,javascript,nodejs,websocket">
+    <meta name="Description" content="We love web games. Development and playing.">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="icon" type="image/png" href="/resource/img/ico.png">
+    <link rel="stylesheet" href="/resource/styles/newtopic.css" />
+    <link rel="stylesheet" href="/resource/styles/prism.css">
+    <link rel="stylesheet" href="/resource/styles/contentArticle.css">
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-161435685-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-161435685-1');
+    </script>
+    <!-- end Global site tag (gtag.js) - Google Analytics -->
+  </head>
+  <body>
+
+    <div id='topTtitleStroke'>
+      <a id='linkHome' href='/c'><div id='arrowBack'></div><div id='textLinkHome'>back</div></a>
+      <div id='topTitle'>Create new topic</div>
+    </div>
+
+    <section id='chooseType'>
+      <div id='titleChooseType'>What do you want to create?</div>
+      <div id='stringChooseType'>
+      <div class='oneType' id='blockTypeArticle' onclick='chooseType(this)' active='0'>
+        <div class='imageType'></div>
+        <div class='titleType'>Article</div>
+        <div class='descriptionType'>Write an article about something (for example, tutorial how to create a web  game or a review on new Google chrome updates).</div>
+      </div>
+      <div class='oneType' id='blockTypeGame' onclick='chooseType(this)' active='0'>
+        <div class='imageType'></div>
+        <div class='titleType'>Release / Announcement</div>
+        <div class='descriptionType'>Announce that the game is ready or getting ready.</div>
+      </div>
+      <div class='oneType' id='blockTypeQuestion' onclick='chooseType(this)' active='0'>
+        <div class='imageType'></div>
+        <div class='titleType'>Question</div>
+        <div class='descriptionType'>Ask the community if you have any concerns. Or you know the answer to a difficult question.</div>
+      </div>
+    </section>
+
+    <section id='enterTitleArticle'>
+      <div class='blockInput titleBlockInput'>
+        <div class='titleOfInput'>Enter the title of your article</div>
+        <input type='text' class='inputText' id='inputTitleArticle' oninput='validTitle(this)' />
+      </div>
+      <div class='buttonElement' id='buttonNextTitle' onclick='goToBelowTitle(this)' active='0'>next</div>
+    </section>
+
+    <section id='dataReleaseSection'>
+      <div class='blockChooseVariant'>
+        <div class='blockVariantRelease' condition='release' onclick='chooseVariantRelease(this)'>
+          <div class='imgVariantRelease' style='background-image:url("/resource/img/rocket.png");'></div>
+          <div class='rightVariantRelease'>
+            <div class='titleVariantRelease'>Release</div>
+            <div class='descriptionVariantRelease'>Notify that your game is already out</div>
+          </div>
+        </div>
+        <div class='blockVariantRelease' condition='announcement' onclick='chooseVariantRelease(this)'>
+          <div class='imgVariantRelease' style='background-image:url("/resource/img/megaphone.png");'></div>
+          <div class='rightVariantRelease'>
+            <div class='titleVariantRelease'>Announcement</div>
+            <div class='descriptionVariantRelease'>Let us know that something interesting is coming out soon</div>
+          </div>
+        </div>
+      </div>
+      <div class='blockInput' id='blockInputDateRelease'>
+        <div class='titleOfInput'>Enter the date of release</div>
+        <input type='text' class='inputText' id='inputTextDateRelease' oninput='validDateRelease(this)' value='Q1 2021' />
+      </div>
+      <div class='buttonElement' id='buttonNextRelease' onclick='goToBelowDateRelease(this)' active='0'>next</div>
+    </section>
+
+    <section id='urlReleaseSection'>
+      <div class='blockInput' id='blockInputLinkUrl'>
+        <div class='titleOfInput'>Enter game link url</div>
+        <input type='text' class='inputText' id='inputLinkUrlGame' oninput='validUrlLink(this)' />
+      </div>
+      <div class='buttonElement' id='buttonNextReleaseUrl' onclick='goToBelowUrlRelease(this)' active='1'>i don't have</div>
+    </section>
+
+    <section id='uploadImgGameSection'>
+      <div id='titleUploadImg'>Game picture</div>
+      <label for='inputForUploadImgGame' id='uploadImgGame' uploaded='0'>
+        <div class='iconUploadImgGame'></div>
+        <div class='textUploadImgGame'>drag / click</div>
+        <div id='subTextUploadImgGame'>(extension: png/jpg; min resolution: 250x150; max size: 5mb)</div>
+      </label>
+      <input onchange='changeInputUploadImgGame(event)' type="file" id='inputForUploadImgGame'>
+      <div id='uploadImgGameDiv'>
+        <div id='darknessUploadImgGameDiv'>
+          <div id='clipUploadImgGameDiv' onmousedown='startDragClip(event)'><div onmousedown='startResizeClip(event)' id='resizeClip'></div></div>
+        </div>
+      </div>
+      <div id='removeUploadImg' onclick='removeUploadedFile()'>remove</div>
+      <div class='buttonElement' id='buttonNextUploadImg' onclick='goToBelowUploadImg(this)' active='0'>next</div>
+    </section>
+
+    <section id='enterContentSection'>
+      <div id='blockEnterContent'>
+        <div class='stringButtonsContent'>
+          <div class='buttonContent' onclick='insertMetachars("\\link[~", "~|~description~]")'>
+            <div class='imgButtonContent' style='background-image:url("/resource/img/linkNewArticle.png");'></div>
+            <div class='textButtonContent'>\link</div>
+          </div>
+          <div class='buttonContent' onclick='insertMetachars("\\img[~", "~|~alt text~]")'>
+            <div class='imgButtonContent' style='background-image:url("/resource/img/imageNewArticle.png");'></div>
+            <div class='textButtonContent'>\img</div>
+          </div>
+          <div class='buttonContent' onclick='insertMetachars("\\title[~", "~]")'>
+            <div class='imgButtonContent' style='background-image:url("/resource/img/titleNewArticle.png");'></div>
+            <div class='textButtonContent'>\title</div>
+          </div>
+          <div class='buttonContent' onclick='insertMetachars("\\code[~", "~|~html~]")'>
+            <div class='imgButtonContent' style='background-image:url("/resource/img/codeNewArticle.png");'></div>
+            <div class='textButtonContent'>\code</div>
+          </div>
+          <div class='buttonContent' onclick='insertMetachars("\\b[~", "~]")'>
+            <div class='textButtonContent'>\b</div>
+          </div>
+          <div class='buttonContent' onclick='insertMetachars("\\i[~", "~]")'>
+            <div class='textButtonContent'>\i</div>
+          </div>
+          <div class='buttonContent' onclick='insertMetachars("\\d[~", "~]")'>
+            <div class='textButtonContent'>\d</div>
+          </div>
+        </div>
+        <div class='blockTextareaContent'>
+          <textarea id='textareaContent' oninput="inputContent(event, this)"></textarea>
+          <div class='counterSymbolsTextareaContent'></div>
+        </div>
+        <div id='countWords' style='display:none;'></div>
+        <div id='stringUploadsFiles'>
+          <div id='addUploadFiles'>
+            <label for='inputForUploadFileComment' id='uploadFileComment' uploaded='0'>
+              <div class='iconUploadImgGame'></div>
+              <div class='textUploadImgGame'>drag / click</div>
+              <div id='subTextUploadFileComment'>(max size: 3mb)</div>
+            </label>
+            <input onchange='changeInputUploadFileComment(event)' type="file" id='inputForUploadFileComment'>
+          </div>
+        </div>
+        <div class='buttonElement' id='buttonNextEnterContent' onclick='goToBelowEnterContent(this)' active='0'>next</div>
+      </div>
+      <div id='blockShowContent'>
+        <div class='blockTextNoContent'>
+          <div class='textNoContent'>There will be a preview here</div>
+        </div>
+      </div>
+    </section>
+
+    <section id='tagsSection'>
+      <div id='titleTags'>Add tags to your post:</div>
+      <div id='stringTags'>
+        <!-- <div id='valueStringTags'></div> -->
+        <input type='text' id='addTag' />
+      </div>
+      <div class='buttonElement' id='buttonNextTags' onclick='goToBelowTags(this)' active='0'>to the last point</div>
+    </section>
+
+    <section id='recaptchaSection'>
+      <div id='titleRecaptcha'>Complete the captcha</div>
+      <div id='recaptcha1'></div>
+      <div class='buttonElement' id='buttonPublish' onclick='sendNewTopic(this)' active='1'>publish</div>
+    </section>
+
+    <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" async defer></script>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/resource/js/prism.js"></script>
+    <script src='/resource/js/community/compileTags.js'></script>
+    <script type="text/javascript">
+      var socket = io();
+
+      var widgetRecaptcha1;
+      var onloadCallback = function() {
+        widgetRecaptcha1 = grecaptcha.render('recaptcha1', { 'sitekey': '6Ld-_NEUAAAAAIcro-nuBeDeMigbdDBoxVt6jw9h' });
+      };
+
+      //send
+      // var recaptcha = grecaptcha.getResponse(widgetRecaptcha1);
+      // socket.emit('mailSign', mail, recaptcha);
+      //reset
+      //grecaptcha.reset(widgetRecaptcha1);
+    </script>
+    <script src='/resource/js/community/newtopic.js'></script>
+  </body>
+</html>

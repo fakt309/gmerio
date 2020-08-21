@@ -1522,7 +1522,7 @@ io.sockets.on('connection', function(socket) {
     });
   });
 
-  socket.on('deleteAccount', function(user, idUser) {//this place
+  socket.on('deleteAccount', function(user, idUser) {
     var connection = mysql.createConnection({
       host: "vh50.timeweb.ru",
       user: "totarget_gmerio",
@@ -2583,6 +2583,126 @@ io.sockets.on('connection', function(socket) {
 			setTimeout(function() {
 					connection.end();
 			}, 1500);
+    });
+  });
+
+  socket.on('uploadFilesCommunity1', function(filename, file) {
+    var extension = filename.split('.');
+    extension.splice(0, 1);
+    extension = extension.join('.');
+    var name = Date.now();
+    for (var i = 0; i < 10; i++) {
+      name = Date.now();
+      if (!fs.existsSync(__dirname+'/resource/community/'+name+'.'+extension)) {
+        fs.writeFileSync(__dirname+'/resource/community/'+name+'.'+extension, file);
+        io.to(socket.id).emit('uploadFilesCommunity2', 'ok', name+'.'+extension);
+        break;
+      }
+    }
+  });
+
+  socket.on('deleteFilesCommunity1', function(filename) {
+    if (fs.existsSync(__dirname+'/resource/community/'+filename)) {
+      fs.unlinkSync(__dirname+'/resource/community/'+filename);
+      io.to(socket.id).emit('deleteFilesCommunity2', 'ok', filename);
+    }
+  });
+
+  socket.on('publishNewTopic1', function(data, recaptcha) {
+    var flagRecaptcha = false;
+    var secretRecaptcha = "6Ld-_NEUAAAAALkRGwYLKttHeWZ51FkZHafMhGXS";
+    server.get('https://www.google.com'+'/recaptcha/api/siteverify?secret='+secretRecaptcha+'&response='+recaptcha, (res) => {
+      res.on('data', (d) => {
+        //process.stdout.write(d);
+        var answer = JSON.parse(''+d);
+        flagRecaptcha = answer.success;
+
+        if (!flagRecaptcha) {
+          io.to(socket.id).emit('publishNewTopic2', 'errorRecaptcha');
+        } else {
+          var connection = mysql.createConnection({
+            host: "vh50.timeweb.ru",
+            user: "totarget_gmerio",
+            password: "Jc3FiReQ",
+            database: "totarget_gmerio"
+          });
+
+          var urlArticle = data.title;
+          urlArticle = urlArticle.replace(/[^a-zA-Z0-9]/g, '');
+          urlArticle = urlArticle.replace(/ /g, '_');
+          urlArticle = urlArticle.toLowerCase();
+
+          var tags = data.tags.join(',');
+
+          if (data.type == 'release') {
+            var dateRelease = '';
+            if (data.condition == 'announcement') {
+              dateRelease = data.dateRelease;
+            }
+            var extension = data.fileImg.name.split('.');
+            extension.splice(0, 1);
+            extension = extension.join('.');
+            var name = Date.now();
+            for (var i = 0; i < 10; i++) {
+              name = Date.now();
+              if (!fs.existsSync(__dirname+'/resource/community/'+name+'.'+extension)) {
+                fs.writeFileSync(__dirname+'/resource/community/'+name+'.'+extension, data.fileImg.value);
+
+                var content = data.condition+'$$'+dateRelease+'~~image$$/resource/community/'+name+'.'+extension+'~~link$$'+data.urlGame;
+
+                connection.connect(function(err) {
+                    connection.query("SELECT * FROM articleCommunity WHERE url = '"+urlArticle+"'", function (err1, result1, fields1) {
+                      var editUrl = urlArticle;
+                      if (result1[0]) {
+                        editUrl = editUrl+'_'+Date.now();
+                      }
+                      connection.query("INSERT INTO articleCommunity (type, url, title, content, dateUpdate, author, related, keywords, description, comments) VALUES ('"+data.type+"', '"+editUrl+"', '"+data.title+"', '"+content+"', NOW(), 0, 0, '"+tags+"', '"+data.content+"', 0)", function (err2, result2, fields2) {
+                        io.to(socket.id).emit('redirect', '/c');
+                      });
+                    });
+                  setTimeout(function() {
+                      connection.end();
+                  }, 2000);
+                });
+
+                break;
+              }
+            }
+          } else if (data.type == 'question') {
+            var content = 'resolved$$not~~html$$'+data.content;
+
+            connection.connect(function(err) {
+                connection.query("SELECT * FROM articleCommunity WHERE url = '"+urlArticle+"'", function (err1, result1, fields1) {
+                  var editUrl = urlArticle;
+                  if (result1[0]) {
+                    editUrl = editUrl+'_'+Date.now();
+                  }
+                  connection.query("INSERT INTO articleCommunity (type, url, title, content, dateUpdate, author, related, keywords, description, comments) VALUES ('"+data.type+"', '"+editUrl+"', '"+data.title+"', '"+content+"', NOW(), 0, 0, '"+tags+"', '"+data.title+"', 0)", function (err2, result2, fields2) {
+                    io.to(socket.id).emit('redirect', '/c');
+                  });
+                });
+              setTimeout(function() {
+                  connection.end();
+              }, 2000);
+            });
+          } else if (data.type == 'article') {
+            connection.connect(function(err) {
+                connection.query("SELECT * FROM articleCommunity WHERE url = '"+urlArticle+"'", function (err1, result1, fields1) {
+                  var editUrl = urlArticle;
+                  if (result1[0]) {
+                    editUrl = editUrl+'_'+Date.now();
+                  }
+                  connection.query("INSERT INTO articleCommunity (type, url, title, content, dateUpdate, author, related, keywords, description, comments) VALUES ('"+data.type+"', '"+editUrl+"', '"+data.title+"', '"+data.content+"', NOW(), 0, 0, '"+tags+"', '"+data.title+"', 0)", function (err2, result2, fields2) {
+                    io.to(socket.id).emit('redirect', '/c');
+                  });
+                });
+              setTimeout(function() {
+                  connection.end();
+              }, 2000);
+            });
+          }
+        }
+      });
     });
   });
 
