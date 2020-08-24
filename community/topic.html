@@ -9,7 +9,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <link rel="icon" type="image/png" href="/resource/img/ico.png">
+    <link rel="stylesheet" href="/resource/styles/prism.css">
     <link rel="stylesheet" href="/resource/styles/topic.css" />
+    <link rel="stylesheet" href="/resource/styles/contentArticle.css" />
 
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-161435685-1"></script>
@@ -34,6 +36,42 @@
 
     <section class='contentPage' id='IDcontentPage'></section>
 
+    <section id='enterTitleArticle'>
+      <div id='blockEnterContent'>
+        <div class='stringButtonsContent'>
+          <div class='buttonContent' onclick='insertMetachars("\\link[~", "~|~description~]")'>
+            <div class='imgButtonContent' style='background-image:url("/resource/img/linkNewArticle.png");'></div>
+            <div class='textButtonContent'>\link</div>
+          </div>
+          <div class='buttonContent' onclick='insertMetachars("\\code[~", "~|~html~]")'>
+            <div class='imgButtonContent' style='background-image:url("/resource/img/codeNewArticle.png");'></div>
+            <div class='textButtonContent'>\code</div>
+          </div>
+          <div class='buttonContent' onclick='insertMetachars("\\b[~", "~]")'>
+            <div class='textButtonContent'>\b</div>
+          </div>
+          <div class='buttonContent' onclick='insertMetachars("\\i[~", "~]")'>
+            <div class='textButtonContent'>\i</div>
+          </div>
+          <div class='buttonContent' onclick='insertMetachars("\\d[~", "~]")'>
+            <div class='textButtonContent'>\d</div>
+          </div>
+        </div>
+        <div class='blockTextareaContent'>
+          <textarea id='textareaContent' oninput="inputContent(event, this)"></textarea>
+          <div class='counterSymbolsTextareaContent'></div>
+        </div>
+        <div id='countWords' style='display:none;'></div>
+        <div id='recaptcha1' style='display:none;'></div>
+        <div id='sendComment' onmousedown='sendComment(this)' active='0'>comment</div>
+      </div>
+      <div id='blockShowContent'>
+        <div class='blockTextNoContent'>
+          <div class='textNoContent'>There will be a preview here</div>
+        </div>
+      </div>
+    </section>
+
     <!-- <section class='relatedTopics'>
     related topics</section>
 
@@ -47,9 +85,34 @@
       <a class='linksHorMenu' href='/feedback'>feedback</a>
     </section>
 
+    <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" async defer></script>
+
     <script src="/socket.io/socket.io.js"></script>
+    <script src="/resource/js/prism.js"></script>
+    <script src="/resource/js/cookie.js"></script>
+    <script src="/resource/js/users/getDeviceData.js"></script>
+    <script src='/resource/js/community/compileTags.js'></script>
     <script type="text/javascript">
       var socket = io();
+
+      var widgetRecaptcha1;
+      var onloadCallback = function() {
+        widgetRecaptcha1 = grecaptcha.render('recaptcha1', { 'sitekey': '6Ld-_NEUAAAAAIcro-nuBeDeMigbdDBoxVt6jw9h' });
+      };
+
+      var signinMail = getCookie('signinMail');
+      if (typeof signinMail != 'undefined' || signinMail != '') {
+        socket.emit('authorization', signinMail, getDeviceData());
+      }
+
+      var dataUser = null;
+      socket.on('authorization2', function(user) {
+        if (user) {
+          dataUser = user;
+        } else {
+          document.getElementById('recaptcha1').style.display = 'flex';
+        }
+      });
     </script>
     <script src='/resource/js/community/topic.js'></script>
   </body>

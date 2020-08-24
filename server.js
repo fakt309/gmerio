@@ -2656,7 +2656,7 @@ io.sockets.on('connection', function(socket) {
                       if (result1[0]) {
                         editUrl = editUrl+'_'+Date.now();
                       }
-                      connection.query("INSERT INTO articleCommunity (type, url, title, content, dateUpdate, author, related, keywords, description, comments) VALUES ('"+data.type+"', '"+editUrl+"', '"+data.title+"', '"+content+"', NOW(), 0, 0, '"+tags+"', '"+data.content+"', 0)", function (err2, result2, fields2) {
+                      connection.query("INSERT INTO articleCommunity (type, url, title, content, dateUpdate, author, related, keywords, description, comments) VALUES ('"+data.type+"', '"+editUrl+"', '"+data.title+"', '"+content+"', NOW(), '"+data.author+"', 0, '"+tags+"', '"+data.content+"', 0)", function (err2, result2, fields2) {
                         io.to(socket.id).emit('redirect', '/c');
                       });
                     });
@@ -2677,7 +2677,7 @@ io.sockets.on('connection', function(socket) {
                   if (result1[0]) {
                     editUrl = editUrl+'_'+Date.now();
                   }
-                  connection.query("INSERT INTO articleCommunity (type, url, title, content, dateUpdate, author, related, keywords, description, comments) VALUES ('"+data.type+"', '"+editUrl+"', '"+data.title+"', '"+content+"', NOW(), 0, 0, '"+tags+"', '"+data.title+"', 0)", function (err2, result2, fields2) {
+                  connection.query("INSERT INTO articleCommunity (type, url, title, content, dateUpdate, author, related, keywords, description, comments) VALUES ('"+data.type+"', '"+editUrl+"', '"+data.title+"', '"+content+"', NOW(), '"+data.author+"', 0, '"+tags+"', '"+data.title+"', 0)", function (err2, result2, fields2) {
                     io.to(socket.id).emit('redirect', '/c');
                   });
                 });
@@ -2692,7 +2692,7 @@ io.sockets.on('connection', function(socket) {
                   if (result1[0]) {
                     editUrl = editUrl+'_'+Date.now();
                   }
-                  connection.query("INSERT INTO articleCommunity (type, url, title, content, dateUpdate, author, related, keywords, description, comments) VALUES ('"+data.type+"', '"+editUrl+"', '"+data.title+"', '"+data.content+"', NOW(), 0, 0, '"+tags+"', '"+data.title+"', 0)", function (err2, result2, fields2) {
+                  connection.query("INSERT INTO articleCommunity (type, url, title, content, dateUpdate, author, related, keywords, description, comments) VALUES ('"+data.type+"', '"+editUrl+"', '"+data.title+"', '"+data.content+"', NOW(), '"+data.author+"', 0, '"+tags+"', '"+data.title+"', 0)", function (err2, result2, fields2) {
                     io.to(socket.id).emit('redirect', '/c');
                   });
                 });
@@ -2704,6 +2704,57 @@ io.sockets.on('connection', function(socket) {
         }
       });
     });
+  });
+
+  socket.on('addNewComment1', function(data, recaptcha) {
+    if (data.author == 0) {
+      var flagRecaptcha = false;
+      var secretRecaptcha = "6Ld-_NEUAAAAALkRGwYLKttHeWZ51FkZHafMhGXS";
+      server.get('https://www.google.com'+'/recaptcha/api/siteverify?secret='+secretRecaptcha+'&response='+recaptcha, (res) => {
+        res.on('data', (d) => {
+          var answer = JSON.parse(''+d);
+          flagRecaptcha = answer.success;
+
+          if (!flagRecaptcha) {
+            io.to(socket.id).emit('addNewComment2', 'err:recaptcha');
+          } else {
+            var connection = mysql.createConnection({
+              host: "vh50.timeweb.ru",
+              user: "totarget_gmerio",
+              password: "Jc3FiReQ",
+              database: "totarget_gmerio"
+            });
+            connection.connect(function(err) {
+              connection.query("INSERT INTO commentsCommunity (content, type, toAttach, author, likes, dateUpdate) VALUES ('"+data.content+"', '"+data.type+"', '"+data.toAttach+"', '"+data.author+"', '', NOW())", function (err1, result1, fields1) {
+                if (!err1) {
+                  io.to(socket.id).emit('addNewComment2', 'ok');
+                }
+              });
+              setTimeout(function() {
+                  connection.end();
+              }, 1000);
+            });
+          }
+        });
+      });
+    } else {
+      var connection = mysql.createConnection({
+        host: "vh50.timeweb.ru",
+        user: "totarget_gmerio",
+        password: "Jc3FiReQ",
+        database: "totarget_gmerio"
+      });
+      connection.connect(function(err) {
+        connection.query("INSERT INTO commentsCommunity (content, type, toAttach, author, likes, dateUpdate) VALUES ('"+data.content+"', '"+data.type+"', '"+data.toAttach+"', '"+data.author+"', '', NOW())", function (err1, result1, fields1) {
+          if (!err1) {
+            io.to(socket.id).emit('addNewComment2', 'ok');
+          }
+        });
+        setTimeout(function() {
+            connection.end();
+        }, 1000);
+      });
+    }
   });
 
   socket.on('getItems', function(items) {

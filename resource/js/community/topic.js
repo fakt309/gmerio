@@ -66,7 +66,9 @@ function fillTopicPage() {
   if (currPage.type == 'article') {
     var contentPage = document.createElement('div');
     contentPage.setAttribute('class', 'bodyContent');
-    contentPage.innerHTML = currPage.content;
+    //contentPage.setAttribute('class', 'bodyContent blockShowContent');
+    //contentPage.innerHTML = currPage.content;
+    contentPage.innerHTML = compileMetacode(currPage.content);
     contentHTMLobject.appendChild(contentPage);
   } else if (currPage.type == 'release') {
     var currentData = currPage.content.split("~~");
@@ -89,6 +91,7 @@ function fillTopicPage() {
 
     var contentPage = document.createElement('div');
     contentPage.setAttribute('class', 'bodyContent');
+    //contentPage.setAttribute('class', 'bodyContent blockShowContent');
 
     var imageGame = document.createElement('img');
     imageGame.setAttribute('class', 'imageGame');
@@ -107,7 +110,8 @@ function fillTopicPage() {
 
     var descrGame = document.createElement('p');
     descrGame.setAttribute('class', 'descriptionGame');
-    descrGame.innerHTML = currPage.description;
+    //descrGame.innerHTML = currPage.description;
+    descrGame.innerHTML = compileMetacode(currPage.description);
     contentPage.appendChild(descrGame);
 
     if (linkGameVal != '' && linkGameVal) {
@@ -145,6 +149,7 @@ function fillTopicPage() {
     //resolved$$not~~html$$
     var contentPage = document.createElement('div');
     contentPage.setAttribute('class', 'bodyContent');
+    //contentPage.setAttribute('class', 'bodyContent blockShowContent');
 
     var blockResolved = document.createElement('div');
     blockResolved.setAttribute('class', 'blockResolved');
@@ -157,7 +162,8 @@ function fillTopicPage() {
     contentPage.appendChild(blockResolved);
 
     var blockBodyQuestion = document.createElement('p');
-    blockBodyQuestion.innerHTML = bodyQuestion;
+    //blockBodyQuestion.innerHTML = bodyQuestion;
+    blockBodyQuestion.innerHTML = compileMetacode(bodyQuestion);
     contentPage.appendChild(blockBodyQuestion);
 
 
@@ -169,3 +175,103 @@ function fillTopicPage() {
     linksStrokes[i].style.opacity = '1';
   }
 }
+
+var timeoutCompile = setTimeout(function () {}, 1);
+function inputContent(e, el) {
+  var leftBlockBounding = document.getElementById('blockEnterContent').getBoundingClientRect();
+  var rightBlockBounding = document.getElementById('blockShowContent').getBoundingClientRect();
+  var textareaBounding = el.getBoundingClientRect();
+
+  var lengthContent = el.value.length;
+  var minLength = 10;
+  var maxLength = 1000;
+
+  document.getElementById('countWords').style.display = 'flex';
+  if (lengthContent < minLength) {
+    document.getElementById('countWords').innerHTML = '-'+(minLength-lengthContent)+' symbols';
+    document.getElementById('countWords').setAttribute('valid', '0');
+    document.getElementById('sendComment').setAttribute('active', '0');
+  } else if (lengthContent >= minLength && lengthContent <= maxLength) {
+    document.getElementById('countWords').innerHTML = lengthContent+'/'+maxLength+' symbols';
+    document.getElementById('countWords').setAttribute('valid', '1');
+    document.getElementById('sendComment').setAttribute('active', '1');
+  } else if (lengthContent > maxLength) {
+    document.getElementById('countWords').innerHTML = lengthContent+'/'+maxLength+' symbols';
+    document.getElementById('countWords').setAttribute('valid', '0');
+    document.getElementById('sendComment').setAttribute('active', '0');
+  }
+
+  var strokeBreakes = el.value.split('\n');
+  var countStrings = 0;
+  for (var i = 0; i < strokeBreakes.length; i++) {
+    countStrings += Math.floor(strokeBreakes[i].length/(textareaBounding.width/8));
+    countStrings++;
+  }
+  if (countStrings >= 6) {
+    document.getElementById('textareaContent').style.height = (17*countStrings)+'px'
+  } else if (countStrings < 6) {
+    document.getElementById('textareaContent').style.height = '104px'
+  }
+  // if (leftBlockBounding.height > rightBlockBounding.height) {
+  //   setTimeout(function() {
+  //     window.scroll({
+  //       top: document.body.scrollHeight || document.documentElement.scrollHeight,
+  //       behavior: 'smooth'
+  //     });
+  //   }, 10);
+  // }
+
+  clearTimeout(timeoutCompile);
+  timeoutCompile = setTimeout(function() {
+    document.getElementById('blockShowContent').innerHTML = compileMetacode(el.value);
+  }, 500);
+}
+
+var timeoutCompile2 = setTimeout(function() {}, 1);
+function insertMetachars(sStartTag, sEndTag) {
+  var bDouble = arguments.length > 1;
+  var oMsgInput = document.getElementById('textareaContent');
+  var nSelStart = oMsgInput.selectionStart;
+  var nSelEnd = oMsgInput.selectionEnd;
+  var sOldText = oMsgInput.value;
+
+  oMsgInput.value = sOldText.substring(0, nSelStart) + (bDouble?sStartTag+sOldText.substring(nSelStart, nSelEnd)+sEndTag:sStartTag)+sOldText.substring(nSelEnd);
+  oMsgInput.setSelectionRange(bDouble||nSelStart===nSelEnd?nSelStart+sStartTag.length:nSelStart,(bDouble?nSelEnd:nSelStart)+sStartTag.length);
+  oMsgInput.focus();
+
+  clearTimeout(timeoutCompile2);
+  timeoutCompile2 = setTimeout(function() {
+    document.getElementById('blockShowContent').innerHTML = compileMetacode(oMsgInput.value);
+  }, 500);
+}
+
+function sendComment(el) {
+  if (el.getAttribute('active') == '1') {
+    var recaptcha = grecaptcha.getResponse(widgetRecaptcha1);
+
+    var author = 0;
+    if (dataUser != null && dataUser) {
+      author = dataUser.id;
+    }
+    var dataNewComment = {
+      content: document.getElementById('textareaContent').value,
+      type: 'comment',
+      toAttach: currPage.id,
+      author: author
+    };
+
+    console.log(dataNewComment);
+
+    socket.emit('addNewComment1', dataNewComment, recaptcha);
+  }
+}
+
+socket.on('addNewComment2', function(answer) {
+  if (answer == 'err:recaptcha') {
+    grecaptcha.reset(widgetRecaptcha1);
+  } else if (answer == 'ok') {
+    document.getElementById('textareaContent').value = '';
+    document.getElementById('countWords').style.display = 'none';
+    document.getElementById('blockShowContent').innerHTML = '<div class="blockTextNoContent"><div class="textNoContent">There will be a preview here</div></div>';
+  }
+});

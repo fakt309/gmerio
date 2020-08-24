@@ -105,63 +105,60 @@ function doFunction(name, attrs) {
   }
 }
 
-var timeoutCompile = setTimeout(function() {}, 1);
-function compileMetacode(el) {
-  clearTimeout(timeoutCompile);
-  timeoutCompile = setTimeout(function() {
-    var output = el.value;
+function compileMetacode(op) {
+  var output = op;
 
-    //output = output.replace(/\\replace(\[[0-9]*\])*/g, '');
+  //output = output.replace(/\\replace(\[[0-9]*\])*/g, '');
 
-    //var functions = output.match(/\\[a-z]+(\[[^\[\]]*\])+/g);
-    //var functions = output.match(/\\[a-z]+(\[\~\[(?!.*ahah)\]\~\])+/g);
+  //var functions = output.match(/\\[a-z]+(\[[^\[\]]*\])+/g);
+  //var functions = output.match(/\\[a-z]+(\[\~\[(?!.*ahah)\]\~\])+/g);
+  output = output.replace(/\\title?\[~(.*?)~\]\n/sg, function(match, p1) {
+    return '\\title[~'+p1+'~]';
+  });
+  output = output.replace(/\\img?\[~(.*?)~\]\n/sg, function(match, p1) {
+    return "\\img[~"+p1+"~]";
+  });
+  // output = output.replace(/\\code?\[~(.*?)~\]\n/sg, function(match, p1) {
+  //   return "\\code[~"+p1+"~]";
+  // });
+  output = output.replace(/^\\code?\[~(.*?)~\]/sg, function(match, p1) {
+    return "\\blockcode[~"+p1+"~]";
+  });
+  output = output.replace(/\n\\code?\[~(.*?)~\]/sg, function(match, p1) {
+    return "\n\\blockcode[~"+p1+"~]";
+  });
 
-    output = output.replace(/\\title?\[~(.*?)~\]\n/sg, function(match, p1) {
-      return '\\title[~'+p1+'~]';
-    });
-    output = output.replace(/\\img?\[~(.*?)~\]\n/sg, function(match, p1) {
-      return "\\img[~"+p1+"~]";
-    });
-    // output = output.replace(/\\code?\[~(.*?)~\]\n/sg, function(match, p1) {
-    //   return "\\code[~"+p1+"~]";
-    // });
-    output = output.replace(/^\\code?\[~(.*?)~\]/sg, function(match, p1) {
-      return "\\blockcode[~"+p1+"~]";
-    });
-    output = output.replace(/\n\\code?\[~(.*?)~\]/sg, function(match, p1) {
-      return "\n\\blockcode[~"+p1+"~]";
-    });
+  var functions = output.match(/\\[a-z]+?\[~.*?~\]/sg);
 
-    var functions = output.match(/\\[a-z]+?\[~.*?~\]/sg);
+  for (var i = 0; functions != null && i < functions.length; i++) {
+    output = output.replace(functions[i], '\\replace[~'+i+'~]');
+  }
 
-    for (var i = 0; functions != null && i < functions.length; i++) {
-      output = output.replace(functions[i], '\\replace[~'+i+'~]');
-    }
+  output = output.replace(/</g, "&lt;");
+  output = output.replace(/>/g, "&gt;");
+  //output = output.replace(/ /g, '&nbsp;');
 
-    output = output.replace(/</g, "&lt;");
-    output = output.replace(/>/g, "&gt;");
-    output = output.replace(/ /g, '&nbsp;');
-
-    for (var i = 0; functions != null && i < functions.length; i++) {
-      if (functions[i].match(/\\[a-z]*\[/g) != null) {
-        //var name = functions[i].match(/\\[a-z]*\[~/g)[0].slice(1, -1);
-        var name = functions[i].match(/\\[a-z]+\[/g)[0].slice(1, -1);
-        //var attrs = functions[i].match(/\[[^\[\]]*\]/g);
-        var attrs = functions[i].match(/\[~.*~\]/sg)[0].slice(2, -2).split('~|~');
-        // for (var j = 0; j < attrs.length; j++) {
-        //   attrs[j] = attrs[j].slice(1, -1);
-        // }
-        output = output.replace('\\replace[~'+i+'~]', doFunction(name, attrs));
-      } else {
-        output = output.replace('\\replace[~'+i+'~]', '');
-      }
-    }
-
-    output = output.replace(/\n/g, "<br>");
-    if (output == '' || !output) {
-      document.getElementById('blockShowContent').innerHTML = '<div class="blockTextNoContent"><div class="textNoContent">There will be a preview here</div></div>';
+  for (var i = 0; functions != null && i < functions.length; i++) {
+    if (functions[i].match(/\\[a-z]*\[/g) != null) {
+      //var name = functions[i].match(/\\[a-z]*\[~/g)[0].slice(1, -1);
+      var name = functions[i].match(/\\[a-z]+\[/g)[0].slice(1, -1);
+      //var attrs = functions[i].match(/\[[^\[\]]*\]/g);
+      var attrs = functions[i].match(/\[~.*~\]/sg)[0].slice(2, -2).split('~|~');
+      // for (var j = 0; j < attrs.length; j++) {
+      //   attrs[j] = attrs[j].slice(1, -1);
+      // }
+      output = output.replace('\\replace[~'+i+'~]', doFunction(name, attrs));
     } else {
-      document.getElementById('blockShowContent').innerHTML = '<div class="previewBlock">'+output+'</div>';
+      output = output.replace('\\replace[~'+i+'~]', '');
     }
-  }, 1000);
+  }
+
+  output = output.replace(/\n/g, "<br>");
+  if (output == '' || !output) {
+    return '<div class="blockTextNoContent"><div class="textNoContent">There will be a preview here</div></div>';
+    //document.getElementById('blockShowContent').innerHTML = '<div class="blockTextNoContent"><div class="textNoContent">There will be a preview here</div></div>';
+  } else {
+    //document.getElementById('blockShowContent').innerHTML = '<div class="previewBlock">'+output+'</div>';
+    return '<div class="previewBlock">'+output+'</div>';
+  }
 }

@@ -6,6 +6,7 @@ function showFirstStage() {
 }
 window.addEventListener('load', showFirstStage);
 
+var timeoutCompile = setTimeout(function() {}, 1);
 function insertMetachars(sStartTag, sEndTag) {
   var bDouble = arguments.length > 1;
   var oMsgInput = document.getElementById('textareaContent');
@@ -17,7 +18,10 @@ function insertMetachars(sStartTag, sEndTag) {
   oMsgInput.setSelectionRange(bDouble||nSelStart===nSelEnd?nSelStart+sStartTag.length:nSelStart,(bDouble?nSelEnd:nSelStart)+sStartTag.length);
   oMsgInput.focus();
 
-  compileMetacode(oMsgInput);
+  clearTimeout(timeoutCompile);
+  timeoutCompile = setTimeout(function() {
+    document.getElementById('blockShowContent').innerHTML = compileMetacode(oMsgInput.value);
+  }, 500);
 }
 
 var typeArticle = null;
@@ -634,7 +638,10 @@ function inputContent(e, el) {
     }, 10);
   }
 
-  compileMetacode(el);
+  clearTimeout(timeoutCompile);
+  timeoutCompile = setTimeout(function() {
+    document.getElementById('blockShowContent').innerHTML = compileMetacode(el.value);
+  }, 500);
 }
 
 document.getElementById('addTag').addEventListener('keydown', keydownAddTag);
@@ -873,6 +880,11 @@ function publish() {
   }
   dataPost.tags = tags;
 
+  dataPost.author = 0;
+  if (dataUser != null && dataUser.id) {
+    dataPost.author = dataUser.id;
+  }
+
   if (typeArticle == 'release') {
     dataPost.condition = document.querySelector('.blockVariantRelease[active="1"]').getAttribute('condition');
     if (dataPost.condition == 'announcement') {
@@ -932,12 +944,14 @@ socket.on('redirect', function(link) {
 
 socket.on('publishNewTopic2', function(mess) {
   if (mess == 'errorRecaptcha') {
-    grecaptcha.reset(widgetRecaptcha1);
-    document.getElementById('buttonPublish').style.display = 'flex';
-    document.getElementById('buttonPublish').setAttribute('active', '1');
-    document.getElementById('buttonPublish').innerHTML = 'accept captcha';
     setTimeout(function() {
-      document.getElementById('buttonPublish').style.transform = 'scale(1)';
-    }, 10);
+      grecaptcha.reset(widgetRecaptcha1);
+      document.getElementById('buttonPublish').style.display = 'flex';
+      document.getElementById('buttonPublish').setAttribute('active', '1');
+      document.getElementById('buttonPublish').innerHTML = 'accept captcha';
+      setTimeout(function() {
+        document.getElementById('buttonPublish').style.transform = 'scale(1)';
+      }, 10);
+    }, 300);
   }
 });
