@@ -1140,6 +1140,8 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('getListOfCommTopics1', function(nPackage) {
+    var numTopicsOnPage = 20;
+
     if (!nPackage || nPackage == '' || nPackage == null) {
       nPackage = 0;
     }
@@ -1151,7 +1153,7 @@ io.sockets.on('connection', function(socket) {
     });
 
     connection.connect(function(err) {
-      connection.query("SELECT * FROM articleCommunity ORDER BY dateUpdate DESC LIMIT 20 OFFSET "+(nPackage*20), function (err1, result1, fields1) {
+      connection.query("SELECT * FROM articleCommunity ORDER BY dateUpdate DESC LIMIT "+numTopicsOnPage+" OFFSET "+(nPackage*numTopicsOnPage), function (err1, result1, fields1) {
         if (result1[0]) {
           io.to(socket.id).emit('getListOfCommTopics2', result1);
         } else {
@@ -2608,6 +2610,58 @@ io.sockets.on('connection', function(socket) {
     }
   });
 
+  function getDataCommunity(data) {
+    var dataArr = data.split('~~');
+    var answer = {};
+    if (!data || data == '') {
+      answer.authority = {name: 'authority', value: 0};
+      answer.article = {name: 'article', value: 0};
+      answer.release = {name: 'release', value: 0};
+      answer.question = {name: 'question', value: 0};
+      answer.comment = {name: 'comment', value: 0};
+      answer.like = {name: 'like', value: 0};
+    } else if (data && data != '') {
+      for (var i = 0; i < dataArr.length; i++) {
+        var currData = dataArr[i].split('$$');
+        switch (currData[0]) {
+          case 'authority':
+            answer.authority = {name: currData[0], value: parseInt(currData[1])};
+            break;
+          case 'article':
+            answer.article = {name: currData[0], value: parseInt(currData[1])};
+            break;
+          case 'release':
+            answer.release = {name: currData[0], value: parseInt(currData[1])};
+            break;
+          case 'question':
+            answer.question = {name: currData[0], value: parseInt(currData[1])};
+            break;
+          case 'comment':
+            answer.comment = {name: currData[0], value: parseInt(currData[1])};
+            break;
+          case 'like':
+            answer.like = {name: currData[0], value: parseInt(currData[1])};
+            break;
+        }
+      }
+    }
+    return answer;
+  }
+
+  function stringDataCommunity(data) {
+    return 'authority$$'+data.authority.value+'~~article$$'+data.article.value+'~~release'+data.release.value+'~~question'+data.question.value+'~~comment'+data.comment.value+'~~like$$'+data.like.value;
+  }
+
+  function countAuthorityDataCommunity(data) {
+    var authority = 0;
+    authority += data.article.value*3;
+    authority += data.release.value*4;
+    authority += data.question.value*2;
+    authority += data.comment.value*1;
+    authority += data.like.value*1;
+    return authority;
+  }
+
   socket.on('publishNewTopic1', function(data, recaptcha) {
     var flagRecaptcha = false;
     var secretRecaptcha = "6Ld-_NEUAAAAALkRGwYLKttHeWZ51FkZHafMhGXS";
@@ -2656,8 +2710,34 @@ io.sockets.on('connection', function(socket) {
                       if (result1[0]) {
                         editUrl = editUrl+'_'+Date.now();
                       }
-                      connection.query("INSERT INTO articleCommunity (type, url, title, content, dateUpdate, author, related, keywords, description, comments) VALUES ('"+data.type+"', '"+editUrl+"', '"+data.title+"', '"+content+"', NOW(), '"+data.author+"', 0, '"+tags+"', '"+data.content+"', 0)", function (err2, result2, fields2) {
-                        io.to(socket.id).emit('redirect', '/c');
+                      content = data.content.replace(/\\/g, '\\\\');
+                      connection.query("INSERT INTO articleCommunity (type, url, title, content, dateUpdate, author, related, keywords, description, comments) VALUES ('"+data.type+"', '"+editUrl+"', '"+data.title+"', '"+content+"', NOW(), '"+data.author+"', 0, '"+tags+"', '"+content+"', 0)", function (err2, result2, fields2) {
+                        if (data.author != 0) {
+                          connection.query("SELECT * FROM users WHERE id = '"+data.author+"'", function (err3, result3, fields3) {
+                            if (result3[0]) {
+                              var commData = getDataCommunity(result3[0].communityData);
+                              switch (data.type) {
+                                case 'article':
+                                  commData.article++;
+                                  break;
+                                case 'release':
+                                  commData.release++;
+                                  break;
+                                case 'question':
+                                  commData.question++;
+                                  break;
+                              }
+                              commData.authority = countAuthorityDataCommunity(commData);
+                              connection.query("UPDATE users SET `communityData`='"+stringDataCommunity(commData)+"' WHERE id='"+data.author+"'", function (err4, result4, fields4) {
+                                if (!err4) {
+                                  io.to(socket.id).emit('redirect', '/c');
+                                }
+                              });
+                            }
+                          });
+                        } else {
+                          io.to(socket.id).emit('redirect', '/c');
+                        }
                       });
                     });
                   setTimeout(function() {
@@ -2677,6 +2757,7 @@ io.sockets.on('connection', function(socket) {
                   if (result1[0]) {
                     editUrl = editUrl+'_'+Date.now();
                   }
+                  content = content.replace(/\\/g, '\\\\');
                   connection.query("INSERT INTO articleCommunity (type, url, title, content, dateUpdate, author, related, keywords, description, comments) VALUES ('"+data.type+"', '"+editUrl+"', '"+data.title+"', '"+content+"', NOW(), '"+data.author+"', 0, '"+tags+"', '"+data.title+"', 0)", function (err2, result2, fields2) {
                     io.to(socket.id).emit('redirect', '/c');
                   });
@@ -2692,6 +2773,7 @@ io.sockets.on('connection', function(socket) {
                   if (result1[0]) {
                     editUrl = editUrl+'_'+Date.now();
                   }
+                  var content = data.content.replace(/\\/g, '\\\\');
                   connection.query("INSERT INTO articleCommunity (type, url, title, content, dateUpdate, author, related, keywords, description, comments) VALUES ('"+data.type+"', '"+editUrl+"', '"+data.title+"', '"+data.content+"', NOW(), '"+data.author+"', 0, '"+tags+"', '"+data.title+"', 0)", function (err2, result2, fields2) {
                     io.to(socket.id).emit('redirect', '/c');
                   });
@@ -2725,9 +2807,19 @@ io.sockets.on('connection', function(socket) {
               database: "totarget_gmerio"
             });
             connection.connect(function(err) {
-              connection.query("INSERT INTO commentsCommunity (content, type, toAttach, author, likes, dateUpdate) VALUES ('"+data.content+"', '"+data.type+"', '"+data.toAttach+"', '"+data.author+"', '', NOW())", function (err1, result1, fields1) {
+              var content = data.content.replace(/\\/g, '\\\\');
+              connection.query("INSERT INTO commentsCommunity (content, type, toAttach, author, likes, dateUpdate) VALUES ('"+content+"', '"+data.type+"', '"+data.toAttach+"', '"+data.author+"', '', NOW())", function (err1, result1, fields1) {
                 if (!err1) {
-                  io.to(socket.id).emit('addNewComment2', 'ok');
+                  connection.query("SELECT * FROM articleCommunity WHERE id = '"+data.toAttach+"'", function (err2, result2, fields2) {
+                    if (result2[0]) {
+                      var countComments = parseInt(result2[0].comments)+1;
+                      connection.query("UPDATE articleCommunity SET `comments` = '"+countComments+"' WHERE id = '"+data.toAttach+"'", function (err3, result3, fields3) {
+                        if (!err3) {
+                          io.to(socket.id).emit('addNewComment2', 'ok');
+                        }
+                      });
+                    }
+                  });
                 }
               });
               setTimeout(function() {
@@ -2745,9 +2837,19 @@ io.sockets.on('connection', function(socket) {
         database: "totarget_gmerio"
       });
       connection.connect(function(err) {
-        connection.query("INSERT INTO commentsCommunity (content, type, toAttach, author, likes, dateUpdate) VALUES ('"+data.content+"', '"+data.type+"', '"+data.toAttach+"', '"+data.author+"', '', NOW())", function (err1, result1, fields1) {
+        var content = data.content.replace(/\\/g, '\\\\');
+        connection.query("INSERT INTO commentsCommunity (content, type, toAttach, author, likes, dateUpdate) VALUES ('"+content+"', '"+data.type+"', '"+data.toAttach+"', '"+data.author+"', '', NOW())", function (err1, result1, fields1) {
           if (!err1) {
-            io.to(socket.id).emit('addNewComment2', 'ok');
+            connection.query("SELECT * FROM articleCommunity WHERE id = '"+data.toAttach+"'", function (err2, result2, fields2) {
+              if (result2[0]) {
+                var countComments = parseInt(result2[0].comments)+1;
+                connection.query("UPDATE articleCommunity SET `comments` = '"+countComments+"' WHERE id = '"+data.toAttach+"'", function (err3, result3, fields3) {
+                  if (!err3) {
+                    io.to(socket.id).emit('addNewComment2', 'ok');
+                  }
+                });
+              }
+            });
           }
         });
         setTimeout(function() {
@@ -2755,6 +2857,163 @@ io.sockets.on('connection', function(socket) {
         }, 1000);
       });
     }
+  });
+
+  socket.on('getListComments1', function(id, offset) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM commentsCommunity WHERE toAttach = '"+id+"' AND type = 'comment' ORDER BY dateUpdate DESC LIMIT 20 OFFSET "+(20*offset), function (err1, result1, fields1) {
+        if (result1[0]) {
+          var regexpAuthors = [];
+          for (var i = 0; i < result1.length; i++) {
+            regexpAuthors[i] = '^'+result1[i].author+'$';
+          }
+          regexpAuthors = regexpAuthors.join('|');
+          connection.query("SELECT * FROM users WHERE id REGEXP '("+regexpAuthors+")'", function (err2, result2, fields2) {
+            var users = [];
+            for (var i = 0; i < result2.length; i++) {
+              users[i] = {id: result2[i].id, name: result2[i].fullName};
+            }
+            io.to(socket.id).emit('getListComments2', result1, users);
+          });
+        } else if (!result1[0] && offset == 0) {
+          io.to(socket.id).emit('getListComments2', 'none');
+        }
+      });
+      setTimeout(function() {
+					connection.end();
+			}, 1000);
+    });
+  });
+
+  socket.on('addNewReply1', function(data, recaptcha) {
+    if (data.author == 0) {
+      var flagRecaptcha = false;
+      var secretRecaptcha = "6Ld-_NEUAAAAALkRGwYLKttHeWZ51FkZHafMhGXS";
+      server.get('https://www.google.com'+'/recaptcha/api/siteverify?secret='+secretRecaptcha+'&response='+recaptcha, (res) => {
+        res.on('data', (d) => {
+          var answer = JSON.parse(''+d);
+          flagRecaptcha = answer.success;
+
+          if (!flagRecaptcha) {
+            io.to(socket.id).emit('addNewReply2', 'err:recaptcha');
+          } else {
+            var connection = mysql.createConnection({
+              host: "vh50.timeweb.ru",
+              user: "totarget_gmerio",
+              password: "Jc3FiReQ",
+              database: "totarget_gmerio"
+            });
+            connection.connect(function(err) {
+              var content = data.content.replace(/\\/g, '\\\\');
+              connection.query("INSERT INTO commentsCommunity (content, type, toAttach, author, likes, dateUpdate) VALUES ('"+content+"', '"+data.type+"', '"+data.toAttach+"', '"+data.author+"', '', NOW())", function (err1, result1, fields1) {
+                if (!err1) {
+                  io.to(socket.id).emit('addNewReply2', 'ok:'+data.toAttach);
+                }
+              });
+              setTimeout(function() {
+                  connection.end();
+              }, 1000);
+            });
+          }
+        });
+      });
+    } else {
+      var connection = mysql.createConnection({
+        host: "vh50.timeweb.ru",
+        user: "totarget_gmerio",
+        password: "Jc3FiReQ",
+        database: "totarget_gmerio"
+      });
+      connection.connect(function(err) {
+        var content = data.content.replace(/\\/g, '\\\\');
+        connection.query("INSERT INTO commentsCommunity (content, type, toAttach, author, likes, dateUpdate) VALUES ('"+content+"', '"+data.type+"', '"+data.toAttach+"', '"+data.author+"', '', NOW())", function (err1, result1, fields1) {
+          if (!err1) {
+            io.to(socket.id).emit('addNewReply2', 'ok:'+data.toAttach);
+          }
+        });
+        setTimeout(function() {
+            connection.end();
+        }, 1000);
+      });
+    }
+  });
+
+  socket.on('getListReplies1', function(idAttach, offset) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM commentsCommunity WHERE toAttach = '"+idAttach+"' AND type = 'reply' ORDER BY dateUpdate DESC LIMIT 5 OFFSET "+(5*offset), function (err1, result1, fields1) {
+        if (result1[0]) {
+          var regexpAuthors = [];
+          for (var i = 0; i < result1.length; i++) {
+            regexpAuthors[i] = '^'+result1[i].author+'$';
+          }
+          regexpAuthors = regexpAuthors.join('|');
+          connection.query("SELECT * FROM users WHERE id REGEXP '("+regexpAuthors+")'", function (err2, result2, fields2) {
+            var users = [];
+            for (var i = 0; i < result2.length; i++) {
+              users[i] = {id: result2[i].id, name: result2[i].fullName};
+            }
+            io.to(socket.id).emit('getListReplies2', idAttach, result1, users);
+          });
+        } else if (!result1[0] && offset == 0) {
+          io.to(socket.id).emit('getListReplies2', idAttach, 'none');
+        }
+      });
+      setTimeout(function() {
+					connection.end();
+			}, 1000);
+    });
+  });
+
+  socket.on('switchLike', function(data) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM commentsCommunity WHERE id = '"+data.idComment+"'", function (err1, result1, fields1) {
+        if (result1[0]) {
+          var likes = result1[0].likes;
+
+          if (data.value == 0) {
+            likes = likes.split(',');
+            for (var i = 0; i < likes.length; i++) {
+              if (parseInt(likes[i]) == data.idUser) {
+                likes.splice(i, 1);
+                break;
+              }
+            }
+            likes = likes.join(',');
+          } else if (data.value == 1) {
+            if (!likes || likes == '') {
+              likes = data.idUser;
+            } else {
+              likes = likes+','+data.idUser;
+            }
+          }
+          connection.query("UPDATE commentsCommunity SET `likes` = '"+likes+"' WHERE id = '"+data.idComment+"'", function (err1, result1, fields1) {});
+        }
+      });
+      setTimeout(function() {
+					connection.end();
+			}, 1000);
+    });
   });
 
   socket.on('getItems', function(items) {

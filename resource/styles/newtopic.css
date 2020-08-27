@@ -652,7 +652,6 @@ body {
   border-radius: 10px;
   cursor: pointer;
 }
-
 @media screen and (max-width: 800px) {
   #enterContentSection {
     flex-direction: column;

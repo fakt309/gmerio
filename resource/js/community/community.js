@@ -49,6 +49,7 @@ function getUpdateTime(time) {
   }
 }
 
+var numTopicsOnPage = 20;
 socket.emit('getListOfCommTopics1');
 socket.on('getListOfCommTopics2', function(list) {
 
@@ -243,7 +244,22 @@ socket.on('getListOfCommTopics2', function(list) {
     }
   }
 
+  var lengthTopics = document.getElementById('listArticles').querySelectorAll('.blockRelease, .blockArticle, .blockQuestion').length;
+  if (list != 'none' && list.length >= numTopicsOnPage) {
+    var addNextReply = document.createElement('div');
+    addNextReply.setAttribute('class', 'addNextReply');
+    addNextReply.setAttribute('onclick', 'nextTopic(this, '+lengthTopics+')');
+    addNextReply.innerHTML = 'view more';
+    document.getElementById('listArticles').appendChild(addNextReply);
+  }
+
   document.getElementById('wrapLinkHome').style.opacity = '1';
   document.getElementById('listArticles').style.opacity = '1';
   document.getElementById('bottomStringStudio').style.opacity = '1';
 });
+
+function nextTopic(el, nowLength) {
+  el.remove();
+  var package = parseInt(parseInt(nowLength)/numTopicsOnPage);
+  socket.emit('getListOfCommTopics1', package);
+}

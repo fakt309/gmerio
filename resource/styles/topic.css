@@ -347,3 +347,226 @@
   margin-top: 15px;
   align-self: flex-end;
 }
+#listCommentsSection {
+  max-width: 800px;
+  width: 100%;
+  margin: 40px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  font-family: Arial;
+}
+#blockNoComments {
+  font-size: 14px;
+  color: #999;
+  text-align: center;
+  margin: 20px;
+  padding: 40px 0px;
+  border: 1px solid #999;
+  border-radius: 15px;
+}
+.wrapComment {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+.blockComment {
+  margin: 0px 20px;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  border: 1px solid #999;
+  border-radius: 15px;
+}
+.authorComment {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+.linkAuthor, .textAuthor {
+  margin: 20px;
+  font-size: 14px;
+  color: #005fc3;
+  text-decoration: none;
+  transition: all ease 0.2s;
+}
+.textAuthor {
+  color: #999;
+}
+.linkAuthor:hover {
+  color: #5aaaff
+}
+.dateUpdateComment {
+  margin: 20px;
+  color: #999;
+  font-size: 14px;
+}
+.contentComment {
+  margin: 0px;
+  color: #333;
+  font-size: 14px;
+}
+.bottomComments {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+}
+.buttonLikeComment {
+  margin: 0px 20px;
+  margin-right: 0px;
+  width: 20px;
+  height: 20px;
+  opacity: 0.7;
+  cursor: pointer;
+  background-image: url("/resource/img/like.png");
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
+  transition: all ease 0.2s;
+}
+.buttonLikeComment:hover {
+  opacity: 1;
+}
+.buttonLikeComment[value='1'] {
+  background-image: url("/resource/img/likeOk.png");
+}
+.countLikesComment {
+  margin: 0px 20px;
+  margin-left: 5px;
+  font-size: 14px;
+  color: #999;
+}
+.buttonReplyComment {
+  margin: 10px 20px;
+  margin-left: 0px;
+  font-size: 14px;
+  color: #999;
+  padding: 10px;
+  border: 1px solid #99999900;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all ease 0.2s;
+}
+.buttonReplyComment:hover {
+  border: 1px solid #999999;
+}
+.blockReply {
+  margin: 0px 40px;
+  margin-bottom: 20px;
+  border: 1px solid #999999;
+  border-top: none;
+  border-radius: 0px 0px 15px 15px;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  display: none;
+  transform: scale(0);
+  transition: all ease 0.2s;
+}
+#blockAddReplay {
+  margin: 0px 10px;
+  display: none;
+  transform: scale(0);
+  transition: all ease 0.2s;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+  flex-wrap: wrap;
+}
+#recaptcha2 {
+  margin: 10px;
+}
+.inputReplay {
+  outline: none;
+  margin: 10px;
+  padding: 10px;
+  font-size: 14px;
+  color: #333;
+  flex: 1;
+  border: 1px solid #999;
+  border-radius: 5px;
+}
+.sendReplayButton {
+  margin: 10px;
+  padding: 10px;
+  background-color: #ce0000;
+  cursor: pointer;
+  border-radius: 5px;
+  color: #fff;
+  font-size: 14px;
+  transition: all ease 0.2s;
+}
+.sendReplayButton[active='0'] {
+  background-color: #999;
+}
+.blockOneReply {
+  margin: 0px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+.topOneReply {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+.textAuthorOneReply, .linkAuthorOneReply {
+  margin: 0px 20px;
+  margin-top: 20px;
+  margin-bottom: 5px;
+  font-size: 14px;
+  color: #005fc3;
+  text-decoration: none;
+  transition: all ease 0.2s;
+}
+.linkAuthorOneReply:hover {
+  color: #5aaaff;
+}
+.updateOneReply {
+  margin: 0px 20px;
+  margin-top: 20px;
+  margin-bottom: 5px;
+  color: #999;
+  font-size: 14px;
+}
+.bottomOneReply {
+  margin: 0px;
+  margin-top: 5px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+}
+.contentOneReply .previewBlock {
+  margin: 5px 20px;
+}
+.addNextReply {
+  margin: 10px;
+  color: #005fc3;
+  align-self: center;
+  padding: 10px;
+  font-style: italic;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all ease 0.2s;
+}
+.addNextReply:hover {
+  color: #5aaaff;
+}
+@media screen and (max-width: 700px) {
+  #enterTitleArticle {
+    flex-direction: column;
+  }
+  #blockEnterContent, #blockShowContent {
+    width: 96%;
+  }
+}

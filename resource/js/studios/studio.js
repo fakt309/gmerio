@@ -382,7 +382,13 @@ function fillStudioPage(data) {
       socket.emit('getFoldersGames1', dataUser, data.id);
       document.getElementById('gamesFolders').style.display = 'flex';
     } else if (!dataIsMy) {
-      socket.emit('getGames1', data.games.replace(/\,/g, "|"));
+      var gamesForList = data.games.split(',');
+      for (var i = 0; i < gamesForList.length; i++) {
+        gamesForList[i] = '^'+gamesForList[i]+'$'
+      }
+      gamesForList = gamesForList.join('|');
+      socket.emit('getGames1', gamesForList);
+      //socket.emit('getGames1', data.games.replace(/\,/g, "|"));
       document.getElementById('listGames').style.display = 'flex';
     }
   }

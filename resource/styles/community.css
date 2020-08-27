@@ -175,6 +175,19 @@ body {
   background-color: #999;
   color: #333;
 }
+.addNextReply {
+  margin: 10px;
+  color: #005fc3;
+  align-self: center;
+  padding: 10px;
+  font-style: italic;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all ease 0.2s;
+}
+.addNextReply:hover {
+  color: #5aaaff;
+}
 
 @media screen and (max-width: 670px) {
   .blockArticle, .blockRelease, .blockQuestion {

@@ -63,7 +63,7 @@
         </div>
         <div id='countWords' style='display:none;'></div>
         <div id='recaptcha1' style='display:none;'></div>
-        <div id='sendComment' onmousedown='sendComment(this)' active='0'>comment</div>
+        <div id='sendComment' onclick='sendComment(this)' active='0'>send</div>
       </div>
       <div id='blockShowContent'>
         <div class='blockTextNoContent'>
@@ -72,14 +72,7 @@
       </div>
     </section>
 
-    <!-- <section class='relatedTopics'>
-    related topics</section>
-
-    <section class='subscribe'>
-    subscribes</section>
-
-    <section class='comments'>
-    comments</section> -->
+    <section id='listCommentsSection'></section>
 
     <section class='wrapLinksBottom'>
       <a class='linksHorMenu' href='/feedback'>feedback</a>
@@ -95,9 +88,10 @@
     <script type="text/javascript">
       var socket = io();
 
-      var widgetRecaptcha1;
+      var widgetRecaptcha1, widgetRecaptcha2;
       var onloadCallback = function() {
         widgetRecaptcha1 = grecaptcha.render('recaptcha1', { 'sitekey': '6Ld-_NEUAAAAAIcro-nuBeDeMigbdDBoxVt6jw9h' });
+        // widgetRecaptcha2 = grecaptcha.render('recaptcha2', { 'sitekey': '6Ld-_NEUAAAAAIcro-nuBeDeMigbdDBoxVt6jw9h' });
       };
 
       var signinMail = getCookie('signinMail');
