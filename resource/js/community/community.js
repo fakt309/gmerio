@@ -263,3 +263,21 @@ function nextTopic(el, nowLength) {
   var package = parseInt(parseInt(nowLength)/numTopicsOnPage);
   socket.emit('getListOfCommTopics1', package);
 }
+
+function fillBlockCommunityData() {
+  document.getElementById('nameCommunityData').innerHTML = dataUser.name+' (id: '+dataUser.id+')';
+  document.getElementById('nameCommunityData').setAttribute('href', '/u/'+dataUser.id);
+
+  if (dataUserStudio == null) {
+    document.getElementById('nameStudioCommunityData').innerHTML = 'You don\'t have studio';
+  } else {
+    document.getElementById('nameStudioCommunityData').innerHTML = '<a class="linkNameStudioCommunityData" href="/s/'+dataUserStudio.name.toLowerCase()+'">'+dataUserStudio.name+'</a>';
+  }
+
+  document.getElementById('authorityBlockDataCommunityData').querySelector('.valueBlockDataCommunityData').innerHTML = dataUserCommunity.authority.value;
+  document.getElementById('releaseBlockDataCommunityData').querySelector('.valueBlockDataCommunityData').innerHTML = dataUserCommunity.release.value;
+  document.getElementById('articleBlockDataCommunityData').querySelector('.valueBlockDataCommunityData').innerHTML = dataUserCommunity.article.value;
+  document.getElementById('questionBlockDataCommunityData').querySelector('.valueBlockDataCommunityData').innerHTML = dataUserCommunity.question.value;
+  document.getElementById('likeBlockDataCommunityData').querySelector('.valueBlockDataCommunityData').innerHTML = dataUserCommunity.like.value;
+  document.getElementById('commentBlockDataCommunityData').querySelector('.valueBlockDataCommunityData').innerHTML = dataUserCommunity.comment.value;
+}

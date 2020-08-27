@@ -126,3 +126,12 @@ function hideEditName() {
 function saveFullName() {
   socket.emit('saveFullName1', dataUser, document.getElementById('inputInputEditName').value);
 }
+
+function fillBlockCommunityData() {
+  document.getElementById('authorityBlockDataCommunityData').querySelector('.valueBlockDataCommunityData').innerHTML = dataUserCommunity.authority.value;
+  document.getElementById('releaseBlockDataCommunityData').querySelector('.valueBlockDataCommunityData').innerHTML = dataUserCommunity.release.value;
+  document.getElementById('articleBlockDataCommunityData').querySelector('.valueBlockDataCommunityData').innerHTML = dataUserCommunity.article.value;
+  document.getElementById('questionBlockDataCommunityData').querySelector('.valueBlockDataCommunityData').innerHTML = dataUserCommunity.question.value;
+  document.getElementById('likeBlockDataCommunityData').querySelector('.valueBlockDataCommunityData').innerHTML = dataUserCommunity.like.value;
+  document.getElementById('commentBlockDataCommunityData').querySelector('.valueBlockDataCommunityData').innerHTML = dataUserCommunity.comment.value;
+}

@@ -48,6 +48,36 @@
         <div id='titleStudio'>Studio</div>
       </div>
 
+      <div id='community'>
+        <div id='titleCommunity'>Community</div>
+        <div id='communityData'>
+          <div class='blockDataCommunityData' id='authorityBlockDataCommunityData'>
+            <div class='valueBlockDataCommunityData'></div>
+            <div class='nameBlockDataCommunityData'>authority</div>
+          </div>
+          <div class='blockDataCommunityData' id='releaseBlockDataCommunityData'>
+            <div class='valueBlockDataCommunityData'></div>
+            <div class='nameBlockDataCommunityData'>releases</div>
+          </div>
+          <div class='blockDataCommunityData' id='articleBlockDataCommunityData'>
+            <div class='valueBlockDataCommunityData'></div>
+            <div class='nameBlockDataCommunityData'>articles</div>
+          </div>
+          <div class='blockDataCommunityData' id='questionBlockDataCommunityData'>
+            <div class='valueBlockDataCommunityData'></div>
+            <div class='nameBlockDataCommunityData'>questions</div>
+          </div>
+          <div class='blockDataCommunityData' id='likeBlockDataCommunityData'>
+            <div class='valueBlockDataCommunityData'></div>
+            <div class='nameBlockDataCommunityData'>likes</div>
+          </div>
+          <div class='blockDataCommunityData' id='commentBlockDataCommunityData'>
+            <div class='valueBlockDataCommunityData'></div>
+            <div class='nameBlockDataCommunityData'>comments</div>
+          </div>
+        </div>
+      </div>
+
       <div id='contacts'>
         <div id='titleContacts'>Contacts</div>
       </div>
@@ -241,7 +271,7 @@
           //       <input id="inputInputCreateGame" oninput="validGameName(this)" onfocusin="this.parentElement.setAttribute(&quot;focuse&quot;, &quot;1&quot;)" onfocusout="this.parentElement.setAttribute(&quot;focuse&quot;, &quot;0&quot;)" type="text">
           //     </div>
 
-          document.getElementById('studio').style.borderBottom = '1px solid #999';
+          document.getElementById('community').style.borderBottom = '1px solid #999';
 
           var blockContactMail = document.createElement('div');
           blockContactMail.setAttribute('id', 'blockContact1');
@@ -289,6 +319,13 @@
       socket.on('saveFullName2', function() {
         document.getElementById('textNameStrokeInfo').innerHTML = document.getElementById('inputInputEditName').value+' (id: '+dataUser.id+')';
         hideEditName();
+      });
+
+      socket.emit('getDataUserCommunity1', id);
+      var dataUserCommunity = null;
+      socket.on('getDataUserCommunity2', function(data) {
+        dataUserCommunity = data;
+        fillBlockCommunityData();
       });
 
       function getCookie(cname) {

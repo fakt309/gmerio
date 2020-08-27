@@ -1472,7 +1472,8 @@ io.sockets.on('connection', function(socket) {
                 id: result[0].id,
                 email: result[0].email,
                 holders: holders,
-                dateSignup: result[0].dateSignup
+                dateSignup: result[0].dateSignup,
+                name: result[0].fullName
               };
               io.to(socket.id).emit('authorization2', user);
             } else if (!flagFound) {
@@ -2611,7 +2612,6 @@ io.sockets.on('connection', function(socket) {
   });
 
   function getDataCommunity(data) {
-    var dataArr = data.split('~~');
     var answer = {};
     if (!data || data == '') {
       answer.authority = {name: 'authority', value: 0};
@@ -2621,6 +2621,7 @@ io.sockets.on('connection', function(socket) {
       answer.comment = {name: 'comment', value: 0};
       answer.like = {name: 'like', value: 0};
     } else if (data && data != '') {
+      var dataArr = data.split('~~');
       for (var i = 0; i < dataArr.length; i++) {
         var currData = dataArr[i].split('$$');
         switch (currData[0]) {
@@ -2649,7 +2650,7 @@ io.sockets.on('connection', function(socket) {
   }
 
   function stringDataCommunity(data) {
-    return 'authority$$'+data.authority.value+'~~article$$'+data.article.value+'~~release'+data.release.value+'~~question'+data.question.value+'~~comment'+data.comment.value+'~~like$$'+data.like.value;
+    return 'authority$$'+data.authority.value+'~~article$$'+data.article.value+'~~release$$'+data.release.value+'~~question$$'+data.question.value+'~~comment$$'+data.comment.value+'~~like$$'+data.like.value;
   }
 
   function countAuthorityDataCommunity(data) {
@@ -2662,7 +2663,28 @@ io.sockets.on('connection', function(socket) {
     return authority;
   }
 
+  socket.on('getDataUserCommunity1', function(id) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM users WHERE id = '"+id+"'", function (err1, result1, fields1) {
+        if (result1[0]) {
+          var commData = getDataCommunity(result1[0].communityData);
+          io.to(socket.id).emit('getDataUserCommunity2', commData);
+        }
+      });
+      setTimeout(function() {
+        connection.end();
+      }, 2000);
+    });
+  });
+
   socket.on('publishNewTopic1', function(data, recaptcha) {
+    //var flagRecaptcha = true;
     var flagRecaptcha = false;
     var secretRecaptcha = "6Ld-_NEUAAAAALkRGwYLKttHeWZ51FkZHafMhGXS";
     server.get('https://www.google.com'+'/recaptcha/api/siteverify?secret='+secretRecaptcha+'&response='+recaptcha, (res) => {
@@ -2710,24 +2732,14 @@ io.sockets.on('connection', function(socket) {
                       if (result1[0]) {
                         editUrl = editUrl+'_'+Date.now();
                       }
-                      content = data.content.replace(/\\/g, '\\\\');
-                      connection.query("INSERT INTO articleCommunity (type, url, title, content, dateUpdate, author, related, keywords, description, comments) VALUES ('"+data.type+"', '"+editUrl+"', '"+data.title+"', '"+content+"', NOW(), '"+data.author+"', 0, '"+tags+"', '"+content+"', 0)", function (err2, result2, fields2) {
+                      content = content.replace(/\\/g, '\\\\');
+                      connection.query("INSERT INTO articleCommunity (type, url, title, content, dateUpdate, author, related, keywords, description, comments) VALUES ('"+data.type+"', '"+editUrl+"', '"+data.title+"', '"+content+"', NOW(), '"+data.author+"', 0, '"+tags+"', '"+data.content+"', 0)", function (err2, result2, fields2) {
                         if (data.author != 0) {
                           connection.query("SELECT * FROM users WHERE id = '"+data.author+"'", function (err3, result3, fields3) {
                             if (result3[0]) {
                               var commData = getDataCommunity(result3[0].communityData);
-                              switch (data.type) {
-                                case 'article':
-                                  commData.article++;
-                                  break;
-                                case 'release':
-                                  commData.release++;
-                                  break;
-                                case 'question':
-                                  commData.question++;
-                                  break;
-                              }
-                              commData.authority = countAuthorityDataCommunity(commData);
+                              commData.release.value++;
+                              commData.authority.value = countAuthorityDataCommunity(commData);
                               connection.query("UPDATE users SET `communityData`='"+stringDataCommunity(commData)+"' WHERE id='"+data.author+"'", function (err4, result4, fields4) {
                                 if (!err4) {
                                   io.to(socket.id).emit('redirect', '/c');
@@ -2759,7 +2771,22 @@ io.sockets.on('connection', function(socket) {
                   }
                   content = content.replace(/\\/g, '\\\\');
                   connection.query("INSERT INTO articleCommunity (type, url, title, content, dateUpdate, author, related, keywords, description, comments) VALUES ('"+data.type+"', '"+editUrl+"', '"+data.title+"', '"+content+"', NOW(), '"+data.author+"', 0, '"+tags+"', '"+data.title+"', 0)", function (err2, result2, fields2) {
-                    io.to(socket.id).emit('redirect', '/c');
+                    if (data.author != 0) {
+                      connection.query("SELECT * FROM users WHERE id = '"+data.author+"'", function (err3, result3, fields3) {
+                        if (result3[0]) {
+                          var commData = getDataCommunity(result3[0].communityData);
+                          commData.question.value++;
+                          commData.authority.value = countAuthorityDataCommunity(commData);
+                          connection.query("UPDATE users SET `communityData`='"+stringDataCommunity(commData)+"' WHERE id='"+data.author+"'", function (err4, result4, fields4) {
+                            if (!err4) {
+                              io.to(socket.id).emit('redirect', '/c');
+                            }
+                          });
+                        }
+                      });
+                    } else {
+                      io.to(socket.id).emit('redirect', '/c');
+                    }
                   });
                 });
               setTimeout(function() {
@@ -2775,7 +2802,22 @@ io.sockets.on('connection', function(socket) {
                   }
                   var content = data.content.replace(/\\/g, '\\\\');
                   connection.query("INSERT INTO articleCommunity (type, url, title, content, dateUpdate, author, related, keywords, description, comments) VALUES ('"+data.type+"', '"+editUrl+"', '"+data.title+"', '"+data.content+"', NOW(), '"+data.author+"', 0, '"+tags+"', '"+data.title+"', 0)", function (err2, result2, fields2) {
-                    io.to(socket.id).emit('redirect', '/c');
+                    if (data.author != 0) {
+                      connection.query("SELECT * FROM users WHERE id = '"+data.author+"'", function (err3, result3, fields3) {
+                        if (result3[0]) {
+                          var commData = getDataCommunity(result3[0].communityData);
+                          commData.article.value++;
+                          commData.authority.value = countAuthorityDataCommunity(commData);
+                          connection.query("UPDATE users SET `communityData`='"+stringDataCommunity(commData)+"' WHERE id='"+data.author+"'", function (err4, result4, fields4) {
+                            if (!err4) {
+                              io.to(socket.id).emit('redirect', '/c');
+                            }
+                          });
+                        }
+                      });
+                    } else {
+                      io.to(socket.id).emit('redirect', '/c');
+                    }
                   });
                 });
               setTimeout(function() {
@@ -2845,7 +2887,18 @@ io.sockets.on('connection', function(socket) {
                 var countComments = parseInt(result2[0].comments)+1;
                 connection.query("UPDATE articleCommunity SET `comments` = '"+countComments+"' WHERE id = '"+data.toAttach+"'", function (err3, result3, fields3) {
                   if (!err3) {
-                    io.to(socket.id).emit('addNewComment2', 'ok');
+                    connection.query("SELECT * FROM users WHERE id = '"+data.author+"'", function (err4, result4, fields4) {
+                      if (result4[0]) {
+                        var commData = getDataCommunity(result4[0].communityData);
+                        commData.comment.value++;
+                        commData.authority.value = countAuthorityDataCommunity(commData);
+                        connection.query("UPDATE users SET `communityData`='"+stringDataCommunity(commData)+"' WHERE id='"+data.author+"'", function (err5, result5, fields5) {
+                          if (!err5) {
+                            io.to(socket.id).emit('addNewComment2', 'ok');
+                          }
+                        });
+                      }
+                    });
                   }
                 });
               }
@@ -2935,7 +2988,18 @@ io.sockets.on('connection', function(socket) {
         var content = data.content.replace(/\\/g, '\\\\');
         connection.query("INSERT INTO commentsCommunity (content, type, toAttach, author, likes, dateUpdate) VALUES ('"+content+"', '"+data.type+"', '"+data.toAttach+"', '"+data.author+"', '', NOW())", function (err1, result1, fields1) {
           if (!err1) {
-            io.to(socket.id).emit('addNewReply2', 'ok:'+data.toAttach);
+            connection.query("SELECT * FROM users WHERE id = '"+data.author+"'", function (err2, result2, fields2) {
+              if (result2[0]) {
+                var commData = getDataCommunity(result2[0].communityData);
+                commData.comment.value++;
+                commData.authority.value = countAuthorityDataCommunity(commData);
+                connection.query("UPDATE users SET `communityData`='"+stringDataCommunity(commData)+"' WHERE id='"+data.author+"'", function (err3, result3, fields3) {
+                  if (!err3) {
+                    io.to(socket.id).emit('addNewReply2', 'ok:'+data.toAttach);
+                  }
+                });
+              }
+            });
           }
         });
         setTimeout(function() {
@@ -2989,6 +3053,7 @@ io.sockets.on('connection', function(socket) {
     connection.connect(function(err) {
       connection.query("SELECT * FROM commentsCommunity WHERE id = '"+data.idComment+"'", function (err1, result1, fields1) {
         if (result1[0]) {
+          var idAuthorComment = result1[0].author;
           var likes = result1[0].likes;
 
           if (data.value == 0) {
@@ -3007,7 +3072,22 @@ io.sockets.on('connection', function(socket) {
               likes = likes+','+data.idUser;
             }
           }
-          connection.query("UPDATE commentsCommunity SET `likes` = '"+likes+"' WHERE id = '"+data.idComment+"'", function (err1, result1, fields1) {});
+          connection.query("UPDATE commentsCommunity SET `likes` = '"+likes+"' WHERE id = '"+data.idComment+"'", function (err2, result2, fields2) {
+            if (!err2) {
+              connection.query("SELECT * FROM users WHERE id = '"+idAuthorComment+"'", function (err3, result3, fields3) {
+                if (result3[0]) {
+                  var commData = getDataCommunity(result3[0].communityData);
+                  if (data.value == 1) {
+                    commData.like.value++;
+                  } else if (data.value == 0) {
+                    commData.like.value--;
+                  }
+                  commData.authority.value = countAuthorityDataCommunity(commData);
+                  connection.query("UPDATE users SET `communityData`='"+stringDataCommunity(commData)+"' WHERE id='"+idAuthorComment+"'", function (err4, result4, fields4) {});
+                }
+              });
+            }
+          });
         }
       });
       setTimeout(function() {

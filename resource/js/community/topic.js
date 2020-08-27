@@ -339,7 +339,7 @@ socket.on('getListComments2', function(list, authors) {
 
       socket.emit('getListReplies1', list[i].id, 0);
     }
-    
+
     var lengthComments = document.getElementById('listCommentsSection').querySelectorAll('.wrapComment').length;
     if (list.length >= 20) {
       var addNextReply = document.createElement('div');
@@ -426,7 +426,6 @@ socket.on('addNewReply2', function(answer) {
   if (answer[0] == 'err' && answer[1] == 'recaptcha') {
     grecaptcha.reset(widgetRecaptcha2);
   } else if (answer[0] == 'ok') {
-    console.log(answer[1]);
     document.getElementById('blockAddReplay').remove();
     var wrapComment = document.querySelector('.wrapComment[idcomment="'+answer[1]+'"]');
     wrapComment.querySelector('.blockReply').innerHTML = '';

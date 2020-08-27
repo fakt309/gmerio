@@ -22,14 +22,73 @@
     <div id='wrapLinkHome'>
       <a id='linkHome' href='/'>gmer.io</a>
     </div>
+
+    <div id='communityData'>
+      <div id='leftCommunityData'>
+        <a id='nameCommunityData'></a>
+        <div id='nameStudioCommunityData'></div>
+      </div>
+      <div class='blockDataCommunityData' id='authorityBlockDataCommunityData'>
+        <div class='valueBlockDataCommunityData'></div>
+        <div class='nameBlockDataCommunityData'>authority</div>
+      </div>
+      <div class='blockDataCommunityData' id='releaseBlockDataCommunityData'>
+        <div class='valueBlockDataCommunityData'></div>
+        <div class='nameBlockDataCommunityData'>releases</div>
+      </div>
+      <div class='blockDataCommunityData' id='articleBlockDataCommunityData'>
+        <div class='valueBlockDataCommunityData'></div>
+        <div class='nameBlockDataCommunityData'>articles</div>
+      </div>
+      <div class='blockDataCommunityData' id='questionBlockDataCommunityData'>
+        <div class='valueBlockDataCommunityData'></div>
+        <div class='nameBlockDataCommunityData'>questions</div>
+      </div>
+      <div class='blockDataCommunityData' id='likeBlockDataCommunityData'>
+        <div class='valueBlockDataCommunityData'></div>
+        <div class='nameBlockDataCommunityData'>likes</div>
+      </div>
+      <div class='blockDataCommunityData' id='commentBlockDataCommunityData'>
+        <div class='valueBlockDataCommunityData'></div>
+        <div class='nameBlockDataCommunityData'>comments</div>
+      </div>
+    </div>
+
     <div id='listArticles'></div>
     <div id='bottomStringStudio'>
       <a id="linkFeedback" href="/feedback" target="_blank">feedback</a>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
+    <script src="/resource/js/cookie.js"></script>
+    <script src="/resource/js/users/getDeviceData.js"></script>
     <script type="text/javascript">
       var socket = io();
+
+      var signinMail = getCookie('signinMail');
+      if (typeof signinMail != 'undefined' || signinMail != '') {
+        socket.emit('authorization', signinMail, getDeviceData());
+      }
+      var dataUser = null;
+      socket.on('authorization2', function(user) {
+        if (user) {
+          dataUser = user;
+          socket.emit('getDataUserCommunity1', dataUser.id);
+          socket.emit('haveIStudio1', dataUser.id);
+        }
+      });
+      var dataUserCommunity = null;
+      socket.on('getDataUserCommunity2', function(data) {
+        dataUserCommunity = data;
+        fillBlockCommunityData();
+      });
+      var dataUserStudio = null;
+      socket.on('haveIStudio2', function(data) {
+        if (data) {
+          dataUserStudio = data[0];
+        }
+        fillBlockCommunityData();
+      });
     </script>
     <script src='/resource/js/community/community.js'></script>
   </body>

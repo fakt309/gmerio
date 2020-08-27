@@ -41,14 +41,14 @@
 #contacts, #devices, #control {
   display: none;
 }
-#contacts, #devices, #info {
+#contacts, #devices, #info, #studio {
   width: 100%;
   border-bottom: 1px solid #999;
 }
-#studio, #control {
+#community, #control {
   width: 100%;
 }
-#titleContacts, #titleDevices, #titleControl, #titleInfo, #titleStudio {
+#titleContacts, #titleDevices, #titleControl, #titleInfo, #titleStudio, #titleCommunity {
   margin: 20px;
   font-size: 18px;
   font-weight: bold;
@@ -371,6 +371,40 @@
 }
 #studioStroke a:hover {
   color: #5aaaff;
+}
+#communityData {
+  max-width: 1000px;
+  width: 90%;
+  margin: 50px auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.blockDataCommunityData {
+  margin: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.valueBlockDataCommunityData {
+  font-size: 18px;
+  color: #333;
+}
+.nameBlockDataCommunityData {
+  font-size: 12px;
+  color: #999;
+}
+#authorityBlockDataCommunityData .valueBlockDataCommunityData, #authorityBlockDataCommunityData .nameBlockDataCommunityData {
+  color: #ce0000;
+}
+#authorityBlockDataCommunityData .valueBlockDataCommunityData {
+  font-size: 22px;
+}
+#authorityBlockDataCommunityData .nameBlockDataCommunityData {
+  font-size: 14px;
 }
 
 @media screen and (max-width: 800px) {

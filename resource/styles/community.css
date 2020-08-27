@@ -188,7 +188,66 @@ body {
 .addNextReply:hover {
   color: #5aaaff;
 }
-
+#communityData {
+  max-width: 1000px;
+  width: 90%;
+  margin: 50px auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+#leftCommunityData {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-around;
+}
+#nameCommunityData {
+  font-size: 18px;
+}
+#nameStudioCommunityData {
+  margin: 5px 10px;
+  font-size: 14px;
+  color: #999;
+}
+#nameCommunityData, .linkNameStudioCommunityData {
+  text-decoration: none;
+  color: #005fc3;
+  transition: all ease 0.2s;
+}
+#nameCommunityData:hover, .linkNameStudioCommunityData:hover {
+  color: #5aaaff;
+  transition: all ease 0.2s;
+}
+#nameCommunityData {
+  margin: 5px 10px;
+}
+.blockDataCommunityData {
+  margin: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.valueBlockDataCommunityData {
+  font-size: 18px;
+  color: #333;
+}
+.nameBlockDataCommunityData {
+  font-size: 12px;
+  color: #999;
+}
+#authorityBlockDataCommunityData .valueBlockDataCommunityData, #authorityBlockDataCommunityData .nameBlockDataCommunityData {
+  color: #ce0000;
+}
+#authorityBlockDataCommunityData .valueBlockDataCommunityData {
+  font-size: 22px;
+}
+#authorityBlockDataCommunityData .nameBlockDataCommunityData {
+  font-size: 14px;
+}
 @media screen and (max-width: 670px) {
   .blockArticle, .blockRelease, .blockQuestion {
     flex-direction: column;
