@@ -265,6 +265,11 @@ function nextTopic(el, nowLength) {
 }
 
 function fillBlockCommunityData() {
+  document.getElementById('communityData').style.display = 'flex';
+  setTimeout(function functionName() {
+    document.getElementById('communityData').style.transform = 'scale(1)';
+  }, 10);
+
   document.getElementById('nameCommunityData').innerHTML = dataUser.name+' (id: '+dataUser.id+')';
   document.getElementById('nameCommunityData').setAttribute('href', '/u/'+dataUser.id);
 

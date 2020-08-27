@@ -192,11 +192,13 @@ body {
   max-width: 1000px;
   width: 90%;
   margin: 50px auto;
-  display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
+  display: none;
+  transform: scale(0);
+  transition: all ease 0.2s;
 }
 #leftCommunityData {
   display: flex;
@@ -247,6 +249,24 @@ body {
 }
 #authorityBlockDataCommunityData .nameBlockDataCommunityData {
   font-size: 14px;
+}
+#wrapNewTopic {
+  max-width: 1000px;
+  width: 90%;
+  margin: 10px auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+}
+#buttonNewTopic {
+  text-decoration: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  color: #fff;
+  font-size: 14px;
+  background-color: #ce0000;
+  cursor: pointer;
 }
 @media screen and (max-width: 670px) {
   .blockArticle, .blockRelease, .blockQuestion {
