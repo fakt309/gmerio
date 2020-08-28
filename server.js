@@ -2801,7 +2801,7 @@ io.sockets.on('connection', function(socket) {
                     editUrl = editUrl+'_'+Date.now();
                   }
                   var content = data.content.replace(/\\/g, '\\\\');
-                  connection.query("INSERT INTO articleCommunity (type, url, title, content, dateUpdate, author, related, keywords, description, comments) VALUES ('"+data.type+"', '"+editUrl+"', '"+data.title+"', '"+data.content+"', NOW(), '"+data.author+"', 0, '"+tags+"', '"+data.title+"', 0)", function (err2, result2, fields2) {
+                  connection.query("INSERT INTO articleCommunity (type, url, title, content, dateUpdate, author, related, keywords, description, comments) VALUES ('"+data.type+"', '"+editUrl+"', '"+data.title+"', '"+content+"', NOW(), '"+data.author+"', 0, '"+tags+"', '"+data.title+"', 0)", function (err2, result2, fields2) {
                     if (data.author != 0) {
                       connection.query("SELECT * FROM users WHERE id = '"+data.author+"'", function (err3, result3, fields3) {
                         if (result3[0]) {
