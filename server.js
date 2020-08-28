@@ -2704,7 +2704,7 @@ io.sockets.on('connection', function(socket) {
           });
 
           var urlArticle = data.title;
-          urlArticle = urlArticle.replace(/[^a-zA-Z0-9]/g, '');
+          urlArticle = urlArticle.replace(/[^a-zA-Z0-9 ]/g, '');
           urlArticle = urlArticle.replace(/ /g, '_');
           urlArticle = urlArticle.toLowerCase();
 
