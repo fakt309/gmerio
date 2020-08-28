@@ -64,7 +64,7 @@
   overflow-y: auto;
   max-height: 400px;
   white-space: break-spaces;
-  line-height: 0.7;
+  line-height: 1;
   padding: 10px 0px;
 }
 .textCodeContent::-webkit-scrollbar {
