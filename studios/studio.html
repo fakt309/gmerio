@@ -99,6 +99,16 @@
       </div>
     </section>
 
+    <section id='backSubmitIndexed'>
+      <div id='blockSubmitIndexed'>
+        <div id='labelSubmitIndexed'></div>
+        <div id='strokeSubmitIndexed'>
+          <div id='buttonCancelSubmitIndexed' onclick='fromSubmitIndexToSettings()'>back to settings</div>
+          <div id='buttonAgreeSubmitIndexed' onclick=''></div>
+        </div>
+      </div>
+    </section>
+
     <section id='backBigSizeUpload'>
       <div id='blockBigSizeUpload'>
         <div id='labelBigSizeUpload'>you cannot exceed the storage size of more than 300 mb. We are so sorry, if you really need so much. You can feedback to us and we will try to help you</div>
@@ -120,6 +130,67 @@
         <div id='buttonConfirmDeleteStudio' onclick='deleteStudio()'>delete studio permanently</div>
       </div>
     </section>
+
+    <section id='backSettingsGame'>
+      <div id='blockSettingsGame'>
+        <div class='stringSettingsGame'>
+          <div class='leftStringSettingsGame'>
+            <div id='titleNameGameSettingsGame'>name</div>
+            <div id='nameGameSettingsGame'></div>
+            <div id='blockInputEditNameGame' active='0'>
+              <div id='titleInputEditNameGame'>name</div>
+              <input id='inputInputEditNameGame' oninput='validGameName2(this)' onfocusin='this.parentElement.setAttribute("focuse", "1")' onfocusout='this.parentElement.setAttribute("focuse", "0")' type='text' />
+            </div>
+            <div id='errorNameGameSettingsGame'></div>
+          </div>
+          <div class='rightStringSettingsGame'>
+            <div id='buttonCancelNameGameSettingsGame' onclick='hideChangeInputGameName()'>cancel</div>
+            <div id='buttonChangeNameGameSettingsGame' onclick='showChangeInputGameName()'>change</div>
+          </div>
+        </div>
+        <div class='stringSettingsGame'>
+          <div class='leftStringSettingsGame'>
+            <div id='titleIframeSettingsGame'>Iframe</div>
+            <div id='iframeSettingsGame'></div>
+          </div>
+          <div class='rightStringSettingsGame'>
+            <div id='buttonSwitchIframeSettingsGame' onclick="clickSwitchIframe(this)"><div class='circleSwitch'></div></div>
+          </div>
+        </div>
+        <div class='stringSettingsGame'>
+          <div class='leftStringSettingsGame'>
+            <div id='titleTagsSettingsGame'>Tags</div>
+            <div id='tagsSettingsGame'></div>
+            <div id='blockEditTags'></div>
+          </div>
+          <div class='rightStringSettingsGame'>
+            <div id='buttonCancelTagsSettingsGame' onclick='hideChangeInputTags(true)'>cancel</div>
+            <div id='buttonChangeTagsSettingsGame' onclick='showChangeInputTags()'>change</div>
+          </div>
+        </div>
+        <div class='stringSettingsGame'>
+          <div class='leftStringSettingsGame'>
+            <div id='titlePhotoSettingsGame'>Photo</div>
+            <div id='photoSettingsGame'></div>
+          </div>
+          <div class='rightStringSettingsGame'>
+            <div id='buttonRemovePhotoSettingsGame' onclick='removePhotoSettingsGame()'>remove</div>
+            <label for='inputFilePhotoSettingsGame' id='buttonChangePhotoSettingsGame'>upload</label>
+            <input type="file" id="inputFilePhotoSettingsGame" onchange="uploadPreview(event)" />
+          </div>
+        </div>
+        <div class='stringSettingsGame'>
+          <div class='leftStringSettingsGame'>
+            <div id='titleIndexedSettingsGame'>Index</div>
+            <div id='indexedSettingsGame'></div>
+          </div>
+          <div class='rightStringSettingsGame'>
+            <div id='buttonSwitchIndexedSettingsGame' onclick="clickSwitchIndexed(this)"><div class='circleSwitch'></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <div id='selectAddEditTag'></div>
 
     <section id='wrapAll'>
     <div id='insideWrapAll'>
@@ -187,8 +258,12 @@
                   <div id='chageLinkIframeFolderButton' onclick="showConfirmTurnOnIframe2Window()">
                     <div id='titleChageLinkIframeFolderButton'>change link</div>
                   </div>
-                  <div id='switchIframeFolderButton' onclick='switchIframeGame()'>
+                  <!-- <div id='switchIframeFolderButton' onclick='switchIframeGame()'>
                     <div id='titleSwitchIframeFolderButton'></div>
+                  </div> -->
+                  <div id='settingsButton' onclick="fillSettings()">
+                    <div id='imgSettings'></div>
+                    <div id='titleSettingsButton'>settings</div>
                   </div>
                   <div id='addFolderButton' onclick="addNewFolder()">
                     <div id='imgAddFolder'></div>
@@ -406,9 +481,27 @@
         //}, 200);
       });
 
+      var dataTags = null;
+      socket.emit('getTags1');
+      socket.on('getTags2', function(tags) {
+        dataTags = tags;
+      });
+
+      function getNameTag(id) {
+        for (var i = 0; i < dataTags.length; i++) {
+          if (parseInt(dataTags[i].id) == parseInt(id)) {
+            return dataTags[i].name;
+          }
+        }
+        return false;
+      }
+
       socket.on('getTagIframes2', function(dataGames) {
         for (var i = 0; i < dataGames.length; i++) {
           document.querySelectorAll('.oneFolder[path="/g/'+dataGames[i].name+'"]')[0].setAttribute('iframe', dataGames[i].iframe);
+          document.querySelectorAll('.oneFolder[path="/g/'+dataGames[i].name+'"]')[0].setAttribute('tags', dataGames[i].tags);
+          document.querySelectorAll('.oneFolder[path="/g/'+dataGames[i].name+'"]')[0].setAttribute('preview', dataGames[i].preview);
+          document.querySelectorAll('.oneFolder[path="/g/'+dataGames[i].name+'"]')[0].setAttribute('indexed', dataGames[i].indexed);
 
           if (dataGames[i].iframe != null) {
             document.querySelectorAll('.wrapFolder[path="/g/'+dataGames[i].name+'"]')[0].innerHTML = '';
@@ -512,6 +605,17 @@
         }
         return "";
       }
+
+      socket.on('changeNameGame2', function(flag, text) {
+        if (flag) {
+          document.getElementById("nameGameSettingsGame").innerHTML = document.getElementById("inputInputEditNameGame").value;
+          document.getElementById("errorNameGameSettingsGame").style.transform = "scale(0)";
+          hideChangeInputGameName();
+        } else if (!flag) {
+          document.getElementById("errorNameGameSettingsGame").innerHTML = text;
+          document.getElementById("errorNameGameSettingsGame").style.transform = "scale(1)";
+        }
+      });
     </script>
   </body>
 </html>

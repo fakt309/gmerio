@@ -1,0 +1,67 @@
+#mainMenu {
+  max-width: 1200px;
+  width: 90%;
+  margin: 50px auto;
+  /* border: 1px solid #999; */
+  border-radius: 15px;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: flex-start;
+  transform: scale(0);
+  transition: all ease 0.2s;
+  font-family: Arial;
+}
+#leftMainMenu, #rightMainMenu {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+#leftMainMenu {
+  flex: 1;
+  justify-content: flex-start;
+}
+#rightMainMenu {
+  justify-content: flex-end;
+}
+#mainLogo {
+  margin: 10px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+  cursor: pointer;
+}
+#imgMainLogo {
+  width: 50px;
+  height: 50px;
+  background-image: url("/resource/img/mainLogo.png");
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+#textMainLogo {
+  margin: 10px;
+  font-size: 32px;
+  color: #ce0000;
+  font-weight: bold;
+}
+#communityLink, #buttonBecomedeveloper, #buttonStudio, #buttonProfile {
+  margin: 10px;
+  color: #005fc3;
+  text-decoration: none;
+  font-size: 14px;
+  transition: all ease 0.2s;
+}
+#communityLink:hover, #buttonBecomedeveloper:hover, #buttonStudio:hover, #buttonProfile:hover {
+  color: #5aaaff;
+}
+#buttonSignupin {
+  margin: 10px;
+  padding: 10px 20px;
+  border-radius: 5px;
+  text-decoration: none;
+  background-color: #ce0000;
+  font-size: 14px;
+  color: #fff;
+}

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="description" content="Play online free web games. Multiplayer/single, real-time/step-by-step, 2d/3d ... and many other games">
+    <meta name="keywords" content="play,online,web,game,2d,3d,socket,io,iogames,realtime,multiplayer">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>gmer web games platform</title>
+
+    <link rel="icon" type="image/png" href="/resource/img/ico.png">
+    <link rel="stylesheet" href="/resource/styles/home.css" />
+    <link rel="stylesheet" href="/resource/styles/menu.css" />
+  </head>
+  <body>
+
+    <section id="mainMenu"></section>
+
+    <section id="filterGames"></section>
+
+    <section id="listOfGames"></section>
+    <section id="nextGames">
+      <div id="buttonMoreGames" onclick="loadMoreGames()">more games</div>
+    </section>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src='/resource/js/cookie.js'></script>
+    <script src='/resource/js/users/getDeviceData.js'></script>
+    <script src="/resource/js/domvas.js"></script>
+    <script src='/resource/js/iframe2img.js'></script>
+    <script src='/resource/js/html2canvas.js'></script>
+    <script src="/resource/js/menu.js"></script>
+    <script>
+      var socket = io();
+
+      var userData = null;
+      var studioData = null;
+
+      var signinMail = getCookie('signinMail');
+      if (typeof signinMail != 'undefined' || signinMail != '') {
+        socket.emit('authorization', signinMail, getDeviceData());
+      }
+      socket.on('authorization2', function(user) {
+        userData = user;
+        socket.emit('haveIStudio1', user.id);
+      });
+      socket.on('haveIStudio2', function(studio) {
+        studioData = studio[0];
+        setMenu();
+        socket.emit('getTags1');
+        socket.emit('getGamesFilter1');
+      });
+    </script>
+    <script src="/resource/js/home/home.js"></script>
+  </body>
+</html>

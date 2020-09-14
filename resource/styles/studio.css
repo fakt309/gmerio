@@ -122,7 +122,7 @@ body {
   align-items: center;
   justify-content: flex-start;
 }
-#blockInputCreateGame, #blockInputInviteUser, #blockInputEditDescription, .blockInputChangeNameFolder {
+#blockInputCreateGame, #blockInputInviteUser, #blockInputEditDescription, .blockInputChangeNameFolder, #blockInputEditNameGame {
   margin: 10px 20px;
   margin-top: 2px;
   display: none;
@@ -131,16 +131,19 @@ body {
   justify-content: center;
   transition: all ease 0.2s;
 }
+#blockInputEditNameGame {
+  min-width: 200px;
+}
 .blockInputChangeNameFolder {
   margin: 0px 10px;
   margin-top: -6px;
 }
-#blockInputCreateGame[active='0'], #blockInputInviteUser[active='0'], #blockInputEditDescription[active='0'], .blockInputChangeNameFolder[active='0'] {
+#blockInputCreateGame[active='0'], #blockInputInviteUser[active='0'], #blockInputEditDescription[active='0'], .blockInputChangeNameFolder[active='0'], #blockInputEditNameGame[active='0'] {
   transform: scale(0);
   width: 0px;
   margin: 0px;
 }
-#titleInputCreateGame, #titleInputInviteUser, #titleInputEditDescription, .titleInputChangeNameFolder {
+#titleInputCreateGame, #titleInputInviteUser, #titleInputEditDescription, .titleInputChangeNameFolder, #titleInputEditNameGame {
   margin-left: 10px;
   padding: 0px 5px;
   font-size: 12px;
@@ -154,13 +157,13 @@ body {
 .titleInputChangeNameFolder {
   border-radius: 5px;
 }
-#blockInputCreateGame[focuse='0'] #titleInputCreateGame, #blockInputInviteUser[focuse='0'] #titleInputInviteUser, #blockInputEditDescription[focuse='0'] #titleInputEditDescription, .blockInputChangeNameFolder[focuse='0'] .titleInputChangeNameFolder {
+#blockInputCreateGame[focuse='0'] #titleInputCreateGame, #blockInputInviteUser[focuse='0'] #titleInputInviteUser, #blockInputEditDescription[focuse='0'] #titleInputEditDescription, .blockInputChangeNameFolder[focuse='0'] .titleInputChangeNameFolder, #blockInputEditNameGame[docuse='0'] #titleInputEditNameGame {
   color: #999;
 }
-#blockInputCreateGame[focuse='1'] #titleInputCreateGame, #blockInputInviteUser[focuse='1'] #titleInputInviteUser, #blockInputEditDescription[focuse='1'] #titleInputEditDescription, .blockInputChangeNameFolder[focuse='1'] .titleInputChangeNameFolder {
+#blockInputCreateGame[focuse='1'] #titleInputCreateGame, #blockInputInviteUser[focuse='1'] #titleInputInviteUser, #blockInputEditDescription[focuse='1'] #titleInputEditDescription, .blockInputChangeNameFolder[focuse='1'] .titleInputChangeNameFolder, #blockInputEditNameGame[docuse='1'] #titleInputEditNameGame {
   color: #333;
 }
-#inputInputCreateGame, #inputInputInviteUser, #inputInputEditDescription, .inputInputChangeNameFolder {
+#inputInputCreateGame, #inputInputInviteUser, #inputInputEditDescription, .inputInputChangeNameFolder, #inputInputEditNameGame {
   font-size: 14px;
   color: #333;
   padding: 10px;
@@ -177,10 +180,10 @@ body {
   padding: 5px 10px;
   border: none;
 }
-#blockInputCreateGame[focuse='0'] #inputInputCreateGame, #blockInputInviteUser[focuse='0'] #inputInputInviteUser, #blockInputEditDescription[focuse='0'] #inputInputEditDescription, .blockInputChangeNameFolder[focuse='0'] .inputInputChangeNameFolder {
+#blockInputCreateGame[focuse='0'] #inputInputCreateGame, #blockInputInviteUser[focuse='0'] #inputInputInviteUser, #blockInputEditDescription[focuse='0'] #inputInputEditDescription, .blockInputChangeNameFolder[focuse='0'] .inputInputChangeNameFolder, #blockInputEditNameGame[focuse='0'] #inputInputEditNameGame {
   border: 1px solid #999;
 }
-#blockInputCreateGame[focuse='1'] #inputInputCreateGame, #blockInputInviteUser[focuse='1'] #inputInputInviteUser, #blockInputEditDescription[focuse='1'] #inputInputEditDescription, .blockInputChangeNameFolder[focuse='1'] .inputInputChangeNameFolder {
+#blockInputCreateGame[focuse='1'] #inputInputCreateGame, #blockInputInviteUser[focuse='1'] #inputInputInviteUser, #blockInputEditDescription[focuse='1'] #inputInputEditDescription, .blockInputChangeNameFolder[focuse='1'] .inputInputChangeNameFolder, #blockInputEditNameGame[focuse='1'] #inputInputEditNameGame  {
   border: 1px solid #333;
 }
 #buttonCreateGame, #buttonCancelCreateGame, #buttonInviteUser, #buttonCancelInviteUser, #buttonDeleteStudio, .buttonChangeNameFolder {
@@ -463,7 +466,7 @@ body {
   font-weight: bold;
   color: #999;
 }
-#backConfirmDeleteStudio, #backConfirmDeleteGame, #backBigSizeUpload, #backConfirmOverwriteUpload, #backLoading, #backConfirmTurnOnIframe, #backConfirmTurnOffIframe, #backConfirmTurnOnIframe2, #backConfirmCreateGameIframe {
+#backConfirmDeleteStudio, #backConfirmDeleteGame, #backBigSizeUpload, #backConfirmOverwriteUpload, #backLoading, #backConfirmTurnOnIframe, #backConfirmTurnOffIframe, #backConfirmTurnOnIframe2, #backConfirmCreateGameIframe, #backSettingsGame, #backSubmitIndexed {
   position: fixed;
   top: 0px;
   left: 0px;
@@ -479,7 +482,7 @@ body {
   z-index: 100;
   transition: all ease 0.2s;
 }
-#blockConfirmDeleteStudio, #blockConfirmDeleteGame, #blockBigSizeUpload, #blockConfirmOverwriteUpload, #blockLoading, #blockConfirmTurnOnIframe, #blockConfirmTurnOffIframe, #blockConfirmTurnOnIframe2, #blockConfirmCreateGameIframe {
+#blockConfirmDeleteStudio, #blockConfirmDeleteGame, #blockBigSizeUpload, #blockConfirmOverwriteUpload, #blockLoading, #blockConfirmTurnOnIframe, #blockConfirmTurnOffIframe, #blockConfirmTurnOnIframe2, #blockConfirmCreateGameIframe, #blockSettingsGame, #blockSubmitIndexed {
   width: 70%;
   max-width: 300px;
   background-color: #fff;
@@ -494,7 +497,10 @@ body {
 #blockConfirmCreateGameIframe {
   max-width: 400px;
 }
-#labelConfirmDeleteStudio, #labelConfirmDeleteGame, #labelBigSizeUpload, #labelConfirmOverwriteUpload, #labelConfirmTurnOnIframe, #labelConfirmTurnOffIframe, #labelConfirmTurnOnIframe2, #labelConfirmCreateGameIframe {
+#blockSettingsGame {
+  max-width: 500px;
+}
+#labelConfirmDeleteStudio, #labelConfirmDeleteGame, #labelBigSizeUpload, #labelConfirmOverwriteUpload, #labelConfirmTurnOnIframe, #labelConfirmTurnOffIframe, #labelConfirmTurnOnIframe2, #labelConfirmCreateGameIframe, #labelSettingsGame, #labelSubmitIndexed {
   margin: 20px;
   color: #666;
   font-size: 14px;
@@ -510,7 +516,7 @@ body {
   outline: none;
   border-radius: 5px;
 }
-#buttonConfirmDeleteStudio, #buttonConfirmDeleteGame, #buttonCancelOverwriteUpload, #buttonAgreeOverwriteUpload, #buttonConfirmTurnOnIframe, #buttonConfirmTurnOffIframe, #buttonConfirmTurnOnIframe2, #buttonCancelCreateGameIframe, #buttonAgreeCreateGameIframe {
+#buttonConfirmDeleteStudio, #buttonConfirmDeleteGame, #buttonCancelOverwriteUpload, #buttonAgreeOverwriteUpload, #buttonConfirmTurnOnIframe, #buttonConfirmTurnOffIframe, #buttonConfirmTurnOnIframe2, #buttonCancelCreateGameIframe, #buttonAgreeCreateGameIframe, #buttonCancelSubmitIndexed, #buttonAgreeSubmitIndexed {
   margin-top: 0px;
   margin-right: -30px;
   margin-bottom: -16px;
@@ -524,18 +530,18 @@ body {
   transform: translateY(80px);
   transition: all ease 0.2s;
 }
-#buttonCancelOverwriteUpload, #buttonAgreeOverwriteUpload, #buttonCancelCreateGameIframe, #buttonAgreeCreateGameIframe {
+#buttonCancelOverwriteUpload, #buttonAgreeOverwriteUpload, #buttonCancelCreateGameIframe, #buttonAgreeCreateGameIframe, #buttonCancelSubmitIndexed, #buttonAgreeSubmitIndexed {
   transform: translateY(0px);
   margin-bottom: 0px;
   align-self: auto;
 }
-#buttonCancelOverwriteUpload, #buttonCancelCreateGameIframe {
+#buttonCancelOverwriteUpload, #buttonCancelCreateGameIframe, #buttonCancelSubmitIndexed {
   margin-right: 10px;
 }
-#buttonAgreeOverwriteUpload, #buttonAgreeCreateGameIframe {
+#buttonAgreeOverwriteUpload, #buttonAgreeCreateGameIframe, #buttonAgreeSubmitIndexed {
   margin-right: -30px;
 }
-#strokeConfirmOverwriteUpload, #strokeConfirmCreateGameIframe {
+#strokeConfirmOverwriteUpload, #strokeConfirmCreateGameIframe, #strokeSubmitIndexed {
   width: 100%;
   margin-bottom: -16px;
   display: flex;
@@ -563,6 +569,7 @@ body {
 #linkHome, #linkFeedback, #linkToFoldersDocs, .linksHorMenu {
   margin-left: 10px;
   color: #005fc3;
+  font-size: 14px;
   text-decoration: none;
   transition: all ease 0.2s;
 }
@@ -703,7 +710,7 @@ body {
   align-items: center;
   justify-content: space-around;
 }
-#deleteFolderButton, #renameFolderButton, #addFolderButton, #switchIframeFolderButton, #chageLinkIframeFolderButton {
+#deleteFolderButton, #renameFolderButton, #addFolderButton, #switchIframeFolderButton, #chageLinkIframeFolderButton, #settingsButton {
   display: none;
   transform: scale(0);
   margin: 0px 5px;
@@ -718,14 +725,14 @@ body {
   justify-content: center;
   transition: all ease 0.2s;
 }
-#titleDeleteFolderButton, #titleRenameFolderButton, #titleAddFolderButton, #titleSwitchIframeFolderButton, #titleChageLinkIframeFolderButton {
+#titleDeleteFolderButton, #titleRenameFolderButton, #titleAddFolderButton, #titleSwitchIframeFolderButton, #titleChageLinkIframeFolderButton, #titleSettingsButton {
   margin: 2px;
   font-size: 14px;
 }
 #subtitleDeleteFolderButton {
   font-size: 10px;
 }
-#imgRenameFolder, #imgDeleteFolder, #imgAddFolder {
+#imgRenameFolder, #imgDeleteFolder, #imgAddFolder, #imgSettings {
   width: 20px;
   height: 20px;
   background-position: center;
@@ -741,6 +748,9 @@ body {
 }
 #imgAddFolder {
   background-image: url('/resource/img/aKey.png');
+}
+#imgSettings {
+  background-image: url('/resource/img/sKey.png');
 }
 #labelNearMouse {
   background-color: #ce0000;
@@ -822,4 +832,197 @@ body {
   display: none;
   width: auto;
   white-space: break-spaces;
+}
+.stringSettingsGame {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  align-self: stretch;
+  margin: 20px;
+}
+.leftStringSettingsGame {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+.rightStringSettingsGame {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+}
+#nameGameSettingsGame, #iframeSettingsGame, #tagsSettingsGame, #photoSettingsGame, #indexedSettingsGame {
+  color: #999;
+  font-size: 12px;
+  transition: all ease 0.2s;
+}
+#errorNameGameSettingsGame {
+  font-size: 12px;
+  color: #f77171;
+  transform: scale(0);
+  transition: all ease 0.2s;
+}
+#buttonChangeNameGameSettingsGame, #buttonCancelNameGameSettingsGame, #buttonChangeTagsSettingsGame, #buttonCancelTagsSettingsGame, #buttonChangePhotoSettingsGame, #buttonRemovePhotoSettingsGame {
+  color: #fff;
+  font-size: 14px;
+  padding: 10px;
+  border-radius: 5px;
+  background-color: #ce0000;
+  cursor: pointer;
+  transition: all ease 0.2s;
+}
+#buttonCancelNameGameSettingsGame, #buttonCancelTagsSettingsGame, #buttonRemovePhotoSettingsGame {
+  margin-right: 10px;
+  transform: scale(0);
+}
+#buttonChangeNameGameSettingsGame[disabled = '1'], #buttonChangeTagsSettingsGame[disabled = '1'] {
+  background-color: #999999;
+}
+#titleNameGameSettingsGame, #titleIframeSettingsGame, #titleTagsSettingsGame, #titlePhotoSettingsGame, #titleIndexedSettingsGame {
+  color: #333;
+  font-size: 18px;
+  transition: all ease 0.2s;
+}
+#buttonSwitchIframeSettingsGame, #buttonSwitchIndexedSettingsGame {
+  cursor: pointer;
+  background-color: #999;
+  border-radius: 50px;
+  width: 50px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  transition: all ease 0.2s;
+}
+.circleSwitch {
+  margin: 5px;
+  margin-left: 5px;
+  width: 15px;
+  height: 15px;
+  background-color: #eee;
+  border-radius: 50px;
+  transition: all ease 0.2s;
+}
+#buttonSwitchIframeSettingsGame[active="1"], #buttonSwitchIndexedSettingsGame[active="1"] {
+  justify-content: flex-start;
+  background-color: #fb6666;
+}
+#buttonSwitchIframeSettingsGame[active="1"] .circleSwitch, #buttonSwitchIndexedSettingsGame[active="1"] .circleSwitch {
+  background-color: #ce0000;
+  margin-left: 30px;
+}
+#blockEditTags {
+  display: none;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  transform: scale(0);
+  transition: all ease 0.2s;
+}
+.oneBlockEditTag, #addBlockEditTag {
+  margin-right: 10px;
+  margin-bottom: 10px;
+  background-color: #999;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+}
+#addBlockEditTag {
+  background-color: #ce0000;
+  cursor: pointer;
+}
+.titleOneBlockEditTag, .titleAddBlockEditTag {
+  margin: 0px 7px;
+  font-size: 11px;
+  color: #fff;
+}
+.closeOneBlockEditTag, .arrowAddBlockEditTag {
+  width: 25px;
+  height: 25px;
+  margin: 0px;
+  margin-left: 0px;
+  cursor: pointer;
+}
+.line1CloseOneBlockEditTag, .line2CloseOneBlockEditTag {
+  width: 1px;
+  height: 15px;
+  position: absolute;
+  margin-left: 11px;
+  margin-top: 5px;
+  background-color: #fff;
+}
+.line1CloseOneBlockEditTag {
+  transform: rotate(45deg);
+}
+.line2CloseOneBlockEditTag {
+  transform: rotate(-45deg);
+}
+.line1AddOneBlockEditTag, .line2AddOneBlockEditTag {
+  margin-left: 12px;
+  margin-top: 7px;
+  width: 1px;
+  height: 11px;
+  position: absolute;
+  background-color: #fff;
+}
+.line2AddOneBlockEditTag {
+  transform: rotate(90deg);
+}
+#selectAddEditTag {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  display: none;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  border-radius: 5px;
+  background-color: #eee;
+  transform: scale(0);
+  transition: all ease 0.2s;
+  z-index: 100;
+  font-family: Arial;
+  max-height: 150px;
+  overflow-y: auto;
+}
+#selectAddEditTag::-webkit-scrollbar {
+  width: 2px;
+}
+#selectAddEditTag::-webkit-scrollbar-track {
+  background: #eee;
+}
+#selectAddEditTag::-webkit-scrollbar-thumb {
+  background: #999;
+}
+#selectAddEditTag::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+.stringSelectAddEditTag {
+  margin: 0px 5px;
+  font-size: 12px;
+  padding: 10px;
+  color: #333;
+  border-radius: 15px;
+  background-color: #cccccc00;
+  cursor: pointer;
+  transition: all ease 0.2s;
+}
+.stringSelectAddEditTag:hover {
+  background-color: #cccccc;
+}
+#inputFilePhotoSettingsGame {
+  display: none;
+}
+#imgPrevieSettings {
+  width: 200px;
+  height: 80px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 5px;
 }

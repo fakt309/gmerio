@@ -93,6 +93,21 @@ function validGameName(e) {
   }
 }
 
+function validGameName2(e) {
+  var button = document.getElementById('buttonChangeNameGameSettingsGame');
+  if (/^\w+$/.test(e.value)) {
+    document.getElementById('titleInputEditNameGame').innerHTML = 'name game = valid';
+    document.getElementById('titleInputEditNameGame').style.color = '#1aca00';
+    document.getElementById('inputInputEditNameGame').style.border = '1px solid #1aca00';
+    button.setAttribute('disabled', '0');
+  } else {
+    document.getElementById('titleInputEditNameGame').innerHTML = 'name game = invalid';
+    document.getElementById('titleInputEditNameGame').style.color = '#f77171';
+    document.getElementById('inputInputEditNameGame').style.border = '1px solid #f77171';
+    button.setAttribute('disabled', '1');
+  }
+}
+
 function clickCancelCreateGame() {
   var input = document.getElementById('blockInputCreateGame');
   var button = document.getElementById('buttonCreateGame');
@@ -442,7 +457,6 @@ function deleteStudio() {
     } else {
       document.getElementById('errorConfirmDeleteStudio').style.display = 'flex';
     }
-    //this place
     //socket.emit('deleteStudio', dataUser, dataStudio.id);
   }
 }
@@ -577,20 +591,28 @@ function refreshChoosenFolder(e) {
   }
 
   if (choosenFolder.length == 1 && choosenFolder[0].getAttribute('typefolder') == 'game') {
-    if (choosenFolder[0].getAttribute('iframe') == 'null') {
-      document.getElementById('titleSwitchIframeFolderButton').innerHTML = 'turn on iframe';
-    } else {
-      document.getElementById('titleSwitchIframeFolderButton').innerHTML = 'turn off iframe';
-    }
-    document.getElementById('switchIframeFolderButton').style.display = 'flex';
+    // if (choosenFolder[0].getAttribute('iframe') == 'null') {
+    //   document.getElementById('titleSwitchIframeFolderButton').innerHTML = 'turn on iframe';
+    // } else {
+    //   document.getElementById('titleSwitchIframeFolderButton').innerHTML = 'turn off iframe';
+    // }
+    // document.getElementById('switchIframeFolderButton').style.display = 'flex';
+    // setTimeout(function() {
+    //   document.getElementById('switchIframeFolderButton').style.transform = 'scale(1)';
+    // }, 10);
+    document.getElementById('settingsButton').style.display = 'flex';
     setTimeout(function() {
-      document.getElementById('switchIframeFolderButton').style.transform = 'scale(1)';
+      document.getElementById('settingsButton').style.transform = 'scale(1)';
     }, 10);
   } else {
-    document.getElementById('titleSwitchIframeFolderButton').innerHTML = '';
-    document.getElementById('switchIframeFolderButton').style.transform = 'scale(0)';
+    // document.getElementById('titleSwitchIframeFolderButton').innerHTML = '';
+    // document.getElementById('switchIframeFolderButton').style.transform = 'scale(0)';
+    // setTimeout(function() {
+    //   document.getElementById('switchIframeFolderButton').style.display = 'none';
+    // }, 200);
+    document.getElementById('settingsButton').style.transform = 'scale(0)';
     setTimeout(function() {
-      document.getElementById('switchIframeFolderButton').style.display = 'none';
+      document.getElementById('settingsButton').style.display = 'none';
     }, 200);
   }
 
@@ -686,7 +708,7 @@ function insertFolder(pathFolder, insideFiles) {
   return insideFiles;
 }
 
-var nameGameToTurnOnOffIframe = '';//this place
+var nameGameToTurnOnOffIframe = '';
 function switchIframeGame() {
   var choosenFoldres = document.querySelectorAll('.oneFolder[focus="1"]')[0];
   if (choosenFoldres.getAttribute('iframe') == 'null') {
@@ -718,6 +740,10 @@ function confirmTurnOnIframe() {
     document.getElementById('errorConfirmTurnOnIframe').style.width = '0%';
     socket.emit('switchIframe', dataUser, 'on', nameGameToTurnOnOffIframe, linkIframe);
     hideConfirmTurnOnIframeWindow();
+
+    document.getElementById("buttonSwitchIframeSettingsGame").setAttribute("active", "1");
+    document.getElementById("iframeSettingsGame").innerHTML = linkIframe;
+    showSettingsGameWindow();
   } else {
     document.getElementById('errorConfirmTurnOnIframe').style.width = '80%';
   }
@@ -947,6 +973,36 @@ window.addEventListener("mouseup", function(e) {
   }
 });
 
+function showSettingsGameWindow() {
+  document.getElementById('backSettingsGame').style.display = 'flex';
+  setTimeout(function() {
+    document.getElementById('backSettingsGame').style.opacity = '1';
+    document.getElementById('blockSettingsGame').style.transform = 'translateY(0px)';
+  }, 10);
+}
+function hideSettingsGameWindow() {
+  document.getElementById('backSettingsGame').style.opacity = '0';
+  document.getElementById('blockSettingsGame').style.transform = 'translateY(-40px)';
+  setTimeout(function() {
+    document.getElementById('backSettingsGame').style.display = 'none';
+  }, 200);
+}
+var downPressSettingsGame = false;
+window.addEventListener("mousedown", function(e) {
+  if (document.getElementById('blockSettingsGame') != e.target && !isChild(document.getElementById('blockSettingsGame'), e.target) && document.getElementById('selectAddEditTag') != e.target && !isChild(document.getElementById('selectAddEditTag'), e.target) && document.getElementById('backSettingsGame').style.display == 'flex') {
+    downPressSettingsGame = true;
+  } else {
+    downPressSettingsGame = false;
+  }
+});
+window.addEventListener("mouseup", function(e) {
+  if (document.getElementById('blockSettingsGame') != e.target && !isChild(document.getElementById('blockSettingsGame'), e.target) && downPressSettingsGame) {
+    hideSettingsGameWindow();
+  } else {
+    downPressSettingsGame = false;
+  }
+});
+
 function showConfirmTurnOffIframeWindow() {
   document.getElementById('backConfirmTurnOffIframe').style.display = 'flex';
   setTimeout(function() {
@@ -1027,6 +1083,12 @@ document.addEventListener('keydown', function(e) {
     //choosenFolder[0].getAttribute('typefolder') == 'game' && choosenFolder[0].getAttribute('iframe') == 'null'
     if (choosenFoldres.length == 1 && ((choosenFoldres[0].getAttribute('typefolder') == 'game' && choosenFoldres[0].getAttribute('iframe') == 'null') || choosenFoldres[0].getAttribute('typefolder') == 'folder')) {
       addNewFolder();
+    }
+  } else if (e.code == 'KeyS' && !activeInput[0]) {
+    var choosenFoldres = document.querySelectorAll('.oneFolder[focus="1"]');
+    //choosenFolder[0].getAttribute('typefolder') == 'game' && choosenFolder[0].getAttribute('iframe') == 'null'
+    if (choosenFoldres.length == 1 && choosenFoldres[0].getAttribute('typefolder') == 'game') {
+      fillSettings();
     }
   }
 });
@@ -1266,13 +1328,15 @@ function dragFolderOff() {
     }
 
     document.getElementById('chageLinkIframeFolderButton').style.transform = 'scale(0)';
-    document.getElementById('switchIframeFolderButton').style.transform = 'scale(0)';
+    // document.getElementById('switchIframeFolderButton').style.transform = 'scale(0)';
+    document.getElementById('settingsButton').style.transform = 'scale(0)';
     document.getElementById('renameFolderButton').style.transform = 'scale(0)';
     document.getElementById('addFolderButton').style.transform = 'scale(0)';
     document.getElementById('deleteFolderButton').style.transform = 'scale(0)';
     setTimeout(function() {
       document.getElementById('chageLinkIframeFolderButton').style.display = 'none';
-      document.getElementById('switchIframeFolderButton').style.display = 'none';
+      // document.getElementById('switchIframeFolderButton').style.display = 'none';
+      document.getElementById('settingsButton').style.display = 'none';
       document.getElementById('renameFolderButton').style.display = 'none';
       document.getElementById('addFolderButton').style.display = 'none';
       document.getElementById('deleteFolderButton').style.display = 'none';
@@ -1570,3 +1634,426 @@ function hideLoading() {
     document.getElementById('backLoading').style.display = 'none';
   }, 200);
 }
+
+function fillSettings() {
+  var currGame = document.querySelector('.oneFolder[focus="1"]');
+
+  nameGameToTurnOnOffIframe = currGame.getAttribute('path').split('/')[2];
+
+  document.getElementById("nameGameSettingsGame").innerHTML = currGame.querySelector(".titleFolder").innerHTML;
+  document.getElementById("inputInputEditNameGame").value = currGame.querySelector(".titleFolder").innerHTML;
+
+  if (currGame.getAttribute("iframe") == "null") {
+    document.getElementById("iframeSettingsGame").innerHTML = "gmer.io repository";
+    document.getElementById("buttonSwitchIframeSettingsGame").setAttribute("active", "0");
+  } else if (currGame.getAttribute("iframe") != "null") {
+    document.getElementById("iframeSettingsGame").innerHTML = currGame.getAttribute("iframe");
+    document.getElementById("buttonSwitchIframeSettingsGame").setAttribute("active", "1");
+  }
+
+  document.getElementById("blockEditTags").innerHTML = "";
+  var stringTags = "";
+  var currTags = currGame.getAttribute("tags").split(",");
+  if (currTags && currTags[0] && currTags != "false") {
+    for (var i = 0; i < currTags.length; i++) {
+      var name = getNameTag(currTags[i]);
+      if (i == 0) {
+        stringTags += name;
+      } else {
+        stringTags += ", "+name;
+      }
+
+      var oneBlockEditTag = document.createElement("div");
+      oneBlockEditTag.setAttribute("class", "oneBlockEditTag");
+      oneBlockEditTag.innerHTML = "<div class='titleOneBlockEditTag'>"+name+"</div><div class='closeOneBlockEditTag' onclick='deleteOneEditTag(this)'><div class='line1CloseOneBlockEditTag'></div><div class='line2CloseOneBlockEditTag'></div></div>"
+      document.getElementById("blockEditTags").appendChild(oneBlockEditTag);
+    }
+  }
+  document.getElementById("tagsSettingsGame").innerHTML = stringTags;
+  if (!currTags || !currTags[0] || currTags == "false" || currTags.length < 10) {
+    var addBlockEditTag = document.createElement("div");
+    addBlockEditTag.setAttribute("id", "addBlockEditTag");
+    addBlockEditTag.setAttribute("onclick", "showSelectAddEditTag()");
+    addBlockEditTag.innerHTML = "<div class='titleAddBlockEditTag'>add</div><div class='arrowAddBlockEditTag'><div class='line1AddOneBlockEditTag'></div><div class='line2AddOneBlockEditTag'></div></div>";
+    document.getElementById("blockEditTags").appendChild(addBlockEditTag);
+  }
+  document.getElementById("selectAddEditTag").innerHTML = "";
+  for (var i = 0; i < dataTags.length; i++) {
+    var flagAdd = true;
+    if (currTags && currTags[0] && currTags != "false") {
+      for (var j = 0; j < currTags.length; j++) {
+        if (currTags[j] == dataTags[i].id) {
+          flagAdd = false;
+          break;
+        }
+      }
+    }
+    if (flagAdd) {
+      var stringSelectAddEditTag = document.createElement("div");
+      stringSelectAddEditTag.setAttribute("class", "stringSelectAddEditTag");
+      stringSelectAddEditTag.setAttribute("onclick", "clickOptionSelectAddEditTag(this)");
+      stringSelectAddEditTag.innerHTML = dataTags[i].name;
+      document.getElementById("selectAddEditTag").appendChild(stringSelectAddEditTag);
+    }
+  }
+
+  if (currGame.getAttribute("preview") == "false") {
+    document.getElementById("photoSettingsGame").innerHTML = "empty";
+    document.getElementById("buttonRemovePhotoSettingsGame").style.transform = "scale(0)";
+  } else if (currGame.getAttribute("preview") == "true") {
+    document.getElementById("photoSettingsGame").innerHTML = "<div id='imgPrevieSettings' style='background-image: url(\"/g/"+document.getElementById("nameGameSettingsGame").innerHTML+"/gmer/preview.png\")'></div>";
+    document.getElementById("buttonRemovePhotoSettingsGame").style.transform = "scale(1)";
+  }
+
+  if (currGame.getAttribute("indexed") == "1") {
+    document.getElementById("indexedSettingsGame").innerHTML = "rejected";
+    document.getElementById("indexedSettingsGame").style.color = "#ff5656";
+    document.getElementById("buttonSwitchIndexedSettingsGame").setAttribute("active", "0");
+  } else if (currGame.getAttribute("indexed") == "2") {
+    document.getElementById("indexedSettingsGame").innerHTML = "";
+    document.getElementById("indexedSettingsGame").style.color = "#333";
+    document.getElementById("buttonSwitchIndexedSettingsGame").setAttribute("active", "0");
+  } else if (currGame.getAttribute("indexed") == "3") {
+    document.getElementById("indexedSettingsGame").innerHTML = "awaiting approval";
+    document.getElementById("indexedSettingsGame").style.color = "#ff9900";
+    document.getElementById("buttonSwitchIndexedSettingsGame").setAttribute("active", "1");
+  } else if (currGame.getAttribute("indexed") == "4") {
+    document.getElementById("indexedSettingsGame").innerHTML = "approved";
+    document.getElementById("indexedSettingsGame").style.color = "#03ce00";
+    document.getElementById("buttonSwitchIndexedSettingsGame").setAttribute("active", "1");
+  }
+  document.getElementById("buttonSwitchIndexedSettingsGame").setAttribute("indexed", currGame.getAttribute("indexed"));
+
+  showSettingsGameWindow();
+}
+
+function showChangeInputGameName() {
+  document.getElementById("titleNameGameSettingsGame").style.transform = "scale(0)";
+  document.getElementById("nameGameSettingsGame").style.transform = "scale(0)";
+  document.getElementById("buttonChangeNameGameSettingsGame").innerHTML = "save";
+  document.getElementById("buttonChangeNameGameSettingsGame").setAttribute("onclick", "changeNameGame(this)");
+  document.getElementById("buttonChangeNameGameSettingsGame").setAttribute("disabled", "1");
+  document.getElementById("buttonCancelNameGameSettingsGame").style.transform = "scale(1)";
+  setTimeout(function() {
+    document.getElementById("titleNameGameSettingsGame").style.display = "none";
+    document.getElementById("nameGameSettingsGame").style.display = "none";
+    document.getElementById("blockInputEditNameGame").style.display = "flex";
+    setTimeout(function() {
+      document.getElementById("blockInputEditNameGame").style.transform = "scale(1)";
+    }, 10);
+  }, 200);
+}
+
+function hideChangeInputGameName() {
+  document.getElementById("blockInputEditNameGame").style.transform = "scale(0)";
+  document.getElementById("buttonChangeNameGameSettingsGame").innerHTML = "change";
+  document.getElementById("buttonChangeNameGameSettingsGame").setAttribute("onclick", "showChangeInputGameName()");
+  document.getElementById("buttonChangeNameGameSettingsGame").setAttribute("disabled", "0");
+  document.getElementById("buttonCancelNameGameSettingsGame").style.transform = "scale(0)";
+  setTimeout(function() {
+    document.getElementById("blockInputEditNameGame").style.display = "none";
+    document.getElementById("titleNameGameSettingsGame").style.display = "flex";
+    document.getElementById("nameGameSettingsGame").style.display = "flex";
+    setTimeout(function() {
+      document.getElementById("titleNameGameSettingsGame").style.transform = "scale(1)";
+      document.getElementById("nameGameSettingsGame").style.transform = "scale(1)";
+    }, 10);
+  }, 200);
+}
+
+function changeNameGame(el) {
+  if (el.getAttribute("disabled") != "1") {
+    var oldName = document.getElementById("nameGameSettingsGame").innerHTML;
+    var newName = document.getElementById("inputInputEditNameGame").value;
+    socket.emit('changeNameGame1', dataUser, oldName, newName);
+  }
+}
+
+function clickSwitchIframe(el) {
+  if (el.getAttribute("active") == "0") {
+    hideSettingsGameWindow();
+    setTimeout(function() {
+      showConfirmTurnOnIframeWindow();
+    }, 200);
+  } else if (el.getAttribute("active") == "1") {
+    el.setAttribute("active", "0");
+    document.getElementById("iframeSettingsGame").innerHTML = "gmer.io repository";
+    socket.emit('switchIframe', dataUser, 'off', nameGameToTurnOnOffIframe);
+  }
+}
+
+function showChangeInputTags() {
+  document.getElementById("buttonChangeTagsSettingsGame").innerHTML = "save";
+  document.getElementById("buttonChangeTagsSettingsGame").setAttribute("disabled", "1");
+  document.getElementById("buttonChangeTagsSettingsGame").setAttribute("onclick", "saveTagsSettings(this)");
+  document.getElementById("buttonCancelTagsSettingsGame").style.transform = "scale(1)";
+  document.getElementById("titleTagsSettingsGame").style.transform = "scale(0)";
+  document.getElementById("tagsSettingsGame").style.transform = "scale(0)";
+  setTimeout(function() {
+    document.getElementById("titleTagsSettingsGame").style.display = "none";
+    document.getElementById("tagsSettingsGame").style.display = "none";
+    document.getElementById("blockEditTags").style.display = "flex";
+    setTimeout(function() {
+      document.getElementById("blockEditTags").style.transform = "scale(1)";
+    }, 10);
+  }, 200);
+}
+function hideChangeInputTags(cancel) {
+  document.getElementById("buttonChangeTagsSettingsGame").innerHTML = "change";
+  document.getElementById("buttonChangeTagsSettingsGame").setAttribute("disabled", "0");
+  document.getElementById("buttonChangeTagsSettingsGame").setAttribute("onclick", "showChangeInputTags()");
+  document.getElementById("buttonCancelTagsSettingsGame").style.transform = "scale(0)";
+  document.getElementById("blockEditTags").style.transform = "scale(0)";
+  setTimeout(function() {
+    document.getElementById("titleTagsSettingsGame").style.display = "flex";
+    document.getElementById("tagsSettingsGame").style.display = "flex";
+    document.getElementById("blockEditTags").style.display = "none";
+    setTimeout(function() {
+      document.getElementById("titleTagsSettingsGame").style.transform = "scale(1)";
+      document.getElementById("tagsSettingsGame").style.transform = "scale(1)";
+    }, 10);
+  }, 200);
+
+  if (cancel) {
+    document.getElementById("blockEditTags").innerHTML = "";
+    var stringTags = "";
+    var currTags = document.getElementById("tagsSettingsGame").innerHTML.split(", ");
+    if (currTags && currTags[0] && currTags != "false") {
+      for (var i = 0; i < currTags.length; i++) {
+        var name = currTags[i];
+        var oneBlockEditTag = document.createElement("div");
+        oneBlockEditTag.setAttribute("class", "oneBlockEditTag");
+        oneBlockEditTag.innerHTML = "<div class='titleOneBlockEditTag'>"+name+"</div><div class='closeOneBlockEditTag' onclick='deleteOneEditTag(this)'><div class='line1CloseOneBlockEditTag'></div><div class='line2CloseOneBlockEditTag'></div></div>"
+        document.getElementById("blockEditTags").appendChild(oneBlockEditTag);
+      }
+    }
+    if (!currTags || !currTags[0] || currTags == "false" || currTags.length < 10) {
+      var addBlockEditTag = document.createElement("div");
+      addBlockEditTag.setAttribute("id", "addBlockEditTag");
+      addBlockEditTag.setAttribute("onclick", "showSelectAddEditTag()");
+      addBlockEditTag.innerHTML = "<div class='titleAddBlockEditTag'>add</div><div class='arrowAddBlockEditTag'><div class='line1AddOneBlockEditTag'></div><div class='line2AddOneBlockEditTag'></div></div>";
+      document.getElementById("blockEditTags").appendChild(addBlockEditTag);
+    }
+    document.getElementById("selectAddEditTag").innerHTML = "";
+    for (var i = 0; i < dataTags.length; i++) {
+      var flagAdd = true;
+      if (currTags && currTags[0] && currTags != "false") {
+        for (var j = 0; j < currTags.length; j++) {
+          if (currTags[j] == dataTags[i].id) {
+            flagAdd = false;
+            break;
+          }
+        }
+      }
+      if (flagAdd) {
+        var stringSelectAddEditTag = document.createElement("div");
+        stringSelectAddEditTag.setAttribute("class", "stringSelectAddEditTag");
+        stringSelectAddEditTag.setAttribute("onclick", "clickOptionSelectAddEditTag(this)");
+        stringSelectAddEditTag.innerHTML = dataTags[i].name;
+        document.getElementById("selectAddEditTag").appendChild(stringSelectAddEditTag);
+      }
+    }
+  } else {
+    var blocks = document.querySelectorAll("#blockEditTags .oneBlockEditTag");
+    var tagsString = "";
+    for (var i = 0; i < blocks.length; i++) {
+      if (i == 0) {
+        tagsString += blocks[i].querySelector(".titleOneBlockEditTag").innerHTML;
+        continue;
+      }
+      tagsString += ", "+blocks[i].querySelector(".titleOneBlockEditTag").innerHTML;
+    }
+    document.getElementById("tagsSettingsGame").innerHTML = tagsString;
+  }
+}
+
+function showSelectAddEditTag() {
+  var addBounding = document.getElementById("addBlockEditTag").getBoundingClientRect();
+  document.getElementById("selectAddEditTag").style.left = addBounding.left+"px";
+  document.getElementById("selectAddEditTag").style.top = (addBounding.top+addBounding.height+10)+"px";
+  document.getElementById("selectAddEditTag").style.display = "flex";
+  setTimeout(function() {
+    document.getElementById("selectAddEditTag").style.transform = "scale(1)";
+  }, 10);
+}
+function hideSelectAddEditTag() {
+  document.getElementById("selectAddEditTag").style.transform = "scale(0)";
+  setTimeout(function() {
+    document.getElementById("selectAddEditTag").style.left = "0px";
+    document.getElementById("selectAddEditTag").style.top = "0px";
+    document.getElementById("selectAddEditTag").style.display = "none";
+  }, 200);
+}
+var downPressSelectAddEditTag = false;
+window.addEventListener("mousedown", function(e) {
+  if (document.getElementById('selectAddEditTag') != e.target && !isChild(document.getElementById('selectAddEditTag'), e.target) && document.getElementById('selectAddEditTag').style.display == 'flex') {
+    downPressSelectAddEditTag = true;
+  } else {
+    downPressSelectAddEditTag = false;
+  }
+});
+window.addEventListener("mouseup", function(e) {
+  if (document.getElementById('selectAddEditTag') != e.target && !isChild(document.getElementById('selectAddEditTag'), e.target) && downPressSelectAddEditTag) {
+    hideSelectAddEditTag();
+  } else {
+    downPressSelectAddEditTag = false;
+  }
+});
+
+function clickOptionSelectAddEditTag(el) {
+  document.getElementById("addBlockEditTag").remove();
+  var oneBlockEditTag = document.createElement("div");
+  oneBlockEditTag.setAttribute("class", "oneBlockEditTag");
+  oneBlockEditTag.innerHTML = "<div class='titleOneBlockEditTag'>"+el.innerHTML+"</div><div class='closeOneBlockEditTag' onclick='deleteOneEditTag(this)'><div class='line1CloseOneBlockEditTag'></div><div class='line2CloseOneBlockEditTag'></div></div>";
+  document.getElementById("blockEditTags").appendChild(oneBlockEditTag);
+  el.remove();
+  if (document.querySelectorAll("#blockEditTags .oneBlockEditTag").length < 10) {
+    var addBlockEditTag = document.createElement("div");
+    addBlockEditTag.setAttribute("id", "addBlockEditTag");
+    addBlockEditTag.setAttribute("onclick", "showSelectAddEditTag()");
+    addBlockEditTag.innerHTML = "<div class='titleAddBlockEditTag'>add</div><div class='arrowAddBlockEditTag'><div class='line1AddOneBlockEditTag'></div><div class='line2AddOneBlockEditTag'></div></div>";
+    document.getElementById("blockEditTags").appendChild(addBlockEditTag);
+  }
+  hideSelectAddEditTag();
+
+  document.getElementById("buttonChangeTagsSettingsGame").setAttribute("disabled", "0");
+}
+
+function deleteOneEditTag(el) {
+  var stringSelectAddEditTag = document.createElement("div");
+  stringSelectAddEditTag.setAttribute("class", "stringSelectAddEditTag");
+  stringSelectAddEditTag.setAttribute("onclick", "clickOptionSelectAddEditTag(this)");
+  stringSelectAddEditTag.innerHTML = el.parentNode.querySelector(".titleOneBlockEditTag").innerHTML;
+  document.getElementById("selectAddEditTag").appendChild(stringSelectAddEditTag);
+
+  el.parentNode.remove();
+
+  if (!document.getElementById("addBlockEditTag")) {
+    var addBlockEditTag = document.createElement("div");
+    addBlockEditTag.setAttribute("id", "addBlockEditTag");
+    addBlockEditTag.setAttribute("onclick", "showSelectAddEditTag()");
+    addBlockEditTag.innerHTML = "<div class='titleAddBlockEditTag'>add</div><div class='arrowAddBlockEditTag'><div class='line1AddOneBlockEditTag'></div><div class='line2AddOneBlockEditTag'></div></div>";
+    document.getElementById("blockEditTags").appendChild(addBlockEditTag);
+  }
+
+  document.getElementById("buttonChangeTagsSettingsGame").setAttribute("disabled", "0");
+}
+
+function saveTagsSettings(el) {
+  if (el.getAttribute("disabled") != "1") {
+    var name = document.getElementById("nameGameSettingsGame").innerHTML;
+    var domEditTags = document.querySelectorAll("#blockEditTags .oneBlockEditTag");
+    var tags = [];
+    for (var i = 0; i < domEditTags.length; i++) {
+      tags.push(domEditTags[i].querySelector(".titleOneBlockEditTag").innerHTML);
+    }
+
+    socket.emit('changeTagsGame1', dataUser, name, tags);
+
+    hideChangeInputTags(false);
+  }
+}
+
+function uploadPreview(e) {
+  var file = e.target.files[0];
+  if (file.type == "image/jpeg" || file.type == "image/png") {
+    var name = document.getElementById("nameGameSettingsGame").innerHTML;
+    socket.emit('uploadPreview', dataUser, name, file);
+
+    setTimeout(function() {
+      document.getElementById("photoSettingsGame").innerHTML = "<div id='imgPrevieSettings' style='background-image: url(\"/g/"+name+"/gmer/preview.png\")'></div>";
+    }, 1500);
+    document.getElementById("buttonRemovePhotoSettingsGame").style.transform = "scale(1)";
+  }
+}
+
+function removePhotoSettingsGame() {
+  var name = document.getElementById("nameGameSettingsGame").innerHTML;
+  socket.emit('removePreview', dataUser, name);
+  document.getElementById("photoSettingsGame").innerHTML = "empty";
+  document.getElementById("buttonRemovePhotoSettingsGame").style.transform = "scale(0)";
+}
+
+function clickSwitchIndexed(el) {
+  var name = document.getElementById("nameGameSettingsGame").innerHTML;
+
+  if (el.getAttribute("indexed") == "1") {
+    document.getElementById("labelSubmitIndexed").innerHTML = "Your game was rejected. But you can submit game again. If you send the game in vain many times, your account may be deleted.<br><br>If your game is indexed, it means that it appears in the catalog of all games on the main page.<br><br>For your game to be accepted. Try to make the game correct (add a menu, fix the most critical bugs, etc.). Also you should add a picture, tags.<br><br>If you are sure that your game is suitable, click on the submit button. The check is done manually, so it may take several days.";
+    document.getElementById("buttonAgreeSubmitIndexed").innerHTML = "submit";
+    document.getElementById("buttonAgreeSubmitIndexed").setAttribute("onclick", "submitIndexedGame('add', '"+name+"')");
+  } else if (el.getAttribute("indexed") == "2") {
+    document.getElementById("labelSubmitIndexed").innerHTML = "If your game is indexed, it means that it appears in the catalog of all games on the main page.<br><br>For your game to be accepted. Try to make the game correct (add a menu, fix the most critical bugs, etc.). Also you should add a picture, tags.<br><br>If you are sure that your game is suitable, click on the submit button. The check is done manually, so it may take several days.";
+    document.getElementById("buttonAgreeSubmitIndexed").innerHTML = "submit";
+    document.getElementById("buttonAgreeSubmitIndexed").setAttribute("onclick", "submitIndexedGame('add', '"+name+"')");
+  } else if (el.getAttribute("indexed") == "3") {
+    document.getElementById("labelSubmitIndexed").innerHTML = "Your game is in the queue for review. Please wait. You can cancel indexing if you like.<br><br>If your game is indexed, it means that it appears in the catalog of all games on the main page.<br><br>For your game to be accepted. Try to make the game correct (add a menu, fix the most critical bugs, etc.). Also you should add a picture, tags.<br><br>If you are sure that your game is suitable. The check is done manually, so it may take several days.";
+    document.getElementById("buttonAgreeSubmitIndexed").innerHTML = "cancel indexing";
+    document.getElementById("buttonAgreeSubmitIndexed").setAttribute("onclick", "submitIndexedGame('cancel', '"+name+"')");
+  } else if (el.getAttribute("indexed") == "4") {
+    document.getElementById("labelSubmitIndexed").innerHTML = "Your game is indexed and located in the games catalog. You can remove it from the catalog if you want.";
+    document.getElementById("buttonAgreeSubmitIndexed").innerHTML = "cancel indexing";
+    document.getElementById("buttonAgreeSubmitIndexed").setAttribute("onclick", "submitIndexedGame('cancel', '"+name+"')");
+  }
+
+  hideSettingsGameWindow();
+  setTimeout(function() {
+    showSubmitIndexedWindow();
+  }, 200);
+}
+
+function fromSubmitIndexToSettings() {
+  hideSubmitIndexedWindow();
+  setTimeout(function() {
+    showSettingsGameWindow();
+  }, 200);
+}
+
+function submitIndexedGame(type, name) {
+
+  socket.emit('submitIndexedGame', dataUser, type, name);
+
+  if (type == "cancel") {
+    document.getElementById("indexedSettingsGame").innerHTML = "";
+    document.getElementById("indexedSettingsGame").style.color = "#333";
+    document.getElementById("buttonSwitchIndexedSettingsGame").setAttribute("active", "0");
+    document.getElementById("buttonSwitchIndexedSettingsGame").setAttribute("indexed", "1");
+  } else if (type == "add") {
+    document.getElementById("indexedSettingsGame").innerHTML = "awaiting approval";
+    document.getElementById("indexedSettingsGame").style.color = "#ff9900";
+    document.getElementById("buttonSwitchIndexedSettingsGame").setAttribute("active", "1");
+    document.getElementById("buttonSwitchIndexedSettingsGame").setAttribute("indexed", "3");
+  }
+  fromSubmitIndexToSettings();
+}
+
+function showSubmitIndexedWindow() {
+  document.getElementById('backSubmitIndexed').style.display = 'flex';
+  setTimeout(function() {
+    document.getElementById('backSubmitIndexed').style.opacity = '1';
+    document.getElementById('blockSubmitIndexed').style.transform = 'translateY(0px)';
+    document.getElementById('strokeSubmitIndexed').style.transform = 'translateY(0px)';
+  }, 10);
+}
+function hideSubmitIndexedWindow() {
+  document.getElementById('backSubmitIndexed').style.opacity = '0';
+  document.getElementById('blockSubmitIndexed').style.transform = 'translateY(-40px)';
+  document.getElementById('strokeSubmitIndexed').style.transform = 'translateY(40px)';
+  setTimeout(function() {
+    document.getElementById('backSubmitIndexed').style.display = 'none';
+  }, 200);
+}
+var downPressSubmitIndexed = false;
+window.addEventListener("mousedown", function(e) {
+  if (document.getElementById('blockSubmitIndexed') != e.target && !isChild(document.getElementById('blockSubmitIndexed'), e.target) && document.getElementById('backSubmitIndexed').style.display == 'flex') {
+    downPressSubmitIndexed = true;
+  } else {
+    downPressSubmitIndexed = false;
+  }
+});
+window.addEventListener("mouseup", function(e) {
+  if (document.getElementById('blockSubmitIndexed') != e.target && !isChild(document.getElementById('blockSubmitIndexed'), e.target) && downPressSubmitIndexed) {
+    hideSubmitIndexedWindow();
+  } else {
+    downPressSubmitIndexed = false;
+  }
+});

@@ -53,7 +53,7 @@ app.get('*', function(request, respons, next) {
   next();
 });
 app.get('/', function(request, respons) {
-  respons.sendFile(__dirname+'/games/cannons/index.html');
+  respons.sendFile(__dirname+'/home/index.html');
 });
 app.get('/resource/*', function(request, respons) {
   urlRequest = request.originalUrl;
@@ -1875,6 +1875,74 @@ io.sockets.on('connection', function(socket) {
     });
   });
 
+  socket.on('getTags1', function() {
+
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM gameTags ORDER BY sort ASC", function (err1, result1, fields1) {
+        if (result1[0]) {
+          io.to(socket.id).emit('getTags2', result1);
+        }
+      });
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
+    });
+  });
+
+  socket.on('getGamesFilter1', function(filter, package) {
+
+    var regexpTags = "^.*$";
+    var orderby = "DESC";
+    if (filter && filter !== null) {
+      if (filter.tag != "all") {
+        for (var i = 0; i < filter.tag.length; i++) {
+          var currRegexp = "";
+          if (i == 0) {
+            currRegexp = "^"+filter.tag[i]+"$|^.*,"+filter.tag[i]+"$|^"+filter.tag[i]+",.*$|^.*,"+filter.tag[i]+",.*$";
+          } else {
+            currRegexp = "|^"+filter.tag[i]+"$|^.*,"+filter.tag[i]+"$|^"+filter.tag[i]+",.*$|^.*,"+filter.tag[i]+",.*$";
+          }
+
+          regexpTags += currRegexp;
+        }
+      }
+
+      if (filter.sort == "new") {
+        orderby = "DESC";
+      } else if (filter.sort == "old") {
+        orderby = "ASC";
+      }
+    }
+
+    var p = 0;
+    if (package) {
+      p = package;
+    }
+
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM games WHERE tags REGEXP '("+regexpTags+")' AND indexed = '4' ORDER BY dateCreate "+orderby+" LIMIT 20 OFFSET "+(20*p), function (err1, result1, fields1) {
+        if (!err1) {
+          io.to(socket.id).emit('getGamesFilter2', result1);
+        }
+      });
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
+    });
+  });
+
   socket.on('getFoldersGames1', function(user, studioId) {
     var connection = mysql.createConnection({
       host: "vh50.timeweb.ru",
@@ -1959,6 +2027,41 @@ io.sockets.on('connection', function(socket) {
     });
 
     }
+  });
+
+  socket.on('changeNameGame1', function(user, oldName, newName) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM users WHERE id='"+user.id+"'", function (err1, result1, fields1) {
+        if (result1[0] && testUser(user, result1[0])) {
+          connection.query("SELECT * FROM games WHERE name='"+oldName+"'", function (err2, result2, fields2) {
+            if (result2[0] && fs.existsSync(__dirname+'/games/'+oldName)) {
+              connection.query("SELECT * FROM games WHERE name='"+newName+"'", function (err3, result3, fields3) {
+                if (!result3[0] && !fs.existsSync(__dirname+'/games/'+newName)) {
+                  connection.query("UPDATE games SET `name` = '"+newName+"' WHERE name='"+oldName+"'", function (err4, result4, fields4) {
+                    if (!err4) {
+                      fs.renameSync(__dirname+'/games/'+oldName, __dirname+'/games/'+newName);
+                      io.to(socket.id).emit('changeNameGame2', true);
+                      io.to(socket.id).emit('refillPage');
+                    }
+                  });
+                } else {
+                  io.to(socket.id).emit('changeNameGame2', false, "this game already exists");
+                }
+              });
+            }
+          });
+        }
+      });
+      setTimeout(function() {
+        connection.end();
+      }, 2500);
+    });
   });
 
   socket.on('createGame1', function(user, studioId, name) {
@@ -2395,6 +2498,12 @@ io.sockets.on('connection', function(socket) {
           answer[i] = {};
           answer[i].name = result1[i].name;
           answer[i].iframe = result1[i].iframe;
+          answer[i].tags = result1[i].tags;
+          answer[i].preview = false;
+          if (fs.existsSync(__dirname+'/games/'+answer[i].name+'/gmer/preview.png')) {
+            answer[i].preview = true;
+          }
+          answer[i].indexed = result1[i].indexed;
         }
         io.to(socket.id).emit('getTagIframes2', answer);
       }
@@ -2402,6 +2511,145 @@ io.sockets.on('connection', function(socket) {
     setTimeout(function() {
         connection.end();
     }, 1500);
+  });
+
+  socket.on('uploadPreview', function(user, gameName, file) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM users WHERE id='"+user.id+"'", function (err1, result1, fields1) {
+        if (result1[0] && testUser(user, result1[0])) {
+          if (fs.existsSync(__dirname+'/games/'+gameName)) {
+            if (!fs.existsSync(__dirname+'/games/'+gameName+'/gmer')) {
+              fs.mkdirSync(__dirname+'/games/'+gameName+'/gmer');
+            }
+            fs.writeFileSync(__dirname+'/games/'+gameName+'/gmer/preview.png', file);
+            io.to(socket.id).emit('refillPage');
+          }
+        }
+      });
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
+    });
+  });
+
+  socket.on('removePreview', function(user, gameName) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM users WHERE id='"+user.id+"'", function (err1, result1, fields1) {
+        if (result1[0] && testUser(user, result1[0])) {
+          if (fs.existsSync(__dirname+'/games/'+gameName+'/gmer/preview.png')) {
+            fs.unlinkSync(__dirname+'/games/'+gameName+'/gmer/preview.png');
+            io.to(socket.id).emit('refillPage');
+          }
+        }
+      });
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
+    });
+  });
+
+  socket.on('submitIndexedGame', function(user, type, gameName) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM users WHERE id='"+user.id+"'", function (err1, result1, fields1) {
+        if (result1[0] && testUser(user, result1[0])) {
+          if (type == "add") {
+            var transporter = nodemailer.createTransport({
+              host: "smtp.timeweb.ru",
+              port: 2525,
+              secure: false,
+              auth: {
+                user: 'admin@gmer.io',
+                pass: 'XPgfR7A8'
+              }
+            });
+            var mailOptions = {
+  					  from: 'admin@gmer.io',
+  					  to: 'playawra@gmail.com',
+  					  subject: 'add index game gmerio',
+  					  html: "Add my game to index.<br><br>My id: "+result1[0].id+"<br>My mail: "+result1[0].email+"<br>Game name: "+gameName
+  					};
+  					transporter.sendMail(mailOptions, function(error, info) {
+  					  if (!error) {
+                connection.query("UPDATE games SET `indexed` = '3' WHERE name = '"+gameName+"'", function (err2, result2, fields2) {
+                  if (!err2) {
+                    io.to(socket.id).emit('refillPage');
+                  }
+                });
+  					  }
+  					});
+          } else if (type == "cancel") {
+            connection.query("UPDATE games SET `indexed` = '2' WHERE name='"+gameName+"'", function (err2, result2, fields2) {
+              if (!err2) {
+                io.to(socket.id).emit('refillPage');
+              }
+            });
+          }
+        }
+      });
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
+    });
+  });
+
+  socket.on('changeTagsGame1', function(user, nameGame, tags) {
+    var connection = mysql.createConnection({
+      host: "vh50.timeweb.ru",
+      user: "totarget_gmerio",
+      password: "Jc3FiReQ",
+      database: "totarget_gmerio"
+    });
+
+    connection.connect(function(err) {
+      connection.query("SELECT * FROM users WHERE id='"+user.id+"'", function (err1, result1, fields1) {
+        if (result1[0] && testUser(user, result1[0])) {
+          connection.query("SELECT * FROM gameTags", function (err2, result2, fields2) {
+            if (result2[0]) {
+              var flagFirst = true;
+              var idsTags = "";
+              for (var i = 0; i < tags.length; i++) {
+                for (var j = 0; j < result2.length; j++) {
+                  if (result2[j].name == tags[i]) {
+                    if (flagFirst) {
+                      idsTags += result2[j].id;
+                      flagFirst = false;
+                      break;
+                    }
+                    idsTags += ","+result2[j].id;
+                    break;
+                  }
+                }
+              }
+              connection.query("UPDATE games SET `tags` = '"+idsTags+"' WHERE name='"+nameGame+"'", function (err3, result3, fields3) {});
+            }
+          });
+        }
+      });
+      setTimeout(function() {
+          connection.end();
+      }, 1500);
+    });
   });
 
   socket.on('switchIframe', function(user, flag, nameGame, link) {

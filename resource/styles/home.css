@@ -1,0 +1,136 @@
+body {
+  margin: 0px;
+  padding: 0px;
+  font-family: Arial;
+}
+#listOfGames {
+  max-width: 1200px;
+  width: 90%;
+  margin: 40px auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  transform: scale(0);
+  transition: all ease 0.2s;
+}
+.gameBlock {
+  margin: 20px;
+  max-width: 250px;
+  width: 100%;
+  height: 300px;
+  border: 1px solid #999;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+.imgGame {
+  width: 100%;
+  height: 200px;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  border-radius: 15px;
+  transform: scale(1.1);
+  margin-bottom: 20px;
+}
+.nameGame, .authorGame {
+  color: #333;
+  align-self: flex-end;
+  margin: 10px;
+  font-size: 14px;
+  font-weight: bold;
+}
+.authorGame {
+  font-weight: normal;
+}
+.buttonPlay {
+  text-decoration: none;
+  align-self: flex-end;
+  background-color: #ce0000;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 14px;
+  margin-right: -10px;
+  margin-bottom: -15px;
+  cursor: pointer;
+}
+#nextGames {
+  max-width: 1200px;
+  width: 90%;
+  margin: 50px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transform: scale(0);
+  transition: all ease 0.2s;
+}
+#buttonMoreGames {
+  padding: 20px;
+  font-size: 14px;
+  color: #005fc3;
+  cursor: pointer;
+  transition: all ease 0.2s;
+}
+#buttonMoreGames:hover {
+  color: #5aaaff;
+}
+#filterGames {
+  max-width: 1200px;
+  width: 90%;
+  margin: 50px auto;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: flex-start;
+  transform: scale(0);
+  transition: all ease 0.2s;
+}
+#blockFilterTags, #blockFilterSort {
+  margin: 0px 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+#titleTagsBlock, #titleSortBlock {
+  color: #333;
+  font-weight: bold;
+  font-size: 18px;
+}
+#listTagsBlock {
+  margin: 10px;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+.columnTag {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+#listSortBlock {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+.stringTag, .stringSort {
+  margin: 5px;
+  margin-right: 15px;
+  font-size: 14px;
+  color: #999;
+  cursor: pointer;
+  transition: all ease 0.2s;
+}
+.stringTag[active="1"], .stringSort[active="1"] {
+  color: #ce0000;
+}
