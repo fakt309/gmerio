@@ -32,7 +32,7 @@ function setMenu(user, studio) {
 
   var profileString = document.createElement("div");
   profileString.setAttribute("id", "profileString");
-  if (userData == null) {
+  if (userData == null || !userData) {
     profileString.innerHTML = "<a id='buttonSignupin' href='/u'>Sign in/up</a>"
   } else {
     profileString.innerHTML = "<a id='buttonProfile' href='/u/"+userData.id+"'>"+userData.name+" (id: "+userData.id+")</a>"

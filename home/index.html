@@ -42,6 +42,7 @@
         socket.emit('authorization', signinMail, getDeviceData());
       }
       socket.on('authorization2', function(user) {
+        console.log(user);
         userData = user;
         socket.emit('haveIStudio1', user.id);
       });
